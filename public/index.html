@@ -8,21 +8,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="login" id="login" hidden>
-      <form class="login-card" id="login-form">
-        <div class="login-brand">🚗</div>
-        <h1>MigrationGPT</h1>
-        <p>Asistente de operación del portal Ticket Car+</p>
-        <label for="login-email">Correo</label>
-        <input id="login-email" type="email" autocomplete="username" required />
-        <label for="login-password">Contraseña</label>
-        <input id="login-password" type="password" autocomplete="current-password" required />
-        <p class="login-error" id="login-error" role="alert"></p>
-        <button class="primary-button" id="login-submit" type="submit">Iniciar sesión</button>
-      </form>
-    </main>
-
-    <div class="app" id="app" hidden>
+    <div class="app" id="app">
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-top">
           <button class="new-chat" id="new-chat" type="button">
@@ -33,12 +19,8 @@
         <div class="sidebar-bottom">
           <button class="ghost-button" id="open-materials" type="button">📕 Guías PDF</button>
           <button class="ghost-button" id="open-library" type="button">📚 Base de conocimiento</button>
-          <button class="ghost-button" id="reindex" type="button">Reindexar base</button>
+          <button class="ghost-button" id="reindex" type="button">Publicar guías</button>
           <div class="status" id="status">Comprobando...</div>
-          <div class="user-row">
-            <span class="user-email" id="user-email"></span>
-            <button class="link-button" id="sign-out" type="button">Cerrar sesión</button>
-          </div>
         </div>
       </aside>
 
@@ -85,7 +67,7 @@
         <header class="modal-head">
           <div class="title">
             <strong>Base de conocimiento</strong>
-            <span>Consulta, edita y sube el contexto que usa el agente</span>
+            <span>Consulta y edita las guías que usa el asistente</span>
           </div>
           <button class="icon-button" type="button" data-close-library aria-label="Cerrar">×</button>
         </header>
@@ -94,7 +76,7 @@
           <div class="library-tree">
             <div class="tree-actions">
               <button class="ghost-button" id="new-md" type="button">+ Nuevo .md</button>
-              <button class="ghost-button" id="upload-button" type="button">⬆ Subir documentos</button>
+              <button class="ghost-button" id="upload-button" type="button" hidden>⬆ Subir documentos</button>
               <input
                 type="file"
                 id="file-input"
@@ -122,7 +104,7 @@
 
         <footer class="modal-foot">
           <span class="status" id="library-status"></span>
-          <button class="primary-button" id="library-reindex" type="button">Guardar y reindexar</button>
+          <button class="primary-button" id="library-reindex" type="button">Guardar y publicar</button>
         </footer>
       </div>
     </div>

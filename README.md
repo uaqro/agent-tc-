@@ -1,58 +1,56 @@
-# MigrationGPT · Front
+# MigrationGPT · Asistente del portal Ticket Car+
 
-Interfaz web (HTML/CSS/JS sin build) del asistente de operación del portal **Ticket Car+**.
+Asistente que responde **cómo operar el portal web Ticket Car+**, desplegado completo en
+**Netlify**: sitio estático + Edge Function de chat + Function de API. Es de acceso público
+(sin login), con límite de peticiones por IP.
 
-Este repositorio contiene **solo el front**. No guarda secretos: las llaves del modelo de
-lenguaje, la base de conocimiento y las guías PDF viven en el backend privado, que valida
-cada petición con **Supabase Auth**.
+Este repositorio **no contiene secretos ni la base de conocimiento**:
+
+- Las llaves (Anthropic, etc.) viven en las **variables de entorno de Netlify**.
+- Las guías y los PDF viven en **Netlify Blobs** (privado), se cargan con `npm run seed`.
 
 ## Arquitectura
 
 ```
-Navegador ──(login)──▶ Supabase Auth ──▶ access_token (JWT)
-    │
-    └──(Authorization: Bearer <token>)──▶ Backend FastAPI (privado)
-                                              ├─ valida el token con Supabase
-                                              ├─ llaves del LLM en variables de entorno del host
-                                              └─ guías, índice y PDFs
+Navegador
+   │
+   ├─ POST /api/chat/stream  ▶ Edge Function (netlify/edge-functions/chat.ts)
+   │                             límite por IP → Claude (streaming, guías en el prompt cacheado)
+   └─ /api/*                 ▶ Function (netlify/functions/api.mts)
+                                 estado, PDFs (descarga), editor de guías (solo con ADMIN_TOKEN)
+                                        │
+                                        └─ Netlify Blobs "tcplus": guides/, pdf/, bundle.json
 ```
 
-- **Usuarios:** chatean y descargan las guías PDF.
-- **Administradores:** además editan la base de conocimiento, suben PDFs y reindexan. El backend
-  lo exige; el front solo oculta los botones.
+- **Cualquier visitante:** chatea (15 mensajes por minuto por IP) y descarga las guías PDF.
+- **Administración** (editar guías, subir PDFs, publicar): desactivada salvo que exista la
+  variable `ADMIN_TOKEN` y la petición la envíe como `Authorization: Bearer`. Lo normal es
+  actualizar las guías con `npm run seed`.
+- El historial de cada conversación se guarda en el navegador y se envía con cada mensaje.
 
-## Configuración
+## Variables de entorno (Netlify)
 
-Edita `config.js`:
-
-| Campo | Valor |
+| Variable | Descripción |
 | --- | --- |
-| `API_BASE_URL` | URL del backend (en local, `http://127.0.0.1:8000`) |
-| `SUPABASE_URL` | URL del proyecto de Supabase |
-| `SUPABASE_PUBLISHABLE_KEY` | Llave **publicable** (`sb_publishable_...`), pensada para el navegador |
+| `ANTHROPIC_API_KEY` | Llave de Anthropic (secreta) |
+| `ANTHROPIC_MODEL` | Modelo de Claude |
+| `ANTHROPIC_MAX_TOKENS` | Máximo de tokens por respuesta |
+| `ADMIN_TOKEN` | Opcional. Habilita las funciones de administración por API |
 
-Nunca pongas aquí la llave `service_role`/`secret` de Supabase ni llaves del LLM.
-
-## Ejecutar en local
+## Cargar o actualizar guías y PDF
 
 ```bash
-python3 -m http.server 5173
+NETLIFY_SITE_ID=<id> NETLIFY_AUTH_TOKEN=<token> \
+  npm run seed -- --guides <carpeta de guías .md> --pdfs <carpeta de PDF>
 ```
 
-Abre <http://localhost:5173>. El origen del front debe estar en `CORS_ORIGINS` del backend.
+Cada guía es un markdown con frontmatter (`titulo`, `modulo`, `ruta`, `pdf`). Los PDF listados
+en `pdf` aparecen como botón **Descargar PDF** bajo las respuestas que citan la guía.
 
-## Publicar
+## Desarrollo local
 
-Es un sitio estático: sirve la carpeta tal cual (GitHub Pages, Netlify, Vercel, etc.).
-Después:
-
-1. Cambia `API_BASE_URL` a la URL pública del backend (HTTPS).
-2. Agrega la URL del front a `CORS_ORIGINS` en el backend.
-3. En Supabase, agrega la URL del front en **Authentication > URL Configuration**.
-
-## Supabase
-
-- **Authentication > Providers > Email:** desactiva *Allow new users to sign up* y crea los
-  usuarios desde **Authentication > Users** (o invítalos).
-- **Administradores:** agrega su correo en `ADMIN_EMAILS` del backend, o define
-  `app_metadata.role = "admin"` en el usuario.
+```bash
+npm install
+netlify link        # una vez
+netlify dev         # http://localhost:8888
+```

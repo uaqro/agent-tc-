@@ -1,4 +1,4 @@
-import { apiFetch } from "./auth.js";
+import { apiFetch } from "./api.js";
 
 /** Panel "Base de conocimiento": explorar carpetas, editar .md y subir documentos. */
 
@@ -141,7 +141,7 @@ async function saveCurrent() {
       body: JSON.stringify({ path: current.path, content: el.editor.value }),
     });
     setDirty(false);
-    setStatus(`Guardado: ${current.path}. Reindexa para aplicar los cambios.`);
+    setStatus(`Guardado y publicado: ${current.path}.`);
     await refreshTree(current.path);
   } catch (error) {
     setStatus(error.message, true);
@@ -180,7 +180,7 @@ el.remove.addEventListener("click", async () => {
     await request(`/api/knowledge/file?path=${encodeURIComponent(current.path)}`, {
       method: "DELETE",
     });
-    setStatus(`Eliminado: ${current.path}. Reindexa para aplicar los cambios.`);
+    setStatus(`Eliminado: ${current.path}.`);
     clearEditor();
     await refreshTree(null);
   } catch (error) {
@@ -228,10 +228,10 @@ el.dropzone.addEventListener("drop", (event) => uploadFiles(event.dataTransfer?.
 el.reindex.addEventListener("click", async () => {
   if (dirty) await saveCurrent();
   el.reindex.disabled = true;
-  setStatus("Reindexando...");
+  setStatus("Publicando...");
   try {
     const data = await request("/api/ingest", { method: "POST" });
-    setStatus(`${data.chunks} fragmentos de ${data.documents} documento(s) indexados.`);
+    setStatus(`${data.documents} guía(s) publicadas.`);
     onChange();
   } catch (error) {
     setStatus(error.message, true);

@@ -1,4 +1,4 @@
-import { apiFetch, downloadFile } from "./auth.js";
+import { apiFetch, downloadFile } from "./api.js";
 
 /** Panel "Guías PDF": lista, descarga y carga de los materiales de `knowledge_pdf/`. */
 

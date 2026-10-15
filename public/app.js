@@ -1,10 +1,9 @@
-import { apiFetch, currentSession, setSignedOutHandler, signIn, signOut } from "./auth.js";
+import { apiFetch } from "./api.js";
 import { renderMarkdown } from "./markdown.js";
 import { openLibrary } from "./library.js";
-import { closeMaterials, downloadLink, openMaterials, setMaterialsAdmin } from "./materials.js";
+import { downloadLink, openMaterials, setMaterialsAdmin } from "./materials.js";
 
-const STORAGE_PREFIX = "migrationgpt.conversations";
-let storageKey = STORAGE_PREFIX;
+const STORAGE_KEY = "migrationgpt.conversations";
 
 const el = {
   thread: document.getElementById("thread"),
@@ -21,24 +20,15 @@ const el = {
   status: document.getElementById("status"),
   sidebar: document.getElementById("sidebar"),
   toggleSidebar: document.getElementById("toggle-sidebar"),
-  app: document.getElementById("app"),
-  login: document.getElementById("login"),
-  loginForm: document.getElementById("login-form"),
-  loginEmail: document.getElementById("login-email"),
-  loginPassword: document.getElementById("login-password"),
-  loginError: document.getElementById("login-error"),
-  loginSubmit: document.getElementById("login-submit"),
-  userEmail: document.getElementById("user-email"),
-  signOut: document.getElementById("sign-out"),
 };
 
-let conversations = [];
-let activeId = null;
+let conversations = load();
+let activeId = conversations[0]?.id ?? null;
 let streaming = false;
 
 function load() {
   try {
-    const parsed = JSON.parse(localStorage.getItem(storageKey) ?? "[]");
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -47,7 +37,7 @@ function load() {
 
 function persist() {
   try {
-    localStorage.setItem(storageKey, JSON.stringify(conversations));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
   } catch {
     // Sin almacenamiento disponible: la conversación sigue en memoria.
   }
@@ -231,10 +221,18 @@ async function send(text) {
     const response = await apiFetch("/api/chat/stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text, session_id: conversation.id }),
+      // El servidor no guarda memoria: se envía el historial previo (sin el mensaje actual).
+      body: JSON.stringify({
+        message: text,
+        history: conversation.messages.slice(0, -1).map(({ role, content }) => ({ role, content })),
+      }),
     });
     if (!response.ok || !response.body) {
-      throw new Error(`Error ${response.status} al contactar al agente.`);
+      throw new Error(
+        response.status === 429
+          ? "Demasiadas preguntas seguidas. Espera un minuto e intenta de nuevo."
+          : `Error ${response.status} al contactar al agente.`,
+      );
     }
 
     for await (const event of sseEvents(response)) {
@@ -295,7 +293,7 @@ async function refreshStatus() {
     applyRole(data);
     el.status.classList.toggle("error", !data.llm_configured);
     el.status.textContent = data.llm_configured
-      ? `${data.indexed_chunks} fragmentos indexados`
+      ? `${data.indexed_chunks} guías cargadas`
       : "El backend no tiene el LLM configurado";
     return data;
   } catch (error) {
@@ -307,7 +305,6 @@ async function refreshStatus() {
 
 /** Las funciones de administración solo se muestran a administradores (el backend también lo exige). */
 function applyRole(me) {
-  el.userEmail.textContent = me.email;
   el.openLibrary.hidden = !me.is_admin;
   el.reindex.hidden = !me.is_admin;
   setMaterialsAdmin(me.is_admin);
@@ -360,13 +357,13 @@ el.openMaterials.addEventListener("click", openMaterials);
 
 el.reindex.addEventListener("click", async () => {
   el.reindex.disabled = true;
-  el.status.textContent = "Reindexando...";
+  el.status.textContent = "Publicando...";
   try {
     const response = await apiFetch("/api/ingest", { method: "POST" });
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail ?? "falló la indexación");
     el.status.classList.remove("error");
-    el.status.textContent = `${data.chunks} fragmentos de ${data.documents} documento(s)`;
+    el.status.textContent = `${data.documents} guías publicadas`;
   } catch (error) {
     el.status.classList.add("error");
     el.status.textContent = error.message;
@@ -379,57 +376,10 @@ el.toggleSidebar.addEventListener("click", () => {
   el.sidebar.classList.toggle("collapsed");
 });
 
-/* ---------- Sesión ---------- */
-
-function showLogin(message = "") {
-  closeMaterials();
-  el.app.hidden = true;
-  el.login.hidden = false;
-  el.loginError.textContent = message;
-  el.loginPassword.value = "";
-  el.loginEmail.focus();
-}
-
-async function startApp(session) {
-  storageKey = `${STORAGE_PREFIX}.${session.user.id}`;
-  conversations = load();
-  activeId = conversations[0]?.id ?? null;
-  el.login.hidden = true;
-  el.app.hidden = false;
-  el.userEmail.textContent = session.user.email ?? "";
-  el.openLibrary.hidden = true;
-  el.reindex.hidden = true;
-  setMaterialsAdmin(false);
-  renderSidebar();
-  renderThread();
-  el.input.focus();
-  const me = await refreshStatus();
-  if (!me && el.status.textContent.includes("acceso")) {
-    await signOut();
-    showLogin("Tu cuenta no tiene acceso a este asistente.");
-  }
-}
-
-el.loginForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  el.loginSubmit.disabled = true;
-  el.loginError.textContent = "";
-  try {
-    const session = await signIn(el.loginEmail.value.trim(), el.loginPassword.value);
-    await startApp(session);
-  } catch (error) {
-    el.loginError.textContent = error.message;
-  } finally {
-    el.loginSubmit.disabled = false;
-  }
-});
-
-el.signOut.addEventListener("click", () => signOut());
-setSignedOutHandler(() => showLogin());
-
-const session = await currentSession();
-if (session) {
-  startApp(session);
-} else {
-  showLogin();
-}
+el.openLibrary.hidden = true;
+el.reindex.hidden = true;
+setMaterialsAdmin(false);
+renderSidebar();
+renderThread();
+refreshStatus();
+el.input.focus();
