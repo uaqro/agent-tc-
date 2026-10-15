@@ -147,8 +147,25 @@ export function pdfTitle(filename: string): string {
   return title.replace(/^[\s.]+|[\s.]+$/g, "") || stem;
 }
 
+/**
+ * El nombre del PDF va en la URL como base64url (solo ASCII): el enrutador de Netlify altera
+ * rutas con `+` o acentos (p. ej. "TC+_Guía_..."), así que no se usa el nombre tal cual.
+ */
+export function pdfId(filename: string): string {
+  const bytes = new TextEncoder().encode(filename.normalize("NFC"));
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+export function pdfNameFromId(id: string): string {
+  const base64 = id.replace(/-/g, "+").replace(/_/g, "/");
+  const binary = atob(base64 + "=".repeat((4 - (base64.length % 4)) % 4));
+  return new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(binary, (char) => char.charCodeAt(0)));
+}
+
 export function pdfUrl(filename: string): string {
-  return `/api/materials/${encodeURIComponent(filename)}`;
+  return `/api/materials/${pdfId(filename)}`;
 }
 
 export function pdfKey(filename: string): string {

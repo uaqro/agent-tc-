@@ -29,6 +29,7 @@ import {
   loadBundle,
   PDF_PREFIX,
   pdfKey,
+  pdfNameFromId,
   pdfTitle,
   pdfUrl,
   store,
@@ -55,10 +56,10 @@ async function listMaterials() {
   return { materials };
 }
 
-async function downloadMaterial(encodedName: string): Promise<Response> {
+async function downloadMaterial(id: string): Promise<Response> {
   let key: string;
   try {
-    key = pdfKey(decodeURIComponent(encodedName));
+    key = pdfKey(pdfNameFromId(id));
   } catch {
     throw new HttpError(404, "El material no existe.");
   }
