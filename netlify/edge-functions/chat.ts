@@ -72,6 +72,10 @@ export default async (req: Request): Promise<Response> => {
   } catch (error) {
     return errorResponse(error);
   }
+  // Sin guías el modelo respondería sin fuente: mejor avisarlo que inventar.
+  if (bundle.guides.length === 0) {
+    return errorResponse(new HttpError(503, "La base de conocimiento aún no está cargada."));
+  }
 
   const config = settings();
   if (!config.anthropicApiKey) return errorResponse(new HttpError(503, "El asistente no está configurado."));

@@ -228,10 +228,11 @@ async function send(text) {
       }),
     });
     if (!response.ok || !response.body) {
+      const detail = (await response.json().catch(() => ({}))).detail;
       throw new Error(
         response.status === 429
           ? "Demasiadas preguntas seguidas. Espera un minuto e intenta de nuevo."
-          : `Error ${response.status} al contactar al agente.`,
+          : (detail ?? `Error ${response.status} al contactar al agente.`),
       );
     }
 
