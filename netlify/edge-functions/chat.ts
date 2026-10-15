@@ -46,19 +46,41 @@ function toMessages(body: ChatBody): Anthropic.MessageParam[] {
   return messages;
 }
 
-/** Guías citadas en la respuesta y sus PDFs descargables. */
-function citations(answer: string, bundle: Bundle) {
-  const cited = bundle.guides.filter((guide) => answer.includes(guide.path));
+function normalize(text: string, dropParentheses = false): string {
+  let value = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (dropParentheses) value = value.replace(/\([^)]*\)/g, " ");
+  return value.replace(/\s+/g, " ").trim();
+}
+
+/** PDFs de las guías que la respuesta nombra en su línea final "Guía relacionada: ...". */
+function relatedDownloads(answer: string, bundle: Bundle) {
+  const marker = normalize(answer).lastIndexOf("guia relacionada");
+  if (marker === -1) return [];
+  const line = normalize(answer).slice(marker);
+  // Primero el título exacto; si el modelo lo abrevió, sin el texto entre paréntesis.
+  let related = bundle.guides.filter((guide) => line.includes(normalize(guide.titulo)));
+  if (related.length === 0) {
+    const loose = normalize(line, true);
+    const matches = bundle.guides.filter((guide) => loose.includes(normalize(guide.titulo, true)));
+    // Si un título está contenido en otro también encontrado, gana el más específico.
+    related = matches.filter(
+      (guide) =>
+        !matches.some(
+          (other) => other !== guide && normalize(other.titulo, true).includes(normalize(guide.titulo, true)),
+        ),
+    );
+  }
+
   const seen = new Set<string>();
   const downloads = [];
-  for (const guide of cited) {
+  for (const guide of related.slice(0, 2)) {
     for (const name of guide.pdf) {
       if (seen.has(name)) continue;
       seen.add(name);
       downloads.push({ name, title: pdfTitle(name), url: pdfUrl(name) });
     }
   }
-  return { sources: cited.map((guide) => guide.path), downloads };
+  return downloads;
 }
 
 export default async (req: Request): Promise<Response> => {
@@ -110,9 +132,7 @@ export default async (req: Request): Promise<Response> => {
         if (final.stop_reason === "refusal") {
           send({ type: "token", text: answer ? "" : "No puedo ayudarte con esa solicitud." });
         }
-        const { sources, downloads } = citations(answer, bundle);
-        send({ type: "sources", sources });
-        send({ type: "downloads", downloads });
+        send({ type: "downloads", downloads: relatedDownloads(answer, bundle) });
         send({ type: "done" });
       } catch (error) {
         console.error("chat error", error);

@@ -20,6 +20,7 @@ const el = {
   status: document.getElementById("status"),
   sidebar: document.getElementById("sidebar"),
   toggleSidebar: document.getElementById("toggle-sidebar"),
+  closeSidebar: document.getElementById("close-sidebar"),
 };
 
 let conversations = load();
@@ -119,23 +120,6 @@ function messageNode(role) {
   return bubble;
 }
 
-function renderSources(bubble, sources) {
-  if (!sources?.length) return;
-  const container = document.createElement("div");
-  container.className = "sources";
-  const label = document.createElement("span");
-  label.className = "sources-label";
-  label.textContent = "Fuentes:";
-  container.appendChild(label);
-  for (const source of sources) {
-    const chip = document.createElement("span");
-    chip.className = "source-chip";
-    chip.textContent = source;
-    container.appendChild(chip);
-  }
-  bubble.appendChild(container);
-}
-
 function renderDownloads(bubble, downloads) {
   if (!downloads?.length) return;
   const container = document.createElement("div");
@@ -160,7 +144,6 @@ function renderThread() {
   for (const message of conversation.messages) {
     const bubble = messageNode(message.role);
     bubble.appendChild(renderMarkdown(message.content));
-    renderSources(bubble, message.sources);
     renderDownloads(bubble, message.downloads);
   }
   scrollToBottom();
@@ -214,7 +197,6 @@ async function send(text) {
 
   setStreaming(true);
   let answer = "";
-  let sources = [];
   let downloads = [];
 
   try {
@@ -245,8 +227,6 @@ async function send(text) {
         body.replaceChildren(renderMarkdown(answer));
         body.classList.add("cursor");
         scrollToBottom();
-      } else if (event.type === "sources") {
-        sources = event.sources ?? [];
       } else if (event.type === "downloads") {
         downloads = event.downloads ?? [];
       } else if (event.type === "error") {
@@ -260,9 +240,8 @@ async function send(text) {
       answer = "_El agente no devolvió contenido._";
       body.replaceChildren(renderMarkdown(answer));
     }
-    renderSources(bubble, sources);
     renderDownloads(bubble, downloads);
-    conversation.messages.push({ role: "assistant", content: answer, sources, downloads });
+    conversation.messages.push({ role: "assistant", content: answer, downloads });
     persist();
   } catch (error) {
     body.classList.remove("cursor");
@@ -376,6 +355,21 @@ el.reindex.addEventListener("click", async () => {
 el.toggleSidebar.addEventListener("click", () => {
   el.sidebar.classList.toggle("collapsed");
 });
+
+/* En móvil el menú se abre encima del contenido: se cierra con la ✕ o al elegir algo. */
+const isMobile = window.matchMedia("(max-width: 820px)");
+
+function closeSidebarOnMobile() {
+  if (isMobile.matches) el.sidebar.classList.add("collapsed");
+}
+
+el.closeSidebar.addEventListener("click", () => el.sidebar.classList.add("collapsed"));
+el.conversations.addEventListener("click", (event) => {
+  if (event.target.closest("button") && !event.target.closest(".conv-delete")) closeSidebarOnMobile();
+});
+el.newChat.addEventListener("click", closeSidebarOnMobile);
+el.openMaterials.addEventListener("click", closeSidebarOnMobile);
+closeSidebarOnMobile();
 
 el.openLibrary.hidden = true;
 el.reindex.hidden = true;

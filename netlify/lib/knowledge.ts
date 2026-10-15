@@ -125,7 +125,8 @@ export async function loadBundle(blobs: Store = store()): Promise<Bundle> {
 /** Texto de todas las guías para el system prompt (estable entre peticiones: se cachea). */
 export function renderKnowledge(bundle: Bundle): string {
   const parts = bundle.guides.map((guide) => {
-    const header = [`<guia archivo="${guide.path}">`, `Título: ${guide.titulo}`];
+    // Sin rutas de archivo: son internas y no deben aparecer en las respuestas.
+    const header = [`<guia titulo="${guide.titulo}">`];
     if (guide.modulo) header.push(`Módulo: ${guide.modulo}`);
     if (guide.ruta) header.push(`Ruta en el portal: ${guide.ruta}`);
     return `${header.join("\n")}\n\n${guide.body}\n</guia>`;

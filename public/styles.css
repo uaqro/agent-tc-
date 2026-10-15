@@ -55,6 +55,17 @@ button {
 
 .sidebar-top {
   padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-close {
+  display: none;
+  flex: 0 0 auto;
+  font-size: 20px;
+  line-height: 1;
+  padding: 8px 10px;
 }
 
 .new-chat {
@@ -459,6 +470,10 @@ button {
     position: absolute;
     z-index: 10;
     height: 100%;
+  }
+
+  .sidebar-close {
+    display: inline-flex;
   }
 }
 
