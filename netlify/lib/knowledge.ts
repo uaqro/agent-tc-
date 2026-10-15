@@ -3,7 +3,8 @@
  *
  * Store "tcplus":
  *   guides/<carpeta>/<archivo>.md   guías curadas con frontmatter (editables por admins)
- *   pdf/<nombre>.pdf                 guías oficiales en PDF para descarga
+ *   pdf/<id>                         guías oficiales en PDF (id = nombre en base64url;
+ *                                    el nombre original va en metadata.name)
  *   bundle.json                      todas las guías ya procesadas, listas para el prompt
  */
 
@@ -168,10 +169,19 @@ export function pdfUrl(filename: string): string {
   return `/api/materials/${pdfId(filename)}`;
 }
 
+export type PdfMeta = { name?: string; size?: number; modified?: string };
+
+/** Valida el nombre original del PDF y devuelve su clave ASCII en Blobs. */
 export function pdfKey(filename: string): string {
   const name = filename.normalize("NFC");
   if (!/\.pdf$/i.test(name) || name.includes("/") || name.includes("\\") || name.startsWith(".")) {
     throw new Error("Nombre de PDF inválido.");
   }
-  return PDF_PREFIX + name;
+  return PDF_PREFIX + pdfId(name);
+}
+
+/** Las claves de Blobs con "+" o acentos no se resuelven igual en todos los entornos. */
+export function pdfKeyFromId(id: string): string {
+  if (!/^[A-Za-z0-9_-]{1,400}$/.test(id)) throw new Error("Id de PDF inválido.");
+  return PDF_PREFIX + id;
 }

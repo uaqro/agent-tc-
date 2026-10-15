@@ -29,7 +29,8 @@ import {
   loadBundle,
   PDF_PREFIX,
   pdfKey,
-  pdfNameFromId,
+  pdfKeyFromId,
+  type PdfMeta,
   pdfTitle,
   pdfUrl,
   store,
@@ -39,8 +40,6 @@ import {
 const MAX_PDF_BYTES = 4.5 * 1024 * 1024;
 const MAX_GUIDE_CHARS = 200_000;
 
-type PdfMeta = { size?: number; modified?: string };
-
 /* ---------- Materiales (PDF) ---------- */
 
 async function listMaterials() {
@@ -48,8 +47,9 @@ async function listMaterials() {
   const { blobs: items } = await blobs.list({ prefix: PDF_PREFIX });
   const materials = [];
   for (const item of items) {
-    const name = item.key.slice(PDF_PREFIX.length);
     const meta = ((await blobs.getMetadata(item.key))?.metadata ?? {}) as PdfMeta;
+    if (!meta.name) continue;
+    const name = meta.name;
     materials.push({ name, title: pdfTitle(name), size: meta.size ?? 0, modified: meta.modified ?? "", url: pdfUrl(name) });
   }
   materials.sort((a, b) => a.title.localeCompare(b.title, "es"));
@@ -59,13 +59,14 @@ async function listMaterials() {
 async function downloadMaterial(id: string): Promise<Response> {
   let key: string;
   try {
-    key = pdfKey(pdfNameFromId(id));
+    key = pdfKeyFromId(id);
   } catch {
     throw new HttpError(404, "El material no existe.");
   }
-  const data = await store().get(key, { type: "arrayBuffer" });
-  if (!data) throw new HttpError(404, "El material no existe.");
-  const name = key.slice(PDF_PREFIX.length);
+  const blob = await store().getWithMetadata(key, { type: "arrayBuffer" });
+  if (!blob) throw new HttpError(404, "El material no existe.");
+  const data = blob.data;
+  const name = (blob.metadata as PdfMeta).name ?? "guia.pdf";
   return new Response(data, {
     headers: {
       "Content-Type": "application/pdf",
@@ -86,9 +87,9 @@ async function uploadMaterials(req: Request) {
       const bytes = new Uint8Array(await entry.arrayBuffer());
       if (bytes.byteLength > MAX_PDF_BYTES) throw new Error(`${entry.name}: supera 4.5 MB.`);
       if (new TextDecoder().decode(bytes.slice(0, 4)) !== "%PDF") throw new Error(`${entry.name}: no es un PDF.`);
-      const metadata: PdfMeta = { size: bytes.byteLength, modified: new Date().toISOString() };
+      const name = entry.name.normalize("NFC");
+      const metadata: PdfMeta = { name, size: bytes.byteLength, modified: new Date().toISOString() };
       await store().set(key, bytes.buffer as ArrayBuffer, { metadata });
-      const name = key.slice(PDF_PREFIX.length);
       saved.push({ name, title: pdfTitle(name), size: bytes.byteLength, url: pdfUrl(name) });
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error));

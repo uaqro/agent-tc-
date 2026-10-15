@@ -11,7 +11,7 @@ import { parseArgs } from "node:util";
 
 import { getStore } from "@netlify/blobs";
 
-import { buildBundle, guideKey, pdfKey, STORE_NAME } from "../netlify/lib/knowledge.ts";
+import { buildBundle, guideKey, PDF_PREFIX, pdfKey, STORE_NAME } from "../netlify/lib/knowledge.ts";
 
 const { values } = parseArgs({ options: { guides: { type: "string" }, pdfs: { type: "string" } } });
 const siteID = process.env.NETLIFY_SITE_ID;
@@ -41,14 +41,18 @@ if (values.guides) {
 }
 
 if (values.pdfs) {
+  // Reemplaza todos los PDF (también limpia claves de formatos anteriores).
+  const { blobs: old } = await blobs.list({ prefix: PDF_PREFIX });
+  for (const item of old) await blobs.delete(item.key);
+
   const files = (await readdir(values.pdfs)).filter((name) => name.toLowerCase().endsWith(".pdf"));
   for (const name of files) {
     const data = await readFile(join(values.pdfs, name));
     const key = pdfKey(name);
     await blobs.set(key, data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer, {
-      metadata: { size: data.byteLength, modified: now },
+      metadata: { name: name.normalize("NFC"), size: data.byteLength, modified: now },
     });
-    console.log("pdf ", key, `${Math.round(data.byteLength / 1024)} KB`);
+    console.log("pdf ", name, `${Math.round(data.byteLength / 1024)} KB`);
   }
 }
 
