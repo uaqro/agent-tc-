@@ -3,3 +3,6 @@ node_modules/
 .DS_Store
 .vscode/
 .env
+
+# Originales de diseño (se publican solo las versiones optimizadas de public/assets)
+/assets/

@@ -296,8 +296,32 @@ button {
 }
 
 .message.assistant .avatar {
-  background: var(--accent-soft);
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+}
+
+/* ---------- Marca DamIAn ---------- */
+.brand-name .ia {
   color: var(--accent);
+}
+
+.brand-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  flex: 0 0 34px;
+}
+
+.welcome-avatar {
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  margin-bottom: 12px;
 }
 
 .bubble {

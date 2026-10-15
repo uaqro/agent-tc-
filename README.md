@@ -1,6 +1,6 @@
-# MigrationGPT · Asistente del portal Ticket Car+
+# DamIAn · Asistente del portal Ticket Car+
 
-Asistente que responde **cómo operar el portal web Ticket Car+**, desplegado completo en
+**DamIAn** es el asistente que responde **cómo operar el portal web Ticket Car+**, desplegado completo en
 **Netlify**: sitio estático + Edge Function de chat + Function de API. Es de acceso público
 (sin login), con límite de peticiones por IP.
 

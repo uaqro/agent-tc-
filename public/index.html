@@ -3,8 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MigrationGPT · Ticket Car+</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>" />
+    <title>DamIAn · Ticket Car+</title>
+    <meta name="description" content="DamIAn, el asistente de operación del portal Ticket Car+." />
+    <link rel="icon" type="image/png" href="assets/damian-favicon.png" />
+    <link rel="apple-touch-icon" href="assets/damian-apple-touch.png" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -28,16 +30,18 @@
       <main class="main">
         <header class="topbar">
           <button class="icon-button" id="toggle-sidebar" type="button" aria-label="Alternar menú">☰</button>
+          <img class="brand-avatar" src="assets/damian-avatar.webp" alt="" width="34" height="34" />
           <div class="title">
-            <strong>MigrationGPT</strong>
+            <strong class="brand-name">Dam<span class="ia">IA</span>n</strong>
             <span>Asistente de operación del portal Ticket Car+</span>
           </div>
         </header>
 
         <section class="thread" id="thread" aria-live="polite">
           <div class="welcome" id="welcome">
-            <h1>MigrationGPT</h1>
-            <p>Pregúntame cómo hacer algo en el portal <strong>Ticket Car+</strong>: te doy la ruta del menú y los pasos, según las guías oficiales.</p>
+            <img class="welcome-avatar" src="assets/damian-avatar-512.webp" alt="Retrato de DamIAn" width="128" height="128" />
+            <h1 class="brand-name">Dam<span class="ia">IA</span>n</h1>
+            <p>Hola, soy DamIAn. Pregúntame cómo hacer algo en el portal <strong>Ticket Car+</strong>: te doy la ruta del menú y los pasos, según las guías oficiales.</p>
             <div class="suggestions" id="suggestions">
               <button type="button">¿Cómo recargo saldo a varios dispositivos con un archivo?</button>
               <button type="button">¿Cómo doy de alta un conductor?</button>

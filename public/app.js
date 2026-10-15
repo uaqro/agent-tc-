@@ -3,7 +3,9 @@ import { renderMarkdown } from "./markdown.js";
 import { openLibrary } from "./library.js";
 import { downloadLink, openMaterials, setMaterialsAdmin } from "./materials.js";
 
-const STORAGE_KEY = "migrationgpt.conversations";
+const STORAGE_KEY = "damian.conversations";
+// Nombre anterior de la app: se migra el historial guardado una sola vez.
+const LEGACY_STORAGE_KEY = "migrationgpt.conversations";
 
 const el = {
   thread: document.getElementById("thread"),
@@ -29,7 +31,9 @@ let streaming = false;
 
 function load() {
   try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+    const parsed = JSON.parse(
+      localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY) ?? "[]",
+    );
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -108,9 +112,16 @@ function messageNode(role) {
   const wrapper = document.createElement("article");
   wrapper.className = `message ${role}`;
 
-  const avatar = document.createElement("div");
-  avatar.className = "avatar";
-  avatar.textContent = role === "user" ? "EU" : "TC";
+  let avatar;
+  if (role === "user") {
+    avatar = document.createElement("div");
+    avatar.textContent = "TÚ";
+  } else {
+    avatar = document.createElement("img");
+    avatar.src = "assets/damian-avatar.webp";
+    avatar.alt = "DamIAn";
+  }
+  avatar.classList.add("avatar");
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
