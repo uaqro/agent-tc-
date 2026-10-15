@@ -184,7 +184,8 @@ function renderPerDay(perDay) {
     });
     root.append(group);
 
-    if (index % labelEvery === 0 || index === rows.length - 1) {
+    // Etiquetas contadas desde el final: el día más reciente siempre lleva fecha y no se enciman.
+    if ((rows.length - 1 - index) % labelEvery === 0) {
       const label = svg("text", { class: "axis-label", x: x + barW / 2, y: height - 8, "text-anchor": "middle" });
       label.textContent = formatDay(row.day);
       root.append(label);

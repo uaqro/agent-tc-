@@ -59,7 +59,13 @@ body.bo {
   color: var(--text);
 }
 
+.bo-main > *,
+.grid-2 > * {
+  min-width: 0;
+}
+
 .bo-main {
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px 16px 40px;
@@ -79,7 +85,7 @@ body.bo {
 /* ---------- Indicadores ---------- */
 .tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
   gap: 12px;
 }
 
@@ -151,7 +157,7 @@ body.bo {
 
 .grid-2 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
   gap: 16px;
 }
 
