@@ -7,12 +7,13 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
-import type { Config } from "@netlify/edge-functions";
+import type { Config, Context } from "@netlify/edge-functions";
 
+import { clientInfo, recordEvent } from "../lib/analytics.ts";
 import { settings } from "../lib/env.ts";
 import { SYSTEM_PROMPT } from "../lib/guidelines.ts";
 import { errorResponse, HttpError } from "../lib/http.ts";
-import { type Bundle, loadBundle, pdfTitle, pdfUrl, renderKnowledge } from "../lib/knowledge.ts";
+import { type Bundle, type Guide, loadBundle, pdfTitle, pdfUrl, renderKnowledge } from "../lib/knowledge.ts";
 
 const MAX_MESSAGE_CHARS = 8_000;
 const MAX_HISTORY_MESSAGES = 20;
@@ -52,8 +53,8 @@ function normalize(text: string, dropParentheses = false): string {
   return value.replace(/\s+/g, " ").trim();
 }
 
-/** PDFs de las guías que la respuesta nombra en su línea final "Guía relacionada: ...". */
-function relatedDownloads(answer: string, bundle: Bundle) {
+/** Guías que la respuesta nombra en su línea final "Guía relacionada: ..." (máximo dos). */
+function relatedGuides(answer: string, bundle: Bundle): Guide[] {
   const marker = normalize(answer).lastIndexOf("guia relacionada");
   if (marker === -1) return [];
   const line = normalize(answer).slice(marker);
@@ -71,9 +72,13 @@ function relatedDownloads(answer: string, bundle: Bundle) {
     );
   }
 
+  return related.slice(0, 2);
+}
+
+function downloadsFor(guides: Guide[]) {
   const seen = new Set<string>();
   const downloads = [];
-  for (const guide of related.slice(0, 2)) {
+  for (const guide of guides) {
     for (const name of guide.pdf) {
       if (seen.has(name)) continue;
       seen.add(name);
@@ -83,7 +88,7 @@ function relatedDownloads(answer: string, bundle: Bundle) {
   return downloads;
 }
 
-export default async (req: Request): Promise<Response> => {
+export default async (req: Request, context: Context): Promise<Response> => {
   if (req.method !== "POST") return errorResponse(new HttpError(405, "Método no permitido."));
 
   let messages: Anthropic.MessageParam[];
@@ -103,6 +108,9 @@ export default async (req: Request): Promise<Response> => {
   if (!config.anthropicApiKey) return errorResponse(new HttpError(503, "El asistente no está configurado."));
   const client = new Anthropic({ apiKey: config.anthropicApiKey });
   const encoder = new TextEncoder();
+  const device = clientInfo(req, context.geo);
+  const question = String((messages.at(-1)?.content as string) ?? "");
+  const startedAt = Date.now();
 
   const body = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -112,6 +120,7 @@ export default async (req: Request): Promise<Response> => {
       controller.enqueue(encoder.encode(": ok\n\n"));
 
       let answer = "";
+      let record: Parameters<typeof recordEvent>[0] = { type: "question", client: device, question };
       try {
         const stream = client.messages.stream({
           model: config.anthropicModel,
@@ -132,8 +141,18 @@ export default async (req: Request): Promise<Response> => {
         if (final.stop_reason === "refusal") {
           send({ type: "token", text: answer ? "" : "No puedo ayudarte con esa solicitud." });
         }
-        send({ type: "downloads", downloads: relatedDownloads(answer, bundle) });
+        const guides = relatedGuides(answer, bundle);
+        send({ type: "downloads", downloads: downloadsFor(guides) });
         send({ type: "done" });
+        record = {
+          ...record,
+          answer,
+          relatedGuides: guides.map((guide) => guide.titulo),
+          status: final.stop_reason === "refusal" ? "refusal" : guides.length ? "ok" : "no_guide",
+          inputTokens: final.usage.input_tokens,
+          outputTokens: final.usage.output_tokens,
+          cacheReadTokens: final.usage.cache_read_input_tokens ?? 0,
+        };
       } catch (error) {
         console.error("chat error", error);
         const message =
@@ -141,8 +160,11 @@ export default async (req: Request): Promise<Response> => {
             ? "El asistente está saturado. Intenta de nuevo en un momento."
             : "Ocurrió un error al procesar tu mensaje.";
         send({ type: "error", message });
+        record = { ...record, answer, status: "error" };
       } finally {
         controller.close();
+        // Se guarda después de responder, sin hacer esperar al usuario.
+        context.waitUntil(recordEvent({ ...record, latencyMs: Date.now() - startedAt }));
       }
     },
   });

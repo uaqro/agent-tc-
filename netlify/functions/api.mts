@@ -6,7 +6,9 @@
  *   GET    /api/me                     estado del asistente
  *   DELETE /api/sessions/:id           no-op (el historial vive en el navegador)
  *   GET    /api/materials              lista de guías PDF
- *   GET    /api/materials/:nombre      descarga
+ *   GET    /api/materials/:nombre      descarga (se registra)
+ *   POST   /api/events                 registra una visita
+ *   GET    /api/stats?days=30          métricas del backoffice
  *
  * Admin (solo con ADMIN_TOKEN, ver lib/auth.ts):
  *   POST   /api/materials              sube PDFs
@@ -15,8 +17,9 @@
  *   POST   /api/ingest                 republica el paquete de guías
  */
 
-import type { Config } from "@netlify/functions";
+import type { Config, Context } from "@netlify/functions";
 
+import { clientInfo, recordEvent, stats } from "../lib/analytics.ts";
 import { isAdmin, requireAdmin } from "../lib/auth.ts";
 import { settings } from "../lib/env.ts";
 import { errorResponse, HttpError, json } from "../lib/http.ts";
@@ -56,7 +59,7 @@ async function listMaterials() {
   return { materials };
 }
 
-async function downloadMaterial(id: string): Promise<Response> {
+async function downloadMaterial(id: string, req: Request, context: Context): Promise<Response> {
   let key: string;
   try {
     key = pdfKeyFromId(id);
@@ -67,6 +70,7 @@ async function downloadMaterial(id: string): Promise<Response> {
   if (!blob) throw new HttpError(404, "El material no existe.");
   const data = blob.data;
   const name = (blob.metadata as PdfMeta).name ?? "guia.pdf";
+  context.waitUntil(recordEvent({ type: "download", client: clientInfo(req, context.geo), pdfName: name }));
   return new Response(data, {
     headers: {
       "Content-Type": "application/pdf",
@@ -176,7 +180,7 @@ async function deleteGuide(url: URL) {
 
 /* ---------- Router ---------- */
 
-async function route(req: Request): Promise<Response> {
+async function route(req: Request, context: Context): Promise<Response> {
   const url = new URL(req.url);
   const path = url.pathname.replace(/\/+$/, "");
   const method = req.method;
@@ -206,7 +210,19 @@ async function route(req: Request): Promise<Response> {
     }
   }
   if (path.startsWith("/api/materials/") && method === "GET") {
-    return downloadMaterial(path.slice("/api/materials/".length));
+    return downloadMaterial(path.slice("/api/materials/".length), req, context);
+  }
+
+  if (path === "/api/events" && method === "POST") {
+    const body = await req.json().catch(() => ({}));
+    if (body.type !== "visit") throw new HttpError(400, "Evento no soportado.");
+    context.waitUntil(recordEvent({ type: "visit", client: clientInfo(req, context.geo) }));
+    return new Response(null, { status: 204 });
+  }
+
+  if (path === "/api/stats" && method === "GET") {
+    const days = Math.min(Math.max(Number(url.searchParams.get("days")) || 30, 1), 365);
+    return json(await stats(days));
   }
 
   if (path === "/api/knowledge" && method === "GET") {
@@ -240,9 +256,9 @@ async function route(req: Request): Promise<Response> {
   throw new HttpError(404, "Ruta no encontrada.");
 }
 
-export default async (req: Request): Promise<Response> => {
+export default async (req: Request, context: Context): Promise<Response> => {
   try {
-    return await route(req);
+    return await route(req, context);
   } catch (error) {
     return errorResponse(error);
   }

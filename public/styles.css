@@ -157,6 +157,11 @@ button {
   gap: 8px;
 }
 
+a.ghost-button {
+  display: block;
+  text-decoration: none;
+}
+
 .ghost-button {
   padding: 8px 10px;
   background: transparent;

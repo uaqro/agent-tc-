@@ -6,8 +6,36 @@ export function apiUrl(path) {
   return `${CONFIG.API_BASE_URL.replace(/\/$/, "")}${path}`;
 }
 
+const DEVICE_KEY = "damian.device";
+
+/** Identificador anónimo y aleatorio de este navegador (para contar dispositivos). */
+function deviceId() {
+  try {
+    let id = localStorage.getItem(DEVICE_KEY);
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem(DEVICE_KEY, id);
+    }
+    return id;
+  } catch {
+    return "sin-almacenamiento";
+  }
+}
+
 export function apiFetch(path, options = {}) {
-  return fetch(apiUrl(path), options);
+  const headers = new Headers(options.headers ?? {});
+  headers.set("X-Device-Id", deviceId());
+  return fetch(apiUrl(path), { ...options, headers });
+}
+
+/** Registra la visita (una vez por carga de página); si falla no afecta la app. */
+export function trackVisit() {
+  apiFetch("/api/events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type: "visit" }),
+    keepalive: true,
+  }).catch(() => {});
 }
 
 /** Descarga un archivo de la API como blob y lo guarda con su nombre original. */

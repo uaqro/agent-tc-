@@ -1,0 +1,349 @@
+/* Backoffice de DamIAn: reutiliza los tokens de styles.css (tema oscuro). */
+
+body.bo {
+  display: block;
+  height: auto;
+  min-height: 100vh;
+  overflow: auto;
+  background: var(--bg);
+}
+
+.bo-head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.bo-brand,
+.bo-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bo-controls {
+  flex-wrap: wrap;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.segmented button {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.segmented button + button {
+  border-left: 1px solid var(--border);
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--panel-hover);
+  color: var(--text);
+}
+
+.bo-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bo-error {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid #ff7a7a;
+  border-radius: 10px;
+  color: #ff7a7a;
+}
+
+/* ---------- Indicadores ---------- */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.tile {
+  background: var(--sidebar-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tile-label {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.tile-value {
+  font-size: 28px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.tile-note {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.tile.live .tile-label::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #3fb37f;
+  vertical-align: 1px;
+}
+
+/* ---------- Tarjetas ---------- */
+.card {
+  background: var(--sidebar-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  min-width: 0;
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-note {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+/* ---------- Columnas: preguntas por día ---------- */
+.chart svg {
+  display: block;
+  width: 100%;
+  height: 220px;
+  overflow: visible;
+}
+
+.chart .grid-line {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.chart .axis-label {
+  fill: var(--text-dim);
+  font-size: 11px;
+}
+
+.chart .bar {
+  fill: var(--accent);
+}
+
+.chart .hit:hover + .bar,
+.chart .bar.active {
+  fill: #ff3348;
+}
+
+.chart .hit {
+  fill: transparent;
+  cursor: default;
+}
+
+/* ---------- Barras horizontales ---------- */
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  font-size: 13px;
+}
+
+.bar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-value {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.bar-track {
+  grid-column: 1 / -1;
+  height: 8px;
+  background: var(--panel);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 0 4px 4px 0;
+  min-width: 2px;
+}
+
+/* ---------- Tabla ---------- */
+.bo-search {
+  min-width: 0;
+  width: min(280px, 100%);
+  padding: 7px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.bo-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.bo-table th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-dim);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.bo-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.bo-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bo-table .muted {
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.bo-table details summary {
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.bo-table .answer {
+  margin: 8px 0 0;
+  padding: 10px;
+  background: var(--panel);
+  border-radius: 8px;
+  color: var(--text-dim);
+  white-space: pre-wrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.badge.ok { color: #3fb37f; }
+.badge.no_guide { color: #e0a43a; }
+.badge.refusal { color: #e0a43a; }
+.badge.error { color: #ff7a7a; }
+
+/* ---------- Tooltip ---------- */
+.bo-tooltip {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  background: var(--panel-hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.bo-tooltip strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.bo-foot {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.bo-foot a {
+  color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .bo-head {
+    padding: 10px 16px;
+  }
+
+  .tile-value {
+    font-size: 24px;
+  }
+}

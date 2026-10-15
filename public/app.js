@@ -1,4 +1,4 @@
-import { apiFetch } from "./api.js";
+import { apiFetch, trackVisit } from "./api.js";
 import { renderMarkdown } from "./markdown.js";
 import { openLibrary } from "./library.js";
 import { downloadLink, openMaterials, setMaterialsAdmin } from "./materials.js";
@@ -213,7 +213,7 @@ async function send(text) {
   try {
     const response = await apiFetch("/api/chat/stream", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Conversation-Id": conversation.id },
       // El servidor no guarda memoria: se envía el historial previo (sin el mensaje actual).
       body: JSON.stringify({
         message: text,
@@ -388,4 +388,5 @@ setMaterialsAdmin(false);
 renderSidebar();
 renderThread();
 refreshStatus();
+trackVisit();
 el.input.focus();
