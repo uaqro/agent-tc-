@@ -1,0 +1,435 @@
+import { apiFetch, currentSession, setSignedOutHandler, signIn, signOut } from "./auth.js";
+import { renderMarkdown } from "./markdown.js";
+import { openLibrary } from "./library.js";
+import { closeMaterials, downloadLink, openMaterials, setMaterialsAdmin } from "./materials.js";
+
+const STORAGE_PREFIX = "migrationgpt.conversations";
+let storageKey = STORAGE_PREFIX;
+
+const el = {
+  thread: document.getElementById("thread"),
+  welcome: document.getElementById("welcome"),
+  suggestions: document.getElementById("suggestions"),
+  composer: document.getElementById("composer"),
+  input: document.getElementById("input"),
+  send: document.getElementById("send"),
+  conversations: document.getElementById("conversations"),
+  newChat: document.getElementById("new-chat"),
+  reindex: document.getElementById("reindex"),
+  openLibrary: document.getElementById("open-library"),
+  openMaterials: document.getElementById("open-materials"),
+  status: document.getElementById("status"),
+  sidebar: document.getElementById("sidebar"),
+  toggleSidebar: document.getElementById("toggle-sidebar"),
+  app: document.getElementById("app"),
+  login: document.getElementById("login"),
+  loginForm: document.getElementById("login-form"),
+  loginEmail: document.getElementById("login-email"),
+  loginPassword: document.getElementById("login-password"),
+  loginError: document.getElementById("login-error"),
+  loginSubmit: document.getElementById("login-submit"),
+  userEmail: document.getElementById("user-email"),
+  signOut: document.getElementById("sign-out"),
+};
+
+let conversations = [];
+let activeId = null;
+let streaming = false;
+
+function load() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(storageKey) ?? "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function persist() {
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(conversations));
+  } catch {
+    // Sin almacenamiento disponible: la conversación sigue en memoria.
+  }
+}
+
+function newId() {
+  return crypto.randomUUID();
+}
+
+function activeConversation() {
+  return conversations.find((conversation) => conversation.id === activeId) ?? null;
+}
+
+function ensureConversation() {
+  let conversation = activeConversation();
+  if (!conversation) {
+    conversation = { id: newId(), title: "Nueva conversación", messages: [] };
+    conversations.unshift(conversation);
+    activeId = conversation.id;
+  }
+  return conversation;
+}
+
+/* ---------- Sidebar ---------- */
+
+function renderSidebar() {
+  el.conversations.replaceChildren();
+  for (const conversation of conversations) {
+    const row = document.createElement("div");
+    row.className = `conv${conversation.id === activeId ? " active" : ""}`;
+
+    const open = document.createElement("button");
+    open.type = "button";
+    open.className = "conv-title";
+    open.textContent = conversation.title;
+    open.addEventListener("click", () => {
+      if (streaming) return;
+      activeId = conversation.id;
+      renderSidebar();
+      renderThread();
+    });
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "conv-delete";
+    remove.textContent = "×";
+    remove.title = "Eliminar conversación";
+    remove.addEventListener("click", async (event) => {
+      event.stopPropagation();
+      if (streaming) return;
+      conversations = conversations.filter((item) => item.id !== conversation.id);
+      if (activeId === conversation.id) activeId = conversations[0]?.id ?? null;
+      persist();
+      renderSidebar();
+      renderThread();
+      await apiFetch(`/api/sessions/${conversation.id}`, { method: "DELETE" }).catch(() => {});
+    });
+
+    row.append(open, remove);
+    el.conversations.appendChild(row);
+  }
+}
+
+/* ---------- Thread ---------- */
+
+function messageNode(role) {
+  const wrapper = document.createElement("article");
+  wrapper.className = `message ${role}`;
+
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = role === "user" ? "EU" : "TC";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+
+  wrapper.append(avatar, bubble);
+  el.thread.appendChild(wrapper);
+  return bubble;
+}
+
+function renderSources(bubble, sources) {
+  if (!sources?.length) return;
+  const container = document.createElement("div");
+  container.className = "sources";
+  const label = document.createElement("span");
+  label.className = "sources-label";
+  label.textContent = "Fuentes:";
+  container.appendChild(label);
+  for (const source of sources) {
+    const chip = document.createElement("span");
+    chip.className = "source-chip";
+    chip.textContent = source;
+    container.appendChild(chip);
+  }
+  bubble.appendChild(container);
+}
+
+function renderDownloads(bubble, downloads) {
+  if (!downloads?.length) return;
+  const container = document.createElement("div");
+  container.className = "sources downloads";
+  const label = document.createElement("span");
+  label.className = "sources-label";
+  label.textContent = "Descargar PDF:";
+  container.appendChild(label);
+  for (const item of downloads) container.appendChild(downloadLink(item));
+  bubble.appendChild(container);
+}
+
+function renderThread() {
+  const conversation = activeConversation();
+  el.thread.replaceChildren();
+
+  if (!conversation || conversation.messages.length === 0) {
+    el.thread.appendChild(el.welcome);
+    return;
+  }
+
+  for (const message of conversation.messages) {
+    const bubble = messageNode(message.role);
+    bubble.appendChild(renderMarkdown(message.content));
+    renderSources(bubble, message.sources);
+    renderDownloads(bubble, message.downloads);
+  }
+  scrollToBottom();
+}
+
+function scrollToBottom() {
+  el.thread.scrollTop = el.thread.scrollHeight;
+}
+
+/* ---------- Streaming ---------- */
+
+async function* sseEvents(response) {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop() ?? "";
+    for (const part of parts) {
+      const payload = part
+        .split("\n")
+        .filter((line) => line.startsWith("data:"))
+        .map((line) => line.slice(5).trim())
+        .join("");
+      if (payload) yield JSON.parse(payload);
+    }
+  }
+}
+
+async function send(text) {
+  const conversation = ensureConversation();
+  if (conversation.messages.length === 0) {
+    conversation.title = text.length > 38 ? `${text.slice(0, 38)}...` : text;
+  }
+  conversation.messages.push({ role: "user", content: text });
+  persist();
+  renderSidebar();
+  renderThread();
+
+  const bubble = messageNode("assistant");
+  const toolChip = document.createElement("div");
+  toolChip.className = "tool-chip";
+  const body = document.createElement("div");
+  body.className = "cursor";
+  bubble.append(body);
+  scrollToBottom();
+
+  setStreaming(true);
+  let answer = "";
+  let sources = [];
+  let downloads = [];
+
+  try {
+    const response = await apiFetch("/api/chat/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text, session_id: conversation.id }),
+    });
+    if (!response.ok || !response.body) {
+      throw new Error(`Error ${response.status} al contactar al agente.`);
+    }
+
+    for await (const event of sseEvents(response)) {
+      if (event.type === "tool") {
+        toolChip.textContent = `🔎 consultando ${event.name}`;
+        if (!toolChip.isConnected) bubble.prepend(toolChip);
+      } else if (event.type === "token") {
+        answer += event.text;
+        body.replaceChildren(renderMarkdown(answer));
+        body.classList.add("cursor");
+        scrollToBottom();
+      } else if (event.type === "sources") {
+        sources = event.sources ?? [];
+      } else if (event.type === "downloads") {
+        downloads = event.downloads ?? [];
+      } else if (event.type === "error") {
+        throw new Error(event.message);
+      }
+    }
+
+    body.classList.remove("cursor");
+    toolChip.remove();
+    if (!answer) {
+      answer = "_El agente no devolvió contenido._";
+      body.replaceChildren(renderMarkdown(answer));
+    }
+    renderSources(bubble, sources);
+    renderDownloads(bubble, downloads);
+    conversation.messages.push({ role: "assistant", content: answer, sources, downloads });
+    persist();
+  } catch (error) {
+    body.classList.remove("cursor");
+    toolChip.remove();
+    const message = document.createElement("p");
+    message.className = "error-text";
+    message.textContent = `⚠️ ${error.message}`;
+    body.replaceChildren(message);
+  } finally {
+    setStreaming(false);
+    scrollToBottom();
+  }
+}
+
+function setStreaming(value) {
+  streaming = value;
+  el.send.disabled = value;
+  el.input.disabled = value;
+  if (!value) el.input.focus();
+}
+
+/* ---------- Health / ingest ---------- */
+
+async function refreshStatus() {
+  try {
+    const response = await apiFetch("/api/me");
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail ?? `Error ${response.status}`);
+    applyRole(data);
+    el.status.classList.toggle("error", !data.llm_configured);
+    el.status.textContent = data.llm_configured
+      ? `${data.indexed_chunks} fragmentos indexados`
+      : "El backend no tiene el LLM configurado";
+    return data;
+  } catch (error) {
+    el.status.classList.add("error");
+    el.status.textContent = error.message.startsWith("Failed") ? "API sin conexión" : error.message;
+    return null;
+  }
+}
+
+/** Las funciones de administración solo se muestran a administradores (el backend también lo exige). */
+function applyRole(me) {
+  el.userEmail.textContent = me.email;
+  el.openLibrary.hidden = !me.is_admin;
+  el.reindex.hidden = !me.is_admin;
+  setMaterialsAdmin(me.is_admin);
+}
+
+/* ---------- Eventos ---------- */
+
+el.composer.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const text = el.input.value.trim();
+  if (!text || streaming) return;
+  el.input.value = "";
+  autoGrow();
+  send(text);
+});
+
+el.input.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    el.composer.requestSubmit();
+  }
+});
+
+function autoGrow() {
+  el.input.style.height = "auto";
+  el.input.style.height = `${Math.min(el.input.scrollHeight, 200)}px`;
+}
+
+el.input.addEventListener("input", autoGrow);
+
+el.suggestions.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button || streaming) return;
+  send(button.textContent.trim());
+});
+
+el.newChat.addEventListener("click", () => {
+  if (streaming) return;
+  const conversation = { id: newId(), title: "Nueva conversación", messages: [] };
+  conversations.unshift(conversation);
+  activeId = conversation.id;
+  persist();
+  renderSidebar();
+  renderThread();
+  el.input.focus();
+});
+
+el.openLibrary.addEventListener("click", () => openLibrary(refreshStatus));
+el.openMaterials.addEventListener("click", openMaterials);
+
+el.reindex.addEventListener("click", async () => {
+  el.reindex.disabled = true;
+  el.status.textContent = "Reindexando...";
+  try {
+    const response = await apiFetch("/api/ingest", { method: "POST" });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail ?? "falló la indexación");
+    el.status.classList.remove("error");
+    el.status.textContent = `${data.chunks} fragmentos de ${data.documents} documento(s)`;
+  } catch (error) {
+    el.status.classList.add("error");
+    el.status.textContent = error.message;
+  } finally {
+    el.reindex.disabled = false;
+  }
+});
+
+el.toggleSidebar.addEventListener("click", () => {
+  el.sidebar.classList.toggle("collapsed");
+});
+
+/* ---------- Sesión ---------- */
+
+function showLogin(message = "") {
+  closeMaterials();
+  el.app.hidden = true;
+  el.login.hidden = false;
+  el.loginError.textContent = message;
+  el.loginPassword.value = "";
+  el.loginEmail.focus();
+}
+
+async function startApp(session) {
+  storageKey = `${STORAGE_PREFIX}.${session.user.id}`;
+  conversations = load();
+  activeId = conversations[0]?.id ?? null;
+  el.login.hidden = true;
+  el.app.hidden = false;
+  el.userEmail.textContent = session.user.email ?? "";
+  el.openLibrary.hidden = true;
+  el.reindex.hidden = true;
+  setMaterialsAdmin(false);
+  renderSidebar();
+  renderThread();
+  el.input.focus();
+  const me = await refreshStatus();
+  if (!me && el.status.textContent.includes("acceso")) {
+    await signOut();
+    showLogin("Tu cuenta no tiene acceso a este asistente.");
+  }
+}
+
+el.loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  el.loginSubmit.disabled = true;
+  el.loginError.textContent = "";
+  try {
+    const session = await signIn(el.loginEmail.value.trim(), el.loginPassword.value);
+    await startApp(session);
+  } catch (error) {
+    el.loginError.textContent = error.message;
+  } finally {
+    el.loginSubmit.disabled = false;
+  }
+});
+
+el.signOut.addEventListener("click", () => signOut());
+setSignedOutHandler(() => showLogin());
+
+const session = await currentSession();
+if (session) {
+  startApp(session);
+} else {
+  showLogin();
+}

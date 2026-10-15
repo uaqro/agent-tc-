@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MigrationGPT · Ticket Car+</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="login" id="login" hidden>
+      <form class="login-card" id="login-form">
+        <div class="login-brand">🚗</div>
+        <h1>MigrationGPT</h1>
+        <p>Asistente de operación del portal Ticket Car+</p>
+        <label for="login-email">Correo</label>
+        <input id="login-email" type="email" autocomplete="username" required />
+        <label for="login-password">Contraseña</label>
+        <input id="login-password" type="password" autocomplete="current-password" required />
+        <p class="login-error" id="login-error" role="alert"></p>
+        <button class="primary-button" id="login-submit" type="submit">Iniciar sesión</button>
+      </form>
+    </main>
+
+    <div class="app" id="app" hidden>
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-top">
+          <button class="new-chat" id="new-chat" type="button">
+            <span class="plus">+</span> Nueva conversación
+          </button>
+        </div>
+        <nav class="conversations" id="conversations" aria-label="Conversaciones"></nav>
+        <div class="sidebar-bottom">
+          <button class="ghost-button" id="open-materials" type="button">📕 Guías PDF</button>
+          <button class="ghost-button" id="open-library" type="button">📚 Base de conocimiento</button>
+          <button class="ghost-button" id="reindex" type="button">Reindexar base</button>
+          <div class="status" id="status">Comprobando...</div>
+          <div class="user-row">
+            <span class="user-email" id="user-email"></span>
+            <button class="link-button" id="sign-out" type="button">Cerrar sesión</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <button class="icon-button" id="toggle-sidebar" type="button" aria-label="Alternar menú">☰</button>
+          <div class="title">
+            <strong>MigrationGPT</strong>
+            <span>Asistente de operación del portal Ticket Car+</span>
+          </div>
+        </header>
+
+        <section class="thread" id="thread" aria-live="polite">
+          <div class="welcome" id="welcome">
+            <h1>MigrationGPT</h1>
+            <p>Pregúntame cómo hacer algo en el portal <strong>Ticket Car+</strong>: te doy la ruta del menú y los pasos, según las guías oficiales.</p>
+            <div class="suggestions" id="suggestions">
+              <button type="button">¿Cómo recargo saldo a varios dispositivos con un archivo?</button>
+              <button type="button">¿Cómo doy de alta un conductor?</button>
+              <button type="button">¿Cómo bloqueo una tarjeta o TAG?</button>
+              <button type="button">Quiero descargar la guía de Nota Vale en PDF</button>
+            </div>
+          </div>
+        </section>
+
+        <footer class="composer-wrap">
+          <form class="composer" id="composer">
+            <textarea
+              id="input"
+              rows="1"
+              placeholder="¿Qué quieres hacer en el portal Ticket Car+?"
+              autocomplete="off"
+            ></textarea>
+            <button class="send" id="send" type="submit" aria-label="Enviar">➤</button>
+          </form>
+          <p class="disclaimer">Solo responde cómo operar el portal, con base en las guías oficiales indexadas.</p>
+        </footer>
+      </main>
+    </div>
+
+    <div class="modal" id="library-modal" hidden>
+      <div class="modal-backdrop" data-close-library></div>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-label="Base de conocimiento">
+        <header class="modal-head">
+          <div class="title">
+            <strong>Base de conocimiento</strong>
+            <span>Consulta, edita y sube el contexto que usa el agente</span>
+          </div>
+          <button class="icon-button" type="button" data-close-library aria-label="Cerrar">×</button>
+        </header>
+
+        <div class="library" id="dropzone">
+          <div class="library-tree">
+            <div class="tree-actions">
+              <button class="ghost-button" id="new-md" type="button">+ Nuevo .md</button>
+              <button class="ghost-button" id="upload-button" type="button">⬆ Subir documentos</button>
+              <input
+                type="file"
+                id="file-input"
+                multiple
+                hidden
+                accept=".md,.markdown,.txt,.pdf,.docx"
+              />
+            </div>
+            <div class="tree" id="tree"></div>
+          </div>
+
+          <div class="library-editor">
+            <div class="editor-head">
+              <span class="editor-path" id="editor-path">Ningún archivo seleccionado</span>
+              <div class="editor-actions">
+                <button class="ghost-button" id="save-file" type="button" disabled>Guardar</button>
+                <button class="ghost-button danger" id="delete-file" type="button" disabled>Eliminar</button>
+              </div>
+            </div>
+            <textarea id="editor" spellcheck="false" placeholder="Selecciona un archivo .md para editarlo..." disabled></textarea>
+          </div>
+
+          <div class="drop-overlay" id="drop-overlay">Suelta los archivos para subirlos</div>
+        </div>
+
+        <footer class="modal-foot">
+          <span class="status" id="library-status"></span>
+          <button class="primary-button" id="library-reindex" type="button">Guardar y reindexar</button>
+        </footer>
+      </div>
+    </div>
+
+    <div class="modal" id="materials-modal" hidden>
+      <div class="modal-backdrop" data-close-materials></div>
+      <div class="modal-card materials-card" role="dialog" aria-modal="true" aria-label="Guías PDF">
+        <header class="modal-head">
+          <div class="title">
+            <strong>Guías PDF</strong>
+            <span>Materiales oficiales de operación del portal, listos para descargar</span>
+          </div>
+          <button class="icon-button" type="button" data-close-materials aria-label="Cerrar">×</button>
+        </header>
+        <div class="materials-toolbar">
+          <input type="search" id="materials-filter" placeholder="Buscar guía..." autocomplete="off" />
+          <button class="ghost-button" id="materials-upload" type="button">⬆ Subir PDF</button>
+          <input type="file" id="materials-input" multiple hidden accept=".pdf,application/pdf" />
+        </div>
+        <div class="materials-list" id="materials-list"></div>
+        <footer class="modal-foot">
+          <span class="status" id="materials-status"></span>
+        </footer>
+      </div>
+    </div>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
