@@ -353,3 +353,8 @@ body.bo {
     font-size: 24px;
   }
 }
+
+/* La pregunta es la columna principal: no se comprime en pantallas angostas. */
+.bo-table td:nth-child(2) {
+  min-width: 220px;
+}
