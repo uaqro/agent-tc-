@@ -14,7 +14,8 @@ import {
   operatingUnits,
   stableFraction,
 } from './client';
-import { serviceOrders } from './maintenance';
+import { allServiceOrders } from './maintenance';
+import { onSessionChange, sessionPrincipal, unitInScope } from './session';
 
 export type FuelType = 'Magna' | 'Premium' | 'Diésel';
 export type VehicleStatus = 'active' | 'maintenance' | 'inactive';
@@ -112,6 +113,8 @@ interface UnitActivity {
 
 interface DriverActivity {
   fills: number;
+  /** Units the driver drove in the period: a driver is in a scope when one of them is. */
+  units: Set<string>;
   km: number;
   liters: number;
 }
@@ -125,9 +128,10 @@ function activityOfLast30Days() {
   for (const point of account.period) {
     for (const row of point.rows) {
       if (row.driverId === null) continue;
-      const driver = drivers.get(row.driverId) ?? { fills: 0, km: 0, liters: 0 };
+      const driver = drivers.get(row.driverId) ?? { fills: 0, km: 0, liters: 0, units: new Set<string>() };
       driver.km += row.km;
       driver.liters += row.liters;
+      driver.units.add(row.unitId);
       drivers.set(row.driverId, driver);
     }
     for (const event of point.events) {
@@ -136,7 +140,7 @@ function activityOfLast30Days() {
       unit.lastUse = Math.max(unit.lastUse ?? 0, event.at);
       units.set(event.unitId, unit);
       if (event.driverId !== null) {
-        const driver = drivers.get(event.driverId) ?? { fills: 0, km: 0, liters: 0 };
+        const driver = drivers.get(event.driverId) ?? { fills: 0, km: 0, liters: 0, units: new Set<string>() };
         driver.fills += 1;
         drivers.set(event.driverId, driver);
       }
@@ -151,7 +155,7 @@ const activity = activityOfLast30Days();
 // ── Vehicles ────────────────────────────────────────────────────────────
 
 const inShop = new Set(
-  serviceOrders.filter((order) => order.status === 'in-shop' || order.status === 'waiting-parts').map((order) => order.vehicleId),
+  allServiceOrders.filter((order) => order.status === 'in-shop' || order.status === 'waiting-parts').map((order) => order.vehicleId),
 );
 
 function statusOf(unit: FleetUnit): VehicleStatus {
@@ -161,7 +165,7 @@ function statusOf(unit: FleetUnit): VehicleStatus {
 }
 
 /** Every unit of the padrón, deregistered ones included: their history is still theirs. */
-export const vehicleDetails: VehicleDetail[] = clientUnits.map((unit) => ({
+const allVehicleDetails: VehicleDetail[] = clientUnits.map((unit) => ({
   vehicleId: unit.id,
   plate: unit.plate,
   group: groupLabel(unit.group),
@@ -193,7 +197,7 @@ const isoDay = (at: number): string => {
 const isoMinute = (at: number): string => `${isoDay(at)}T${new Date(at).toTimeString().slice(0, 5)}:00`;
 
 /** A driver is active when they drove at least one day of the last 30. */
-export const drivers: Driver[] = clientDrivers.map((driver) => {
+const allDrivers: Driver[] = clientDrivers.map((driver) => {
   const unit = unitOfDriver.get(driver.id) ?? null;
   const stats = activity.drivers.get(driver.id);
   return {
@@ -265,7 +269,7 @@ function mediumOf(unit: FleetUnit, index: number): PaymentMedium {
 /** Spare media in stock, not yet assigned to a unit. */
 const SPARES: PaymentMediumType[] = ['chip-card', 'chip-card', 'chip-card', 'chip-card', 'tag', 'tag'];
 
-export const paymentMedia: PaymentMedium[] = [
+const allPaymentMedia: PaymentMedium[] = [
   ...clientUnits.map(mediumOf),
   ...SPARES.map((type, index) => {
     const key = `repuesto-${index}`;
@@ -282,3 +286,24 @@ export const paymentMedia: PaymentMedium[] = [
   }),
 ];
 
+
+// ── Session scope (ADR-TCP-001) ─────────────────────────────────────────
+
+const driverInScope = (driver: Driver): boolean =>
+  sessionPrincipal().scopeNodeId === null ||
+  (driver.vehicleId !== null && unitInScope(driver.vehicleId)) ||
+  [...(activity.drivers.get(driver.id)?.units ?? [])].some(unitInScope);
+
+export let vehicleDetails: VehicleDetail[] = allVehicleDetails;
+export let drivers: Driver[] = allDrivers;
+/** Media of the units in scope, plus the stock not yet assigned to any unit. */
+export let paymentMedia: PaymentMedium[] = allPaymentMedia;
+
+onSessionChange(() => {
+  vehicleDetails = allVehicleDetails.filter((detail) => unitInScope(detail.vehicleId));
+  drivers = allDrivers.filter(driverInScope);
+  paymentMedia = allPaymentMedia.filter((medium) => medium.vehicleId === null || unitInScope(medium.vehicleId));
+});
+
+/** Ids of the drivers the session can see, for the driver selector of the global filters. */
+export const driverIdsInScope = (): Set<string> => new Set(drivers.map((driver) => driver.id));

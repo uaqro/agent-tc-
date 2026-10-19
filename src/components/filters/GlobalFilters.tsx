@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
-import { account } from '../../data/dispersion';
 import { CLIENT_ACCOUNT_ID, clientAccount, clientOrgTree } from '../../data/client';
+import { driverIdsInScope } from '../../data/fleet';
+import { sessionPrincipal } from '../../data/session';
+import { scopeFilterOptions } from '../../domain/rbac/scope';
 import { businessNow } from '../../domain/demo/clock';
 import { activeChips, type FilterChip } from '../../domain/filters/describe';
 import { buildFilterOptions, cascade, reconcile, type FilterOptions } from '../../domain/filters/options';
@@ -10,7 +12,8 @@ import { ANY, DEFAULT_FILTERS, clearDimensions, type FilterDimension, type Globa
 /**
  * Global context filters, ported from eOne (US-010): one period and nine dimensions that every page consuming the
  * context cuts by. Kept in `sessionStorage` per user and account, so a reload keeps them and closing the tab clears
- * them.
+ * them. The options only offer what the session scope lets the user see (ADR-TCP-001); the shell remounts this
+ * provider when the session changes.
  */
 interface GlobalFiltersValue {
   filters: GlobalFilters;
@@ -27,25 +30,36 @@ interface GlobalFiltersValue {
 
 const GlobalFiltersContext = createContext<GlobalFiltersValue | null>(null);
 
-const OWNER_KEY = ownerKeyFor({ userId: account.user, activeAccountId: CLIENT_ACCOUNT_ID });
-
-function initialFilters(options: FilterOptions): { filters: GlobalFilters; error: string | null } {
-  const stored = readFilters(OWNER_KEY);
+function initialFilters(ownerKey: string, options: FilterOptions): { filters: GlobalFilters; error: string | null } {
+  const stored = readFilters(ownerKey);
   if (stored.value === null) return { filters: DEFAULT_FILTERS, error: stored.error };
   return { filters: reconcile(stored.value, options).filters, error: stored.error };
 }
 
 export function GlobalFiltersProvider({ children }: { children: ReactNode }) {
+  const ownerKey = useMemo(() => {
+    const principal = sessionPrincipal();
+    return ownerKeyFor({ userId: principal.userId, activeAccountId: principal.accountId });
+  }, []);
   const options = useMemo(
-    () => buildFilterOptions([clientAccount], businessNow(), new Map([[CLIENT_ACCOUNT_ID, clientOrgTree]])),
+    () =>
+      scopeFilterOptions(
+        buildFilterOptions([clientAccount], businessNow(), new Map([[CLIENT_ACCOUNT_ID, clientOrgTree]])),
+        sessionPrincipal(),
+        clientOrgTree,
+        driverIdsInScope(),
+      ),
     [],
   );
-  const [state, setState] = useState(() => initialFilters(options));
+  const [state, setState] = useState(() => initialFilters(ownerKey, options));
 
-  const commit = useCallback((next: GlobalFilters) => {
-    const written = writeFilters(OWNER_KEY, next);
-    setState({ filters: next, error: written.error });
-  }, []);
+  const commit = useCallback(
+    (next: GlobalFilters) => {
+      const written = writeFilters(ownerKey, next);
+      setState({ filters: next, error: written.error });
+    },
+    [ownerKey],
+  );
 
   const update = useCallback(
     (patch: Partial<GlobalFilters>) => commit(cascade({ ...state.filters, ...patch }, options)),

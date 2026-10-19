@@ -20,6 +20,7 @@ Fleet data comes from the eOne Fleet Management prototype, ported into `src/doma
 
 - `src/domain/` keeps eOne's code style (no semicolons) and its folder names, so later phases can bring more eOne modules without rewriting their imports. Its tests come from eOne without the RBAC cases, which have no counterpart here yet.
 - Business date: `src/domain/demo/clock.ts` pins "today" to 16 Oct 2026, so the demo shows the same data every day. The mocks are dated mid-October 2026.
+- Roles and scope: ADR-TCP-001 (`docs/decisions/ADR-TCP-001_roles_portal_TC.md`, PROPOSED) maps the portal roles admin, flota, finanzas and consulta onto the client roles of eOne's ADR-001 (`src/domain/rbac/`). The menu comes from that matrix. Each user is limited to an org chart node, and the data modules apply that scope through live `let` bindings that `src/data/session.ts` recomputes. Dev mode can show the portal as another user, including Edenred's internal roles, always on the active account.
 - Global filters (period, org chart, product, group, cost center, route, fuel, driving behaviour, unit, driver) live in `components/filters/` and persist in `sessionStorage`. In phase 0 they only drive the Resumen indicators; the charts are still static.
 
 ## Structure

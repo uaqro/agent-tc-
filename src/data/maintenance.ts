@@ -1,4 +1,5 @@
 /** Maintenance mock data. Vehicle ids are padrón units of the client account (`data/client`). */
+import { onSessionChange, unitInScope } from './session';
 
 export type OrderKind = 'preventive' | 'corrective';
 export type OrderStatus = 'scheduled' | 'in-shop' | 'waiting-parts' | 'done';
@@ -46,7 +47,7 @@ export const MAINTENANCE_SYSTEMS = [
 
 export const WORKSHOPS = ['TallerMax Norte', 'AutoServicio Sur', 'Servicio Diésel Bajío', 'Agencia Nissan Vallejo', 'Llantera del Centro'];
 
-export const serviceOrders: ServiceOrder[] = [
+export const allServiceOrders: ServiceOrder[] = [
   {
     folio: 'OS-2026-0418',
     vehicleId: 'ECO-3253',
@@ -121,7 +122,7 @@ export const serviceOrders: ServiceOrder[] = [
   },
 ];
 
-export const upcomingServices: UpcomingService[] = [
+const allUpcomingServices: UpcomingService[] = [
   { vehicleId: 'ECO-3240', service: 'Servicio de 75,000 km', dueDate: '2026-10-05', dueKm: 75_000 },
   { vehicleId: 'ECO-3260', service: 'Afinación 170,000 km', dueDate: '2026-10-12', dueKm: 170_000 },
   { vehicleId: 'ECO-3035', service: 'Cambio de aceite 120,000 km', dueDate: '2026-10-29', dueKm: 120_000 },
@@ -138,3 +139,12 @@ export const spendBySystem = [
   { system: 'Frenos', amountMXN: 6_850, color: '#ca0e00' },
   { system: 'Sistema eléctrico', amountMXN: 4_150, color: '#6b4dc7' },
 ];
+
+/** Orders and upcoming services of the units inside the session scope (ADR-TCP-001). */
+export let serviceOrders: ServiceOrder[] = allServiceOrders;
+export let upcomingServices: UpcomingService[] = allUpcomingServices;
+
+onSessionChange(() => {
+  serviceOrders = allServiceOrders.filter((order) => unitInScope(order.vehicleId));
+  upcomingServices = allUpcomingServices.filter((service) => unitInScope(service.vehicleId));
+});

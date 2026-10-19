@@ -10,11 +10,12 @@ import type {
 } from '../types/limits';
 import { formatCount, formatLiters, formatMoney } from '../utils/format';
 import { toLiters, toMoney, vehicleGroups } from './dispersion';
+import { onSessionChange, unitInScope } from './session';
 
 /** "Toda la flota" is a reporting group, a policy is never assigned to it. */
-export const assignableGroups = vehicleGroups.filter((group) => group.id !== 'g-all');
+export let assignableGroups = vehicleGroups.filter((group) => group.id !== 'g-all');
 
-export const fleetUnits = assignableGroups.reduce((sum, group) => sum + group.units, 0);
+export let fleetUnits = assignableGroups.reduce((sum, group) => sum + group.units, 0);
 
 export const stationSubnets: StationSubnet[] = [
   { id: 's-norte', label: 'Corredor Norte', stations: 42 },
@@ -133,7 +134,7 @@ export const limitPolicies: LimitPolicy[] = [
   },
 ];
 
-export const unitAssignments: UnitAssignment[] = [
+const allUnitAssignments: UnitAssignment[] = [
   { vehicleId: 'ECO-3004', policyId: 'p-norte', individual: false, tankLiters: 518, usedLiters: 412, rejections7d: 0 },
   { vehicleId: 'ECO-3033', policyId: 'p-centro', individual: false, tankLiters: 71, usedLiters: 61, rejections7d: 5 },
   { vehicleId: 'ECO-3240', policyId: 'p-sur', individual: false, tankLiters: 81, usedLiters: 0, rejections7d: 0 },
@@ -239,3 +240,12 @@ export function overrideUntil(duration: OverrideDuration, period: LimitPeriod, t
   const until = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (duration === '24h' ? 1 : 7));
   return toIso(until);
 }
+
+/** Assignments of the units inside the session scope, and the groups and fleet size they add up to (ADR-TCP-001). */
+export let unitAssignments: UnitAssignment[] = allUnitAssignments;
+
+onSessionChange(() => {
+  assignableGroups = vehicleGroups.filter((group) => group.id !== 'g-all');
+  fleetUnits = assignableGroups.reduce((sum, group) => sum + group.units, 0);
+  unitAssignments = allUnitAssignments.filter((assignment) => unitInScope(assignment.vehicleId));
+});

@@ -6,8 +6,11 @@ import { PageHeader } from './components/layout/PageHeader';
 import { SideMenu } from './components/layout/SideMenu';
 import { TopBar } from './components/layout/TopBar';
 import { devMenuGroup, menuGroups } from './data/dashboard';
-import { clientAccount } from './data/client';
-import { account } from './data/dispersion';
+import { useSession } from './components/session/Session';
+import { canAccessRoute } from './data/access';
+import { clientAccount, scopeLabel } from './data/client';
+import { DEFAULT_PRINCIPAL } from './data/session';
+import { sessionRoleName } from './domain/rbac/portal-roles';
 import { DispersionPage } from './pages/DispersionPage';
 import { FuelDashboardPage } from './pages/FuelDashboardPage';
 import { LimitsPage } from './pages/LimitsPage';
@@ -138,7 +141,7 @@ const ROUTES: Record<AppRoute, { menuItem: string; section: string; title: strin
     menuItem: 'empresa-usuarios',
     section: 'Empresa',
     title: 'Usuarios',
-    subtitle: 'Accesos al portal, roles y alcance por región',
+    subtitle: 'Accesos al portal, roles y alcance por nodo del organigrama',
   },
   'dev-api-improvements': {
     menuItem: 'dev-mejoras-api',
@@ -159,7 +162,18 @@ export default function App() {
   const [activeItemId, setActiveItemId] = useState<string | null>(ROUTES.dashboard.menuItem);
   const [notice, setNotice] = useState<string | null>(null);
   const { devMode } = useDevMode();
-  const groups = devMode ? [...menuGroups, devMenuGroup] : menuGroups;
+  const { principal, impersonating, signInAs } = useSession();
+  const allowed = useCallback((target: AppRoute) => canAccessRoute(principal.role, target), [principal.role]);
+  // ADR-TCP-001: a page the role can't open is not in its menu, and a group left empty disappears.
+  const groups = (devMode ? [...menuGroups, devMenuGroup] : menuGroups)
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        const target = ROUTE_BY_MENU_ITEM[item.id];
+        return !target || allowed(target);
+      }),
+    }))
+    .filter((group) => group.items.length > 0);
 
   useEffect(() => {
     if (!notice) return;
@@ -172,6 +186,10 @@ export default function App() {
       const label = [...menuGroups, devMenuGroup].flatMap((group) => group.items).find((item) => item.id === itemId)?.label ?? itemId;
       const target = ROUTE_BY_MENU_ITEM[itemId];
 
+      if (target && !allowed(target)) {
+        setNotice(`${label}: tu rol no tiene acceso a este módulo.`);
+        return;
+      }
       setActiveItemId(itemId);
       if (target) {
         setRoute(target);
@@ -180,7 +198,7 @@ export default function App() {
       }
       if (!menuPinned) setMenuOpen(false);
     },
-    [menuPinned],
+    [menuPinned, allowed],
   );
 
   const handleTogglePin = useCallback(() => {
@@ -190,28 +208,40 @@ export default function App() {
     });
   }, []);
 
-  const navigate = useCallback((target: AppRoute) => {
-    setRoute(target);
-    setActiveItemId(ROUTES[target].menuItem);
-  }, []);
+  const navigate = useCallback(
+    (target: AppRoute) => {
+      if (!allowed(target)) {
+        setNotice(`${ROUTES[target].title}: tu rol no tiene acceso a este módulo.`);
+        return;
+      }
+      setRoute(target);
+      setActiveItemId(ROUTES[target].menuItem);
+    },
+    [allowed],
+  );
 
   // Leaving dev mode while on a dev page goes back home.
   useEffect(() => {
     if (!devMode && route === 'dev-api-improvements') navigate('dashboard');
   }, [devMode, route, navigate]);
 
+  // Viewing the portal as someone else, internal roles included, only exists in dev mode.
+  useEffect(() => {
+    if (!devMode && impersonating) signInAs(DEFAULT_PRINCIPAL);
+  }, [devMode, impersonating, signInAs]);
+
   const meta = ROUTES[route];
   const { filters, chips } = useGlobalFilters();
   // Pages that cut by the global filters say which slice they show.
   const filtered = route === 'dashboard';
   const subtitle = filtered
-    ? `${meta.subtitle} · Últimos ${filters.periodDays} ${filters.periodDays === 1 ? 'día' : 'días'} · ${chips.length > 0 ? chips.map(chipText).join(' · ') : 'toda la flota'}`
+    ? `${meta.subtitle} · Últimos ${filters.periodDays} ${filters.periodDays === 1 ? 'día' : 'días'} · ${chips.length > 0 ? chips.map(chipText).join(' · ') : principal.scopeNodeId === null ? 'toda la flota' : scopeLabel(principal.scopeNodeId)}`
     : meta.subtitle;
 
   return (
     <div className="app">
       <TopBar
-        userName={account.user}
+        userName={principal.name}
         extra={<DevModeMenu onOpenImprovements={() => navigate('dev-api-improvements')} />}
         onAction={(actionId, detail) =>
           setNotice(actionId === 'search' ? `Buscando “${detail}” en unidades, tarjetas y conductores.` : TOP_BAR_MESSAGES[actionId])
@@ -228,6 +258,15 @@ export default function App() {
       />
 
       <main className="app__main" id="main">
+        {impersonating && (
+          <p className="app__impersonation" role="status">
+            Modo Dev · viendo el portal como <strong>{principal.name}</strong> · {sessionRoleName(principal.role)} ·{' '}
+            {scopeLabel(principal.scopeNodeId)}
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => signInAs(DEFAULT_PRINCIPAL)}>
+              Volver a mi usuario
+            </button>
+          </p>
+        )}
         <PageHeader
           section={meta.section}
           title={meta.title}

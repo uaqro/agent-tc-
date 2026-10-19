@@ -1,7 +1,7 @@
 import type { DayPoint } from '../domain/dashboard/types';
 import { matches, type GlobalFilters } from '../domain/filters/types';
 import type { SummaryMetric } from '../types';
-import { clientSnapshot } from './client';
+import { scopedSnapshot } from './session';
 
 interface PeriodTotals {
   liters: number;
@@ -43,7 +43,7 @@ const round = (value: number, decimals = 0): number => {
 
 /** The four Resumen indicators for the filtered period, against the period right before it. */
 export function summaryMetricsFor(filters: GlobalFilters, at?: number): SummaryMetric[] {
-  const activity = clientSnapshot(filters.periodDays, at).accounts[0];
+  const activity = scopedSnapshot(filters.periodDays, at).accounts[0];
   const current = totalsOf(activity.period, filters);
   const previous = totalsOf(activity.previousPeriod, filters);
   const labels = {

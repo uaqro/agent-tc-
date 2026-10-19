@@ -1,4 +1,9 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { internalPrincipals, portalPrincipals } from '../../data/access';
+import { scopeLabel } from '../../data/client';
+import { DEFAULT_PRINCIPAL } from '../../data/session';
+import { sessionRoleName } from '../../domain/rbac/portal-roles';
+import { useSession } from '../session/Session';
 import './DevMode.css';
 
 export interface DevSettings {
@@ -67,10 +72,15 @@ function DevSwitch({ checked, disabled, label, description, onChange }: DevSwitc
   );
 }
 
+/** Internal roles see only the active account: analytics never compare accounts (ADR-TCP-001). */
+const clientCaption = 'cuenta activa';
+
 /** Top bar control: shows whether dev mode is on and opens the dev settings. */
 export function DevModeMenu({ onOpenImprovements }: { onOpenImprovements: () => void }) {
   const { devMode, showCoverage, update } = useDevMode();
+  const { principal, signInAs } = useSession();
   const [open, setOpen] = useState(false);
+  const everyone = [...portalPrincipals, ...internalPrincipals];
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -123,6 +133,31 @@ export function DevModeMenu({ onOpenImprovements }: { onOpenImprovements: () => 
             description="Recuadro y etiquetas de qué resuelve la API ZERO en Combustible, Flota y Parámetros."
             onChange={(checked) => update({ showCoverage: checked })}
           />
+
+          <label className={`dev-menu__view-as${devMode ? '' : ' is-disabled'}`}>
+            <strong>Ver el portal como</strong>
+            <small>Simula el rol y el alcance de otro usuario. Los roles internos de Edenred solo existen aquí.</small>
+            <select
+              value={principal.userId}
+              disabled={!devMode}
+              onChange={(event) => signInAs(everyone.find((candidate) => candidate.userId === event.target.value) ?? DEFAULT_PRINCIPAL)}
+            >
+              <optgroup label="Usuarios del portal">
+                {portalPrincipals.map((candidate) => (
+                  <option key={candidate.userId} value={candidate.userId}>
+                    {candidate.name} · {sessionRoleName(candidate.role)} · {scopeLabel(candidate.scopeNodeId)}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Internos de Edenred · solo Dev">
+                {internalPrincipals.map((candidate) => (
+                  <option key={candidate.userId} value={candidate.userId}>
+                    {candidate.name} · {clientCaption}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+          </label>
 
           <button
             type="button"

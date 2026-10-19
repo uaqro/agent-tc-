@@ -101,3 +101,23 @@ export function clientSnapshot(periodDays: number, at = businessNow()): Activity
   snapshotCache.set(key, snapshot);
   return snapshot;
 }
+
+// ── Org chart nodes as user scopes (ADR-TCP-001) ───────────────────────
+
+export interface ScopeNodeOption {
+  id: string;
+  name: string;
+  /** 1 for divisions, 2 for departments… The company itself is "no scope". */
+  level: number;
+}
+
+/** Nodes a user can be limited to, in tree order. The synthetic "Sin asignar" node is not a place to work in. */
+export const scopeNodeOptions: ScopeNodeOption[] = clientOrgTree.nodes
+  .filter((node) => node.level > 0 && node.synthetic !== true)
+  .map((node) => ({ id: node.id, name: node.name, level: node.level }));
+
+/** Name of the scope of a user: the node, or the whole account. */
+export function scopeLabel(nodeId: string | null): string {
+  if (nodeId === null) return 'Toda la empresa';
+  return clientOrgTree.nodes.find((node) => node.id === nodeId)?.name ?? 'Nodo eliminado';
+}

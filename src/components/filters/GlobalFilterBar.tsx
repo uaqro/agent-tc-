@@ -13,7 +13,8 @@ import {
   granularityOf,
   type GlobalFilters,
 } from '../../domain/filters/types';
-import { groupLabel } from '../../data/client';
+import { groupLabel, scopeLabel } from '../../data/client';
+import { useSession } from '../session/Session';
 import { CloseIcon, SlidersIcon } from '../icons/Icons';
 import { useGlobalFilters } from './GlobalFilters';
 import './GlobalFilterBar.css';
@@ -42,6 +43,7 @@ const SECONDARY: (keyof GlobalFilters)[] = ['costCenter', 'routeId', 'fuel', 'be
 
 export function GlobalFilterBar({ scopeNote }: GlobalFilterBarProps) {
   const { filters, options, chips, update, clearDimension, clearAll, storageError } = useGlobalFilters();
+  const { principal } = useSession();
   const [expanded, setExpanded] = useState(() => SECONDARY.some((dimension) => filters[dimension] !== ANY));
   const granularity = granularityOf(filters.periodDays);
   const units = visibleUnits(options, filters);
@@ -81,7 +83,7 @@ export function GlobalFilterBar({ scopeNote }: GlobalFilterBarProps) {
         <label className="global-filters__field">
           <span>Organigrama</span>
           <select value={filters.orgNodeId} onChange={(event) => update({ orgNodeId: event.target.value })}>
-            <option value={ANY}>Toda la empresa</option>
+            <option value={ANY}>{principal.scopeNodeId === null ? 'Toda la empresa' : `Todo ${scopeLabel(principal.scopeNodeId)}`}</option>
             {options.orgNodes
               .filter((node) => node.level > 0)
               .map((node) => (

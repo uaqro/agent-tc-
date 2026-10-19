@@ -13,6 +13,7 @@ import type {
 import { formatMoney } from '../utils/format';
 import { daysLabel } from './limits';
 import { clientAccount } from './client';
+import { onSessionChange, unitInScope } from './session';
 
 export const tollAccount = {
   name: `${clientAccount.name} · Peaje`,
@@ -144,7 +145,7 @@ export const emptyTollPolicy: Omit<TollPolicy, 'id'> = {
   categoryLock: true,
 };
 
-export const tollTags: TollTag[] = [
+const allTollTags: TollTag[] = [
   { id: 'tt-1', type: 'drive-tag', number: 'TLV-0451-2B', vehicleId: 'ECO-3004', status: 'active', category: 'T3S2', balanceMXN: 2_840, policyId: 'tp-norte', spentPeriodMXN: 6_120, crossingsToday: 3, rejections7d: 0, lastCrossing: '2026-10-15T09:42:00', lastPlaza: 'Palmillas · México–Querétaro' },
   { id: 'tt-2', type: 'toll-tag', number: 'TLV-0917-7K', vehicleId: 'ECO-3033', status: 'active', category: 'A', balanceMXN: 310, policyId: 'tp-centro', spentPeriodMXN: 1_040, crossingsToday: 2, rejections7d: 3, lastCrossing: '2026-10-15T08:15:00', lastPlaza: 'Tepotzotlán · México–Querétaro' },
   { id: 'tt-3', type: 'drive-tag', number: 'TLV-1293-9D', vehicleId: 'ECO-3240', status: 'blocked', category: 'C2', balanceMXN: 1_150, policyId: 'tp-sur', spentPeriodMXN: 0, crossingsToday: 0, rejections7d: 0, lastCrossing: '2026-09-24T07:10:00', lastPlaza: 'Magdalena · Corredor Sonora' },
@@ -164,7 +165,7 @@ export const tollAutoTopUps: TollAutoTopUp[] = [
   { groupId: 'grp-06', enabled: false, thresholdMXN: 300, targetMXN: 1_500 },
 ];
 
-export const tollMovements: TollMovement[] = [
+const allTollMovements: TollMovement[] = [
   { id: 'tm-1', kind: 'crossing', tagId: 'tt-4', at: '2026-10-15T10:05:00', amountMXN: -1_284, detail: 'Sabinas Hidalgo · Monterrey–Nuevo Laredo' },
   { id: 'tm-2', kind: 'crossing', tagId: 'tt-1', at: '2026-10-15T09:42:00', amountMXN: -1_037, detail: 'Palmillas · México–Querétaro' },
   { id: 'tm-3', kind: 'rejected', tagId: 'tt-2', at: '2026-10-15T08:40:00', amountMXN: 0, detail: 'Chalco · Fuera de las autopistas autorizadas' },
@@ -197,3 +198,13 @@ export function tollLocksLabel(policy: TollPolicy): string {
 
 export const tollLimitLabel = (policy: TollPolicy): string =>
   `${formatMoney(policy.periodLimitMXN)} por ${TOLL_PERIOD_META[policy.period].noun}`;
+
+/** TAGs of the units inside the session scope, plus stock not yet assigned, and their movements (ADR-TCP-001). */
+export let tollTags: TollTag[] = allTollTags;
+export let tollMovements: TollMovement[] = allTollMovements;
+
+onSessionChange(() => {
+  tollTags = allTollTags.filter((tag) => tag.vehicleId === null || unitInScope(tag.vehicleId));
+  const visible = new Set(tollTags.map((tag) => tag.id));
+  tollMovements = allTollMovements.filter((movement) => visible.has(movement.tagId));
+});

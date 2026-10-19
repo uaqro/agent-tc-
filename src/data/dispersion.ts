@@ -1,4 +1,5 @@
 import { UNIT_GROUPS } from '../domain/data/fleet-activity';
+import type { FleetUnit } from '../domain/dashboard/types';
 import type { AttentionItem, FundingRule, Receipt, RunSimulation, Vehicle, VehicleGroup } from '../types/dispersion';
 import {
   assignedDriverName,
@@ -9,6 +10,7 @@ import {
   operatingUnits,
   stableFraction,
 } from './client';
+import { onSessionChange, unitInScope } from './session';
 
 /** Reference price used for the litres ⇄ money conversion shown next to every amount. */
 export const PRICE_PER_LITER = 24.8;
@@ -95,15 +97,19 @@ export const fundingRules: FundingRule[] = [
   },
 ];
 
-/** Padrón groups of the client account, with the units still under contract. */
-export const vehicleGroups: VehicleGroup[] = [
-  ...UNIT_GROUPS.map((group) => ({
-    id: groupId(group),
-    label: groupLabel(group),
-    units: operatingUnits.filter((unit) => unit.group === group).length,
-  })),
-  { id: 'g-all', label: 'Toda la flota', units: operatingUnits.length },
-];
+/** Padrón groups with the units still under contract that the session can see. */
+function groupsOf(units: FleetUnit[]): VehicleGroup[] {
+  return [
+    ...UNIT_GROUPS.map((group) => ({
+      id: groupId(group),
+      label: groupLabel(group),
+      units: units.filter((unit) => unit.group === group).length,
+    })),
+    { id: 'g-all', label: 'Toda la flota', units: units.length },
+  ];
+}
+
+export let vehicleGroups: VehicleGroup[] = groupsOf(operatingUnits);
 
 /** Balances the attention list and the rules talk about. Every other unit gets a balance derived from its spend. */
 const SCENARIO_BALANCES: Record<string, number> = {
@@ -131,7 +137,7 @@ function weeklySpendByUnit(): Map<string, number> {
 const weeklySpend = weeklySpendByUnit();
 
 /** Units under contract, as the funding pages see them. Deregistered units have no card to fund. */
-export const vehicles: Vehicle[] = operatingUnits.map((unit) => {
+const allVehicles: Vehicle[] = operatingUnits.map((unit) => {
   const avgWeeklySpendMXN = weeklySpend.get(unit.id) ?? 0;
   const derived = Math.round((avgWeeklySpendMXN * (0.3 + stableFraction(`${unit.id}:saldo`) * 1.1)) / 10) * 10;
   return {
@@ -145,7 +151,9 @@ export const vehicles: Vehicle[] = operatingUnits.map((unit) => {
   };
 });
 
-export const attentionItems: AttentionItem[] = [
+export let vehicles: Vehicle[] = allVehicles;
+
+const allAttentionItems: AttentionItem[] = [
   {
     id: 'a-0',
     kind: 'balance-request',
@@ -182,6 +190,15 @@ export const attentionItems: AttentionItem[] = [
     amountMXN: 4_280,
   },
 ];
+
+export let attentionItems: AttentionItem[] = allAttentionItems;
+
+// The session scope (ADR-TCP-001) narrows what every funding page sees: units, their groups and the attention list.
+onSessionChange(() => {
+  vehicles = allVehicles.filter((vehicle) => unitInScope(vehicle.id));
+  vehicleGroups = groupsOf(operatingUnits.filter((unit) => unitInScope(unit.id)));
+  attentionItems = allAttentionItems.filter((item) => unitInScope(item.vehicleId));
+});
 
 export const pastReceipts: Receipt[] = [
   {
