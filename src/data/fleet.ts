@@ -98,6 +98,9 @@ const EXPECTED_KM_PER_LITER: Record<UnitClass, number> = {
   van: 9.6,
 };
 
+/** Manufacturer km/L expected for a vehicle class. */
+export const expectedKmPerLiter = (vehicleClass: UnitClass): number => EXPECTED_KM_PER_LITER[vehicleClass];
+
 /** Licence a driver needs for the class of the unit they are assigned to. */
 const LICENSE_FOR_CLASS: Record<UnitClass, string> = {
   pesado: 'Federal E',

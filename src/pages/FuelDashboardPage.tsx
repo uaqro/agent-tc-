@@ -6,7 +6,8 @@ import { ChartCard } from '../components/dashboard/ChartCard';
 import { SummaryCard } from '../components/dashboard/SummaryCard';
 import { useGlobalFilters } from '../components/filters/GlobalFilters';
 import { clientAccount } from '../data/client';
-import { costPerKilometer, refillsAndCuts } from '../data/dashboard';
+import { refillsAndCuts } from '../data/dashboard';
+import { costPerKilometer, organizationalConsumption, performanceByVehicle } from '../data/dashboardCharts';
 import { summaryMetricsFor } from '../data/summary';
 import type { ChartSeries } from '../types';
 import { ApiCoverageBanner, ApiTag, ApiTagRow } from '../components/api/ApiCoverage';
@@ -16,11 +17,15 @@ interface FuelDashboardPageProps {
   onCardOption: (chart: string, option: string) => void;
 }
 
-const hasData = (series: ChartSeries[]) => series.some((item) => item.values.length > 0);
+const hasData = (series: ChartSeries[]) => series.some((item) => item.values.some((value) => value !== 0));
 
 export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
   const { filters } = useGlobalFilters();
   const summaryMetrics = useMemo(() => summaryMetricsFor(filters), [filters]);
+  const performance = useMemo(() => performanceByVehicle(filters), [filters]);
+  const costPerKm = useMemo(() => costPerKilometer(filters), [filters]);
+  const organization = useMemo(() => organizationalConsumption(filters), [filters]);
+  const period = `últimos ${filters.periodDays} ${filters.periodDays === 1 ? 'día' : 'días'}`;
 
   return (
     <div className="dashboard">
@@ -35,47 +40,69 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
 
       <section className="dashboard__charts" aria-label="Gráficas de combustible">
         <ChartCard
-          title="Rendimiento por vehículo (mes actual)"
+          title={`Rendimiento por vehículo (${period})`}
           badge={<ApiTag id="dash-performance" />}
-          info="Compara los kilómetros recorridos contra los litros cargados por cada vehículo del mes en curso."
+          info="Kilómetros recorridos entre litros cargados de las unidades que más consumieron en el periodo, contra el rendimiento esperado para su clase."
           onOptionSelect={(option) => onCardOption('Rendimiento por vehículo', option)}
         >
-          <EmptyChart
-            hint="No hay transacciones registradas para el mes actual. Los datos aparecen cuando se procesan las cargas de combustible."
-          />
+          {hasData(performance.series) ? (
+            <BarChart
+              labels={performance.labels}
+              series={performance.series}
+              yMin={performance.yMin}
+              yMax={performance.yMax}
+              ariaLabel={`Rendimiento real contra esperado de las ${performance.labels.length} unidades con más consumo`}
+            />
+          ) : (
+            <EmptyChart hint="No hay cargas en el periodo para los filtros elegidos. Cambia el periodo o quita algún filtro." />
+          )}
         </ChartCard>
 
         <ChartCard
           title="Costo por kilómetro"
           badge={<ApiTag id="dash-cost-km" />}
-          subtitle={clientAccount.name}
-          info="Muestra el costo de combustible por kilómetro recorrido para la unidad seleccionada."
+          subtitle={`${clientAccount.name} · ${period}`}
+          info="Importe de combustible entre kilómetros recorridos. Diario hasta dos semanas, semanal en periodos más largos."
           onOptionSelect={(option) => onCardOption('Costo por kilómetro', option)}
         >
-          {hasData(costPerKilometer.series) ? (
+          {hasData(costPerKm.series) ? (
             <LineChart
-              labels={costPerKilometer.labels}
-              series={costPerKilometer.series}
-              yMin={costPerKilometer.yMin}
-              yMax={costPerKilometer.yMax}
+              labels={costPerKm.labels}
+              series={costPerKm.series}
+              yMin={costPerKm.yMin}
+              yMax={costPerKm.yMax}
               valueSuffix=" MXN/km"
-              ariaLabel={`Costo por kilómetro de enero 2026 a julio 2026 para ${clientAccount.name}`}
+              ariaLabel={`Costo por kilómetro de ${clientAccount.name} en los ${period}`}
             />
           ) : (
-            <EmptyChart hint="Aún no hay cargas con odómetro registrado. El costo por kilómetro se calcula cuando la unidad reporta kilometraje en sus cargas." />
+            <EmptyChart hint="No hay kilómetros recorridos en el periodo para los filtros elegidos." />
           )}
         </ChartCard>
 
         <ChartCard
-          title="Consumo organizacional (últimos 30 días)"
+          title={`Consumo organizacional (${period})`}
           badge={<ApiTag id="dash-org" />}
-          info="Agrupa el consumo de combustible por centro de costo durante los últimos 30 días."
+          subtitle={organization.parentName}
+          info="Litros cargados por cada rama del organigrama que cuelga del nodo elegido, contra el periodo anterior."
           onOptionSelect={(option) => onCardOption('Consumo organizacional', option)}
         >
-          <EmptyChart
-            hint="No hay consumo registrado en los últimos 30 días para la estructura organizacional actual."
-            axisCaption="Eje inferior: número de transacciones"
-          />
+          {organization.labels.length > 0 && hasData(organization.series) ? (
+            <BarChart
+              labels={organization.labels}
+              series={organization.series}
+              yMin={organization.yMin}
+              yMax={organization.yMax}
+              ariaLabel={`Litros por rama de ${organization.parentName}, periodo actual contra el anterior`}
+            />
+          ) : (
+            <EmptyChart
+              hint={
+                organization.labels.length === 0
+                  ? `${organization.parentName} no tiene niveles por debajo: es el último nivel del organigrama.`
+                  : 'No hay consumo en el periodo para la estructura organizacional elegida.'
+              }
+            />
+          )}
         </ChartCard>
 
         <ChartCard

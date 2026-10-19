@@ -276,7 +276,7 @@ export default function App() {
           onBack={route === 'dashboard' ? undefined : () => navigate('dashboard')}
           onToggleMenu={() => setMenuOpen((open) => !open)}
         >
-          {filtered && <GlobalFilterBar scopeNote="Los filtros recortan los indicadores del periodo. Las gráficas se conectarán en la siguiente fase." />}
+          {filtered && <GlobalFilterBar scopeNote="Los filtros recortan los indicadores y las tres gráficas de consumo. Recargas y recortes viene de Saldos." />}
         </PageHeader>
 
         {route === 'dashboard' && (

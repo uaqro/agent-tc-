@@ -1,5 +1,4 @@
 import type { ChartSeries, MenuGroup } from '../types';
-import { clientAccount } from './client';
 
 /** Resumen sits above the sections; the sections follow Edenred One: products, intelligence and fleet. */
 export const menuGroups: MenuGroup[] = [
@@ -65,19 +64,6 @@ export const devMenuGroup: MenuGroup = {
   id: 'dev',
   label: 'Dev',
   items: [{ id: 'dev-mejoras-api', label: 'Mejoras API ZERO', icon: 'code' }],
-};
-
-export const costPerKilometer = {
-  labels: ['Ene 26', 'Feb 26', 'Mar 26', 'Abr 26', 'May 26', 'Jun 26', 'Jul 26'],
-  yMin: 0,
-  yMax: 0.75,
-  series: [
-    {
-      name: clientAccount.name,
-      color: '#2f6bff',
-      values: [0.42, 0.55, 0.38, 0.61, 0.49, 0.66, 0.58],
-    },
-  ] satisfies ChartSeries[],
 };
 
 export const refillsAndCuts = {
