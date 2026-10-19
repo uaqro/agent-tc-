@@ -21,6 +21,7 @@ export type AppRoute =
   | 'dashboard'
   | 'dispersion'
   | 'limits'
+  | 'station-networks'
   | 'reports'
   | 'payment-media'
   | 'maintenance'

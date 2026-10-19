@@ -23,7 +23,7 @@ export const API_VERSION = 'SOAP 1.2 · v1.8';
 export const PAGE_LABEL: Record<FuelPage, string> = {
   dashboard: 'Combustible · Resumen',
   dispersion: 'Combustible · Saldos',
-  limits: 'Combustible · Reglas y límites',
+  limits: 'Combustible · Políticas de uso',
   'payment-media': 'Combustible · Medios de pago',
   vehicles: 'Flota · Vehículos',
   drivers: 'Flota · Conductores',
@@ -163,7 +163,7 @@ export const apiCapabilities: ApiCapability[] = [
   {
     id: 'lim-policies',
     page: 'limits',
-    label: 'Políticas de límites',
+    label: 'Políticas de uso',
     status: 'unavailable',
     methods: [],
     note: 'No hay métodos para crear ni editar candados de la tarjeta (litros por periodo, cargas por día, combustibles, horarios, estaciones, odómetro o rendimiento). Solo las notas vale aceptan restricciones de horario, estaciones y conductores.',

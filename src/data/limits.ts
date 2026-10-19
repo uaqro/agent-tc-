@@ -4,23 +4,19 @@ import type {
   LimitMeasure,
   LimitPeriod,
   LimitPolicy,
+  PolicySettings,
+  TimeRange,
   OverrideDuration,
-  StationSubnet,
   UnitAssignment,
 } from '../types/limits';
 import { formatCount, formatLiters, formatMoney } from '../utils/format';
 import { toLiters, toMoney, vehicleGroups } from './dispersion';
+import { seedStationNetworks, networkModeLabel, type StationNetwork } from './stationNetworks';
 
 /** "Toda la flota" is a reporting group, a policy is never assigned to it. */
 export const assignableGroups = vehicleGroups.filter((group) => group.id !== 'g-all');
 
 export const fleetUnits = assignableGroups.reduce((sum, group) => sum + group.units, 0);
-
-export const stationSubnets: StationSubnet[] = [
-  { id: 's-norte', label: 'Corredor Norte', stations: 42 },
-  { id: 's-sur', label: 'Corredor Sur', stations: 28 },
-  { id: 's-pref', label: 'Estaciones preferentes', stations: 115 },
-];
 
 export const FUEL_LABEL: Record<FuelType, string> = {
   magna: 'Magna',
@@ -167,6 +163,43 @@ export const emptyPolicy: Omit<LimitPolicy, 'id'> = {
 export const groupIdOf = (vehicle: Vehicle): string | null =>
   assignableGroups.find((group) => group.label === vehicle.group)?.id ?? null;
 
+export function policySettings(policy: LimitPolicy): PolicySettings {
+  const defaults = {
+    minTransactionVolume: null,
+    maxTransactionVolume: policy.maxLitersPerFill || null,
+    showAvailableLiters: false,
+    showAvailableBalance: false,
+    showPreviousKm: false,
+    allowKmChanges: false,
+  };
+  if (policy.settings) return {
+    ...defaults,
+    ...policy.settings,
+    controls: { ...policy.settings.controls, plateRequired: policy.settings.controls.plateRequired ?? false },
+  };
+  const periods: PolicySettings['periods'] = {
+    day: { amount: null, volume: null, transactions: policy.maxFillsPerDay || null },
+    week: { amount: null, volume: null, transactions: null },
+    fortnight: { amount: null, volume: null, transactions: null },
+    month: { amount: null, volume: null, transactions: null },
+  };
+  periods[policy.period][policy.measure === 'money' ? 'amount' : 'volume'] = policy.periodLimit || null;
+  const ranges: TimeRange[] = policy.timeFrom < policy.timeTo
+    ? [{ from: policy.timeFrom, to: policy.timeTo }]
+    : [{ from: '00:00', to: policy.timeTo }, { from: policy.timeFrom, to: '23:59' }];
+  const unrestricted = policy.days.length === 7 && policy.timeFrom === '00:00' && policy.timeTo === '23:59';
+  const scheduleBlocks = unrestricted || policy.days.length === 0 ? null : [{ days: [...policy.days], ranges }];
+  return {
+    ...defaults,
+    controls: {
+      plateRequired: false, driverRequired: false, driverPin: false,
+      odometerRequired: policy.odometerRequired, kmPerformance: policy.odometerRequired && policy.minKmPerLiter !== null,
+      kmRange: null, hourmeterRequired: false, hourPerformance: false,
+    },
+    periods, scheduleBlocks, minTransactionAmount: null, maxTransactionAmount: null,
+  };
+}
+
 export const policyForGroup = (policies: LimitPolicy[], groupId: string | null): LimitPolicy | null =>
   (groupId && policies.find((policy) => policy.groupIds.includes(groupId))) || null;
 
@@ -197,29 +230,92 @@ export function daysLabel(days: number[]): string {
 }
 
 export function scheduleLabel(policy: LimitPolicy): string {
+  if (policy.settings) {
+    const blocks = policy.settings.scheduleBlocks;
+    if (!blocks) return 'Sin restricción de horario';
+    return blocks
+      .map((block) => `${daysLabel(block.days)} · ${block.ranges.map((range) => `${range.from}–${range.to}`).join(', ')}`)
+      .join(' / ');
+  }
   const allDay = policy.timeFrom === '00:00' && policy.timeTo === '23:59';
   return `${daysLabel(policy.days)} · ${allDay ? 'las 24 horas' : `${policy.timeFrom}–${policy.timeTo}`}`;
 }
 
 export const fuelsLabel = (policy: LimitPolicy): string => policy.fuels.map((fuel) => FUEL_LABEL[fuel]).join(', ');
 
-export function stationsLabel(policy: LimitPolicy): string {
-  const subnet = stationSubnets.find((candidate) => candidate.id === policy.stationSubnetId);
-  return subnet ? `${subnet.label} · ${formatCount(subnet.stations)} estaciones` : 'Toda la red';
+export function stationsLabel(policy: LimitPolicy, networks: StationNetwork[] = seedStationNetworks): string {
+  if (policy.stationSubnetId === null) return 'Toda la red';
+  const network = networks.find((candidate) => candidate.id === policy.stationSubnetId);
+  return network ? `${network.name} · ${networkModeLabel(network.mode)} · ${formatCount(network.stationIds.length)} estaciones` : 'Red no disponible';
 }
 
 export function perFillLabel(policy: LimitPolicy): string {
-  const fills = policy.maxFillsPerDay === 1 ? '1 carga al día' : `${policy.maxFillsPerDay} cargas al día`;
-  return `Máx. ${formatLiters(policy.maxLitersPerFill)} · ${fills} · ${policy.minHoursBetweenFills} h entre cargas`;
+  const settings = policy.settings;
+  const labels = [
+    !settings && policy.maxLitersPerFill > 0 && `Máx. ${formatLiters(policy.maxLitersPerFill)}`,
+    settings?.minTransactionVolume != null && `Mín. ${formatLiters(settings.minTransactionVolume)}`,
+    settings?.maxTransactionVolume != null && `Máx. ${formatLiters(settings.maxTransactionVolume)}`,
+    !settings && `${policy.maxFillsPerDay} cargas al día`,
+    settings?.minTransactionAmount != null && `Mín. ${formatMoney(settings.minTransactionAmount)}`,
+    settings?.maxTransactionAmount != null && `Máx. ${formatMoney(settings.maxTransactionAmount)}`,
+  ].filter(Boolean);
+  return labels.length ? labels.join(' · ') : 'Sin límites adicionales por carga';
+}
+
+export function periodLimitsLabel(policy: LimitPolicy): string {
+  const settings = policySettings(policy);
+  const labels = (Object.keys(PERIOD_META) as LimitPeriod[]).flatMap((period) => {
+    const restriction = settings.periods[period];
+    const values = [
+      restriction.amount !== null && formatMoney(restriction.amount),
+      restriction.volume !== null && formatLiters(restriction.volume),
+      restriction.transactions !== null && `${restriction.transactions} transacciones`,
+    ].filter(Boolean);
+    return values.length ? [`${PERIOD_META[period].adjective}: ${values.join(' · ')}`] : [];
+  });
+  return labels.length ? labels.join(' / ') : 'Sin límites acumulados por periodo';
 }
 
 export function validationLabel(policy: LimitPolicy): string {
+  const controls = policySettings(policy).controls;
   const locks = [
-    policy.tankCapacityLock && 'Candado de tanque',
-    policy.odometerRequired && 'Odómetro obligatorio',
-    policy.minKmPerLiter !== null && `Rendimiento mín. ${policy.minKmPerLiter} km/L`,
+    controls.plateRequired && 'Validar valor numérico de la placa del vehículo',
+    controls.driverRequired && (controls.driverPin ? 'Número y NIP de conductor' : 'Número de conductor'),
+    controls.odometerRequired && 'Kilometraje obligatorio',
+    controls.kmPerformance && 'Rendimiento km/L del vehículo',
+    controls.kmRange && `Recorrido ${formatCount(controls.kmRange.min)}–${formatCount(controls.kmRange.max)} km`,
+    controls.hourmeterRequired && 'Horómetro obligatorio',
+    controls.hourPerformance && 'Rendimiento h/L del vehículo',
   ].filter(Boolean);
-  return locks.length > 0 ? locks.join(' · ') : 'Sin validaciones';
+  return locks.length > 0 ? locks.join(' · ') : 'Sin controles solicitados';
+}
+
+export function additionalSettingsLabel(policy: LimitPolicy): string {
+  const settings = policySettings(policy);
+  const labels = [
+    policy.tankCapacityLock && 'Limitar a la capacidad del tanque del vehículo',
+    policy.minHoursBetweenFills > 0 && `${policy.minHoursBetweenFills} h de intervalo mínimo entre cargas`,
+    settings.showAvailableLiters && 'Mostrar litros disponibles al transaccionar',
+    settings.showAvailableBalance && 'Mostrar saldo disponible al transaccionar y en medios de consulta',
+    settings.showPreviousKm && 'Mostrar kilometraje anterior al transaccionar',
+    settings.allowKmChanges && 'Permitir cambios de kilometraje',
+  ].filter(Boolean);
+  return labels.length ? labels.join(' · ') : 'Sin configuraciones adicionales activas';
+}
+
+export function policySummary(policy: LimitPolicy): { controls: number; restrictions: number; additional: number } {
+  const settings = policySettings(policy);
+  const controls = settings.controls;
+  return {
+    controls: [controls.plateRequired, controls.driverRequired, controls.odometerRequired, controls.hourmeterRequired].filter(Boolean).length,
+    restrictions: Object.values(settings.periods).reduce((total, period) => total +
+      [period.amount, period.volume, period.transactions].filter((value) => value !== null).length, 0) +
+      [settings.minTransactionAmount, settings.maxTransactionAmount, settings.minTransactionVolume, settings.maxTransactionVolume]
+        .filter((value) => value !== null).length +
+      Number(settings.scheduleBlocks !== null) + Number(policy.stationSubnetId !== null),
+    additional: [policy.tankCapacityLock, policy.minHoursBetweenFills > 0, settings.showAvailableLiters,
+      settings.showAvailableBalance, settings.showPreviousKm, settings.allowKmChanges].filter(Boolean).length,
+  };
 }
 
 const toIso = (date: Date): string =>

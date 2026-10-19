@@ -126,7 +126,7 @@ export function AssignmentsTable({
                     </div>
                   </td>
                   <td>
-                    {policy ? (
+                    {policy && policy.periodLimit > 0 ? (
                       <>
                         <div
                           className={`assignments__bar assignments__bar--${usageTone(ratio)}`}
@@ -147,7 +147,7 @@ export function AssignmentsTable({
                         )}
                       </>
                     ) : (
-                      <span className="assignments__sub">{formatLiters(assignment.usedLiters)} cargados sin límite</span>
+                      <span className="assignments__sub">{formatLiters(assignment.usedLiters)} cargados · {policy ? 'sin límite acumulado de monto o volumen' : 'sin política'}</span>
                     )}
                   </td>
                   <td className={assignment.rejections7d > 0 ? 'assignments__rejections' : undefined}>
@@ -162,7 +162,7 @@ export function AssignmentsTable({
                       <button
                         type="button"
                         className="btn btn--ghost btn--sm"
-                        disabled={!policy}
+                        disabled={!policy || policy.periodLimit <= 0}
                         onClick={() => onOverride(vehicle.id)}
                       >
                         Excepción temporal

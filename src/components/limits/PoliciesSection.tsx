@@ -1,12 +1,12 @@
 import type { LimitPolicy } from '../../types/limits';
+import { useFuelPolicies } from '../../data/FuelPolicyContext';
 import {
-  PERIOD_META,
   assignableGroups,
-  formatEquivalent,
-  formatMeasure,
-  fuelsLabel,
+  additionalSettingsLabel,
   perFillLabel,
+  periodLimitsLabel,
   policyUnits,
+  policySummary,
   scheduleLabel,
   stationsLabel,
   validationLabel,
@@ -31,11 +31,12 @@ function scopeText(policy: LimitPolicy): string {
 }
 
 export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: PoliciesSectionProps) {
+  const { networks } = useFuelPolicies();
   return (
     <section className="policies" aria-labelledby="policies-title">
       <header className="policies__head">
         <h2 className="policies__title" id="policies-title">
-          Políticas de límites
+          Políticas de uso
           <ApiTag id="lim-policies" />
         </h2>
         <button type="button" className="btn btn--primary btn--sm" onClick={onCreate}>
@@ -48,8 +49,8 @@ export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: 
         <EmptyState
           card
           icon={<RuleIcon width={22} height={22} />}
-          title="Aún no hay políticas de límites"
-          description="Sin políticas, todas las unidades cargan sin candados. Crea una para fijar el límite por periodo y por carga, el combustible, los horarios y las estaciones permitidas de cada grupo."
+          title="Aún no hay políticas de uso"
+          description="No hay controles, restricciones de consumo ni configuraciones de uso asignados a la flota."
           actions={
             <button type="button" className="btn btn--primary btn--sm" onClick={onCreate}>
               <PlusIcon width={15} height={15} />
@@ -62,6 +63,7 @@ export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: 
       <ul className="policies__list">
         {policies.map((policy) => {
           const paused = policy.status === 'paused';
+          const summary = policySummary(policy);
 
           return (
             <li className={`policy-card${paused ? ' policy-card--paused' : ''}`} key={policy.id}>
@@ -73,20 +75,24 @@ export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: 
               <p className="policy-card__scope">{scopeText(policy)}</p>
               {paused && <p className="policy-card__note">Sus unidades cargan sin candados mientras esté pausada.</p>}
 
-              <p className="policy-card__limit">
-                {formatMeasure(policy.periodLimit, policy.measure)}
-                <span>por {PERIOD_META[policy.period].noun}</span>
-                <small>≈ {formatEquivalent(policy.periodLimit, policy.measure)}</small>
-              </p>
+              <dl className="policy-card__summary" aria-label="Resumen de configuración de la política">
+                <div><dt>Controles solicitados</dt><dd>{summary.controls}<span>de 4</span></dd></div>
+                <div><dt>Restricciones activas</dt><dd>{summary.restrictions}</dd></div>
+                <div><dt>Configuraciones adicionales</dt><dd>{summary.additional}<span>de 6</span></dd></div>
+              </dl>
 
               <dl className="policy-card__locks">
-                <div>
-                  <dt>Por carga</dt>
-                  <dd>{perFillLabel(policy)}</dd>
+                <div className="policy-card__locks-wide">
+                  <dt>Controles de transacción</dt>
+                  <dd>{validationLabel(policy)}</dd>
+                </div>
+                <div className="policy-card__locks-wide">
+                  <dt>Consumo por periodo</dt>
+                  <dd>{periodLimitsLabel(policy)}</dd>
                 </div>
                 <div>
-                  <dt>Combustible</dt>
-                  <dd>{fuelsLabel(policy)}</dd>
+                  <dt>Límites por transacción</dt>
+                  <dd>{perFillLabel(policy)}</dd>
                 </div>
                 <div>
                   <dt>Días y horario</dt>
@@ -94,11 +100,11 @@ export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: 
                 </div>
                 <div>
                   <dt>Estaciones</dt>
-                  <dd>{stationsLabel(policy)}</dd>
+                  <dd>{stationsLabel(policy, networks)}</dd>
                 </div>
                 <div className="policy-card__locks-wide">
-                  <dt>Validaciones</dt>
-                  <dd>{validationLabel(policy)}</dd>
+                  <dt>Configuraciones adicionales</dt>
+                  <dd>{additionalSettingsLabel(policy)}</dd>
                 </div>
               </dl>
 

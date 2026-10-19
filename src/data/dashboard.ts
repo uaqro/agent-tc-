@@ -51,7 +51,8 @@ export const menuGroups: MenuGroup[] = [
     label: 'Combustible',
     items: [
       { id: 'saldos', label: 'Saldos', icon: 'wallet' },
-      { id: 'reglas-limites', label: 'Reglas y límites', icon: 'lock' },
+      { id: 'reglas-limites', label: 'Políticas de uso', icon: 'lock' },
+      { id: 'red-estaciones', label: 'Red de estaciones personalizadas', icon: 'compass' },
       { id: 'medios-pago', label: 'Medios de pago', icon: 'card' },
     ],
   },

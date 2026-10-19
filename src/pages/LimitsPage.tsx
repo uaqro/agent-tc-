@@ -4,13 +4,12 @@ import { OverrideDialog } from '../components/limits/OverrideDialog';
 import { PoliciesSection } from '../components/limits/PoliciesSection';
 import { PolicyDialog } from '../components/limits/PolicyDialog';
 import { vehicles } from '../data/dispersion';
+import { useFuelPolicies } from '../data/FuelPolicyContext';
 import {
   fleetUnits,
   formatMeasure,
   groupIdOf,
-  limitPolicies as seedPolicies,
   policyForGroup,
-  unitAssignments as seedAssignments,
 } from '../data/limits';
 import type { LimitOverride, LimitPolicy, UnitAssignment } from '../types/limits';
 import { formatCount } from '../utils/format';
@@ -22,8 +21,7 @@ interface LimitsPageProps {
 }
 
 export function LimitsPage({ onNotice }: LimitsPageProps) {
-  const [policies, setPolicies] = useState<LimitPolicy[]>(seedPolicies);
-  const [assignments, setAssignments] = useState<UnitAssignment[]>(seedAssignments);
+  const { policies, setPolicies, assignments, setAssignments, storageError } = useFuelPolicies();
   const [editor, setEditor] = useState<{ policy: LimitPolicy | null } | null>(null);
   const [overrideFor, setOverrideFor] = useState<string | null>(null);
 
@@ -80,6 +78,10 @@ export function LimitsPage({ onNotice }: LimitsPageProps) {
       current.map((assignment) => {
         const vehicle = vehicleOf(assignment.vehicleId);
         const groupId = vehicle ? groupIdOf(vehicle) : null;
+        if (assignment.policyId === saved.id && previous &&
+          (previous.measure !== saved.measure || previous.period !== saved.period || saved.periodLimit === 0)) {
+          assignment = { ...assignment, override: undefined };
+        }
         if (assignment.individual || !groupId) return assignment;
 
         const inherits = saved.groupIds.includes(groupId);
@@ -127,6 +129,7 @@ export function LimitsPage({ onNotice }: LimitsPageProps) {
 
   return (
     <div className="limits">
+      {storageError && <p role="status">No fue posible guardar los cambios en este navegador. Se conservarán solo durante esta sesión.</p>}
       <ApiCoverageBanner page="limits" />
 
       <dl className="limits__summary">
