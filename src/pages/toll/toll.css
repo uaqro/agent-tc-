@@ -1,0 +1,125 @@
+/* Shared bits of the Peaje pages; the page layout comes from TablePage.css. */
+.toll__dd-sub {
+  display: block;
+  margin-top: 2px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.toll__hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.toll-auto {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.toll-auto__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 18px;
+}
+
+.toll-auto__row + .toll-auto__row {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.toll-auto__row--off .toll-auto__toggle span {
+  color: var(--text-muted);
+}
+
+.toll-auto__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 170px;
+  height: 34px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-strong);
+  cursor: pointer;
+}
+
+.toll-auto__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toll-auto__field span {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.toll-auto__field input {
+  width: 130px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text-strong);
+}
+
+.toll-auto__field input:disabled {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+
+.toll-auto__error {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-red);
+}
+
+.toll-usage {
+  width: 160px;
+  max-width: 100%;
+  height: 6px;
+  margin-bottom: 5px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.toll-usage span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-green);
+}
+
+.toll-usage--warn span {
+  background: var(--accent-orange);
+}
+
+.toll-usage--danger span {
+  background: var(--brand-red);
+}
+
+.toll-policies {
+  display: flex;
+  flex-direction: column;
+}
+
+.table-page__table select {
+  height: 32px;
+  max-width: 260px;
+  padding: 0 8px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text-strong);
+}

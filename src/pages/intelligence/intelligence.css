@@ -1,0 +1,132 @@
+/* Shared layout for the Inteligencia modules, following Edenred One cards and segmented tabs. */
+.intel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px 56px;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.intel-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.intel-section-title {
+  margin: 4px 0 0;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-body);
+}
+
+.intel-tabs {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.intel-tabs button {
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-body);
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.intel-tabs button:hover {
+  background: var(--surface-sunken);
+}
+
+.intel-tabs button.is-active {
+  background: var(--brand-red);
+  color: #fff;
+}
+
+.intel-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.intel-kpi {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px;
+}
+
+.intel-kpi__icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.intel-kpi__label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.intel-kpi__value {
+  margin: 4px 0 0;
+  font-family: var(--font-brand);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-strong);
+}
+
+.intel-kpi__hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.tone--red {
+  background: var(--brand-red-tint);
+  color: var(--brand-red);
+}
+
+.tone--green {
+  background: #e1f4eb;
+  color: #007840;
+}
+
+.tone--blue {
+  background: #e0eeff;
+  color: #0060df;
+}
+
+.tone--purple {
+  background: #f3eefb;
+  color: #6b4dc7;
+}
+
+.tone--amber {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+@media (max-width: 900px) {
+  .intel {
+    padding: 16px 14px 48px;
+  }
+}

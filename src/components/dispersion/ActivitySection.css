@@ -1,0 +1,119 @@
+.activity {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.activity__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.activity__tabs {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+.activity__tabs button {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.activity__tabs button.is-active {
+  background: var(--surface);
+  color: var(--text-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.activity__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.activity__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.activity__scroll {
+  overflow-x: auto;
+}
+
+.activity__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 680px;
+}
+
+.activity__table th,
+.activity__table td {
+  text-align: left;
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.activity__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.activity__table th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.activity__source {
+  display: block;
+  color: var(--text-strong);
+}
+
+.activity__scope {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.activity__amount {
+  font-weight: 600;
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+
+.activity__amount--negative {
+  color: #b4001a;
+}
+
+.activity__action {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.activity__action .btn {
+  margin-left: 4px;
+}
