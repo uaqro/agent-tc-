@@ -9,6 +9,10 @@ export interface SummaryMetric {
   previousMonth: number;
   /** A rise in this metric is reported as positive when true. */
   higherIsBetter: boolean;
+  /** Caption of the current value. Defaults to "Mes actual". */
+  currentLabel?: string;
+  /** Caption of the comparison value. Defaults to "Mes anterior". */
+  previousLabel?: string;
 }
 
 export interface ChartSeries {

@@ -1,9 +1,13 @@
+import { useMemo } from 'react';
 import { BarChart } from '../components/charts/BarChart';
 import { EmptyChart } from '../components/charts/EmptyChart';
 import { LineChart } from '../components/charts/LineChart';
 import { ChartCard } from '../components/dashboard/ChartCard';
 import { SummaryCard } from '../components/dashboard/SummaryCard';
-import { costPerKilometer, refillsAndCuts, summaryMetrics } from '../data/dashboard';
+import { useGlobalFilters } from '../components/filters/GlobalFilters';
+import { clientAccount } from '../data/client';
+import { costPerKilometer, refillsAndCuts } from '../data/dashboard';
+import { summaryMetricsFor } from '../data/summary';
 import type { ChartSeries } from '../types';
 import { ApiCoverageBanner, ApiTag, ApiTagRow } from '../components/api/ApiCoverage';
 import './FuelDashboardPage.css';
@@ -15,11 +19,14 @@ interface FuelDashboardPageProps {
 const hasData = (series: ChartSeries[]) => series.some((item) => item.values.length > 0);
 
 export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
+  const { filters } = useGlobalFilters();
+  const summaryMetrics = useMemo(() => summaryMetricsFor(filters), [filters]);
+
   return (
     <div className="dashboard">
       <ApiCoverageBanner page="dashboard" />
 
-      <ApiTagRow id="dash-kpis" label="Indicadores del mes" />
+      <ApiTagRow id="dash-kpis" label="Indicadores del periodo" />
       <section className="dashboard__summary" aria-label="Indicadores principales">
         {summaryMetrics.map((metric) => (
           <SummaryCard key={metric.id} metric={metric} />
@@ -41,7 +48,7 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
         <ChartCard
           title="Costo por kilómetro"
           badge={<ApiTag id="dash-cost-km" />}
-          subtitle="EDENRED MEXICO1"
+          subtitle={clientAccount.name}
           info="Muestra el costo de combustible por kilómetro recorrido para la unidad seleccionada."
           onOptionSelect={(option) => onCardOption('Costo por kilómetro', option)}
         >
@@ -52,7 +59,7 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
               yMin={costPerKilometer.yMin}
               yMax={costPerKilometer.yMax}
               valueSuffix=" MXN/km"
-              ariaLabel="Costo por kilómetro de enero 2026 a julio 2026 para EDENRED MEXICO1"
+              ariaLabel={`Costo por kilómetro de enero 2026 a julio 2026 para ${clientAccount.name}`}
             />
           ) : (
             <EmptyChart hint="Aún no hay cargas con odómetro registrado. El costo por kilómetro se calcula cuando la unidad reporta kilometraje en sus cargas." />

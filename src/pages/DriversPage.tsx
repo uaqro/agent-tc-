@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react';
 import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
-import { vehicles } from '../data/dispersion';
+import { Pagination, usePagination } from '../components/ui/Pagination';
 import { drivers, vehicleDetails } from '../data/fleet';
 import { assignableGroups } from '../data/limits';
-import { daysUntil } from '../utils/format';
+import { daysUntil, formatCount } from '../utils/format';
 import './TablePage.css';
 
 interface DriversPageProps {
@@ -29,6 +29,8 @@ export function DriversPage({ onNotice }: DriversPageProps) {
         (!needle || `${driver.name} ${driver.employeeNumber}`.toLowerCase().includes(needle)),
     );
   }, [query, group]);
+  const pagination = usePagination(rows);
+  const detailByVehicle = useMemo(() => new Map(vehicleDetails.map((detail) => [detail.vehicleId, detail])), []);
 
   const expiringSoon = drivers.filter((driver) => daysUntil(driver.licenseExpires) <= LICENSE_WARNING_DAYS).length;
 
@@ -39,7 +41,7 @@ export function DriversPage({ onNotice }: DriversPageProps) {
       <dl className="table-page__summary">
         <div>
           <dt>Conductores</dt>
-          <dd>{drivers.length}</dd>
+          <dd>{formatCount(drivers.length)}</dd>
         </div>
         <div>
           <dt>Con unidad asignada</dt>
@@ -121,7 +123,7 @@ export function DriversPage({ onNotice }: DriversPageProps) {
                     <ApiTag id="drv-license" />
                   </th>
                   <th scope="col">
-                    Cargas del mes
+                    Cargas · 30 días
                     <ApiTag id="drv-activity" />
                   </th>
                   <th scope="col">Rendimiento</th>
@@ -135,9 +137,9 @@ export function DriversPage({ onNotice }: DriversPageProps) {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((driver) => {
-                  const vehicle = vehicles.find((candidate) => candidate.id === driver.vehicleId);
-                  const expected = vehicleDetails.find((detail) => detail.vehicleId === driver.vehicleId)?.expectedKmPerLiter;
+                {pagination.pageRows.map((driver) => {
+                  const vehicle = driver.vehicleId ? detailByVehicle.get(driver.vehicleId) : undefined;
+                  const expected = vehicle?.expectedKmPerLiter;
                   const days = daysUntil(driver.licenseExpires);
                   const below = driver.kmPerLiter !== null && expected !== undefined && driver.kmPerLiter < expected * 0.9;
                   return (
@@ -181,6 +183,7 @@ export function DriversPage({ onNotice }: DriversPageProps) {
             </table>
           </div>
         )}
+        <Pagination {...pagination} noun="conductores" onPage={pagination.setPage} />
       </section>
     </div>
   );

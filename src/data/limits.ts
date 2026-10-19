@@ -53,9 +53,9 @@ export const OVERRIDE_REASONS = [
 export const limitPolicies: LimitPolicy[] = [
   {
     id: 'p-norte',
-    name: 'Carga pesada · Ruta Norte',
+    name: 'Carga pesada · Corredor Norte',
     status: 'active',
-    groupIds: ['g-norte'],
+    groupIds: ['grp-02'],
     measure: 'liters',
     period: 'fortnight',
     periodLimit: 600,
@@ -73,9 +73,9 @@ export const limitPolicies: LimitPolicy[] = [
   },
   {
     id: 'p-centro',
-    name: 'Reparto urbano · Ruta Centro',
+    name: 'Reparto urbano · Zona Metropolitana',
     status: 'active',
-    groupIds: ['g-centro'],
+    groupIds: ['grp-01'],
     measure: 'money',
     period: 'week',
     periodLimit: 2_500,
@@ -93,9 +93,9 @@ export const limitPolicies: LimitPolicy[] = [
   },
   {
     id: 'p-sur',
-    name: 'Estándar · Ruta Sur',
+    name: 'Estándar · Sureste',
     status: 'active',
-    groupIds: ['g-sur'],
+    groupIds: ['grp-05'],
     measure: 'money',
     period: 'week',
     periodLimit: 3_500,
@@ -113,9 +113,9 @@ export const limitPolicies: LimitPolicy[] = [
   },
   {
     id: 'p-exec',
-    name: 'Flota ejecutiva',
+    name: 'Reserva y sustitución',
     status: 'active',
-    groupIds: ['g-exec'],
+    groupIds: ['grp-06'],
     measure: 'liters',
     period: 'month',
     periodLimit: 220,
@@ -134,14 +134,14 @@ export const limitPolicies: LimitPolicy[] = [
 ];
 
 export const unitAssignments: UnitAssignment[] = [
-  { vehicleId: 'v-1', policyId: 'p-norte', individual: false, tankLiters: 400, usedLiters: 412, rejections7d: 0 },
-  { vehicleId: 'v-2', policyId: 'p-centro', individual: false, tankLiters: 70, usedLiters: 61, rejections7d: 5 },
-  { vehicleId: 'v-3', policyId: 'p-sur', individual: false, tankLiters: 80, usedLiters: 0, rejections7d: 0 },
-  { vehicleId: 'v-4', policyId: 'p-norte', individual: false, tankLiters: 400, usedLiters: 538, rejections7d: 1 },
-  { vehicleId: 'v-5', policyId: 'p-exec', individual: false, tankLiters: 55, usedLiters: 74, rejections7d: 0 },
-  { vehicleId: 'v-6', policyId: 'p-centro', individual: false, tankLiters: 70, usedLiters: 96.8, rejections7d: 2 },
-  { vehicleId: 'v-7', policyId: null, individual: false, tankLiters: 400, usedLiters: 180, rejections7d: 0 },
-  { vehicleId: 'v-8', policyId: 'p-sur', individual: false, tankLiters: 70, usedLiters: 88, rejections7d: 1 },
+  { vehicleId: 'ECO-3004', policyId: 'p-norte', individual: false, tankLiters: 518, usedLiters: 412, rejections7d: 0 },
+  { vehicleId: 'ECO-3033', policyId: 'p-centro', individual: false, tankLiters: 71, usedLiters: 61, rejections7d: 5 },
+  { vehicleId: 'ECO-3240', policyId: 'p-sur', individual: false, tankLiters: 81, usedLiters: 0, rejections7d: 0 },
+  { vehicleId: 'ECO-3215', policyId: 'p-norte', individual: false, tankLiters: 451, usedLiters: 538, rejections7d: 1 },
+  { vehicleId: 'ECO-3260', policyId: 'p-exec', individual: false, tankLiters: 89, usedLiters: 74, rejections7d: 0 },
+  { vehicleId: 'ECO-3035', policyId: 'p-centro', individual: false, tankLiters: 55, usedLiters: 96.8, rejections7d: 2 },
+  { vehicleId: 'ECO-3253', policyId: null, individual: false, tankLiters: 496, usedLiters: 180, rejections7d: 0 },
+  { vehicleId: 'ECO-3113', policyId: 'p-sur', individual: false, tankLiters: 125, usedLiters: 88, rejections7d: 1 },
 ];
 
 export const emptyPolicy: Omit<LimitPolicy, 'id'> = {

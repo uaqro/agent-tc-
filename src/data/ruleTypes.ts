@@ -66,7 +66,7 @@ export interface RuleDraft {
 export const emptyDraft: RuleDraft = {
   type: 'balance-threshold',
   scopeKind: 'group',
-  groupId: 'g-norte',
+  groupId: 'grp-02',
   vehicleIds: [],
   cadence: 'biweekly',
   capLiters: 600,

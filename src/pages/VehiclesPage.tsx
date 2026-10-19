@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
-import { vehicles } from '../data/dispersion';
+import { Pagination, usePagination } from '../components/ui/Pagination';
 import { PAYMENT_TYPE_LABEL, VEHICLE_STATUS_LABEL, paymentMedia, vehicleDetails, type VehicleStatus } from '../data/fleet';
 import { assignableGroups } from '../data/limits';
 import { formatCount } from '../utils/format';
@@ -25,13 +25,13 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return vehicles
-      .map((vehicle) => ({ vehicle, detail: vehicleDetails.find((detail) => detail.vehicleId === vehicle.id) }))
-      .filter(({ vehicle, detail }) => {
-        const haystack = `${vehicle.plate} ${vehicle.driver} ${detail?.brand ?? ''} ${detail?.model ?? ''}`.toLowerCase();
-        return (!group || vehicle.group === group) && (!status || detail?.status === status) && (!needle || haystack.includes(needle));
-      });
+    return vehicleDetails.filter((detail) => {
+      const haystack = `${detail.vehicleId} ${detail.plate} ${detail.driver} ${detail.brand} ${detail.model}`.toLowerCase();
+      return (!group || detail.group === group) && (!status || detail.status === status) && (!needle || haystack.includes(needle));
+    });
   }, [query, group, status]);
+  const pagination = usePagination(rows);
+  const mediumByVehicle = useMemo(() => new Map(paymentMedia.map((medium) => [medium.vehicleId, medium])), []);
 
   const count = (key: VehicleStatus) => vehicleDetails.filter((detail) => detail.status === key).length;
 
@@ -42,7 +42,7 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
       <dl className="table-page__summary">
         <div>
           <dt>Vehículos registrados</dt>
-          <dd>{vehicles.length}</dd>
+          <dd>{formatCount(vehicleDetails.length)}</dd>
         </div>
         <div>
           <dt>Activos</dt>
@@ -68,7 +68,7 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
             <label className="table-page__search">
               <SearchIcon width={15} height={15} />
               <span className="visually-hidden">Buscar vehículo</span>
-              <input type="search" value={query} placeholder="Placa, marca, modelo o conductor" onChange={(event) => setQuery(event.target.value)} />
+              <input type="search" value={query} placeholder="Unidad, placa, marca o conductor" onChange={(event) => setQuery(event.target.value)} />
             </label>
             <label>
               <span className="visually-hidden">Filtrar por grupo</span>
@@ -157,22 +157,30 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ vehicle, detail }) => {
-                  const medium = paymentMedia.find((candidate) => candidate.vehicleId === vehicle.id);
+                {pagination.pageRows.map((detail) => {
+                  const medium = mediumByVehicle.get(detail.vehicleId);
                   return (
-                    <tr key={vehicle.id}>
+                    <tr key={detail.vehicleId}>
                       <td>
-                        <span className="table-page__main">{vehicle.plate}</span>
-                        <span className="table-page__sub">{detail ? `${detail.brand} ${detail.model} · ${detail.year}` : '—'}</span>
+                        <span className="table-page__main">{detail.plate}</span>
+                        <span className="table-page__sub">
+                          {detail.vehicleId} · {detail.brand} {detail.model} · {detail.year}
+                        </span>
                       </td>
-                      <td>{vehicle.group}</td>
+                      <td>{detail.group}</td>
                       <td>
-                        {detail?.fuel ?? '—'}
-                        {detail && <span className="table-page__sub table-page__nowrap">Tanque de {detail.tankLiters} L</span>}
+                        {detail.fuel}
+                        <span className="table-page__sub table-page__nowrap">Tanque de {detail.tankLiters} L</span>
                       </td>
-                      <td>{detail ? `${detail.expectedKmPerLiter} km/L` : '—'}</td>
-                      <td>{detail ? `${formatCount(detail.odometerKm)} km` : '—'}</td>
-                      <td>{vehicle.driver}</td>
+                      <td>{detail.expectedKmPerLiter} km/L</td>
+                      <td>
+                        {detail.odometerKm === null ? (
+                          <span className="table-page__sub">Sin lectura</span>
+                        ) : (
+                          `${formatCount(detail.odometerKm)} km`
+                        )}
+                      </td>
+                      <td>{detail.driver}</td>
                       <td>
                         {medium ? (
                           <>
@@ -183,7 +191,9 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
                           <span className="table-page__sub">Sin medio</span>
                         )}
                       </td>
-                      <td>{detail && <span className={`chip ${STATUS_CHIP[detail.status]}`}>{VEHICLE_STATUS_LABEL[detail.status]}</span>}</td>
+                      <td>
+                        <span className={`chip ${STATUS_CHIP[detail.status]}`}>{VEHICLE_STATUS_LABEL[detail.status]}</span>
+                      </td>
                     </tr>
                   );
                 })}
@@ -191,6 +201,7 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
             </table>
           </div>
         )}
+        <Pagination {...pagination} noun="vehículos" onPage={pagination.setPage} />
       </section>
     </div>
   );

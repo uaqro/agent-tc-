@@ -165,7 +165,7 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
                         {vehicle.plate} · {detail ? `${detail.brand} ${detail.model}` : vehicle.driver}
                       </p>
                       <p className="maintenance__result-sub">
-                        {detail ? `${VEHICLE_STATUS_LABEL[detail.status]} · ${formatCount(detail.odometerKm)} km` : ''} ·{' '}
+                        {detail ? `${VEHICLE_STATUS_LABEL[detail.status]} · ${detail.odometerKm === null ? 'sin lectura de odómetro' : `${formatCount(detail.odometerKm)} km`}` : ''} ·{' '}
                         {open === 0 ? 'Sin órdenes abiertas' : `${open} ${open === 1 ? 'orden abierta' : 'órdenes abiertas'}`}
                         {next && ` · próximo: ${next.service}`}
                       </p>

@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
+import { GlobalFilterBar, chipText } from './components/filters/GlobalFilterBar';
+import { useGlobalFilters } from './components/filters/GlobalFilters';
 import { FloatingControls } from './components/layout/FloatingControls';
 import { PageHeader } from './components/layout/PageHeader';
 import { SideMenu } from './components/layout/SideMenu';
 import { TopBar } from './components/layout/TopBar';
 import { devMenuGroup, menuGroups } from './data/dashboard';
+import { clientAccount } from './data/client';
 import { account } from './data/dispersion';
 import { DispersionPage } from './pages/DispersionPage';
 import { FuelDashboardPage } from './pages/FuelDashboardPage';
@@ -38,7 +41,7 @@ const ROUTES: Record<AppRoute, { menuItem: string; section: string; title: strin
     menuItem: 'resumen',
     section: 'Combustible',
     title: 'Resumen',
-    subtitle: `${account.name} · Mes actual · Todas las unidades`,
+    subtitle: clientAccount.name,
   },
   dispersion: {
     menuItem: 'saldos',
@@ -198,6 +201,12 @@ export default function App() {
   }, [devMode, route, navigate]);
 
   const meta = ROUTES[route];
+  const { filters, chips } = useGlobalFilters();
+  // Pages that cut by the global filters say which slice they show.
+  const filtered = route === 'dashboard';
+  const subtitle = filtered
+    ? `${meta.subtitle} · Últimos ${filters.periodDays} ${filters.periodDays === 1 ? 'día' : 'días'} · ${chips.length > 0 ? chips.map(chipText).join(' · ') : 'toda la flota'}`
+    : meta.subtitle;
 
   return (
     <div className="app">
@@ -223,11 +232,13 @@ export default function App() {
           section={meta.section}
           title={meta.title}
           crumb={meta.crumb}
-          subtitle={meta.subtitle}
+          subtitle={subtitle}
           menuOpen={menuOpen}
           onBack={route === 'dashboard' ? undefined : () => navigate('dashboard')}
           onToggleMenu={() => setMenuOpen((open) => !open)}
-        />
+        >
+          {filtered && <GlobalFilterBar scopeNote="Los filtros recortan los indicadores del periodo. Las gráficas se conectarán en la siguiente fase." />}
+        </PageHeader>
 
         {route === 'dashboard' && (
           <FuelDashboardPage onCardOption={(chart, option) => setNotice(`${chart}: ${option}.`)} />

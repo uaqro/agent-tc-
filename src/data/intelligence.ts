@@ -41,29 +41,29 @@ export const fleetAlerts: FleetAlert[] = [
   {
     id: 'a-1',
     severity: 'critical',
-    title: 'Consumo anómalo · TGP-91-7K · Marisol Vega',
+    title: 'Consumo anómalo · CDE-42-33 · Efraín Íñiguez Estrada',
     detail:
-      '3 cargas en 5 horas por 312 L en total; la capacidad del tanque es de 80 L (3.9× el máximo). Posible clonación de tarjeta o carga a terceros.',
-    meta: 'Ruta Centro · Hoy 06:12–11:05 h',
+      '3 cargas en 5 horas por 312 L en total; la capacidad del tanque es de 71 L (4.4× el máximo). Posible clonación de tarjeta o carga a terceros.',
+    meta: 'Zona Metropolitana · Hoy 06:12–11:05 h',
     when: 'Hoy 11:20',
-    action: { label: 'Solicitar evidencia', notice: 'Se pidió a Marisol Vega la evidencia de las 3 cargas.' },
+    action: { label: 'Solicitar evidencia', notice: 'Se pidió a Efraín Íñiguez Estrada la evidencia de las 3 cargas.' },
   },
   {
     id: 'a-2',
     severity: 'critical',
-    title: 'Carga fuera de zona · HGF-29-8T · Miguel Santoyo',
+    title: 'Carga fuera de zona · CDE-33-16 · Aristeo Sarmiento Nájera',
     detail:
       '96 L cargados en Hermosillo, Son., mientras la unidad reporta posición en Puebla. Se recomienda bloquear la tarjeta de inmediato.',
-    meta: 'Ruta Sur · Diferencia de 1,860 km',
+    meta: 'Sureste · Diferencia de 1,860 km',
     when: 'Hoy 04:38',
-    action: { label: 'Bloquear tarjeta', notice: 'Tarjeta de HGF-29-8T bloqueada. Se notificó al conductor.' },
+    action: { label: 'Bloquear tarjeta', notice: 'Tarjeta de CDE-33-16 bloqueada. Se notificó al conductor.' },
   },
   {
     id: 'a-3',
     severity: 'critical',
-    title: 'Saldo en cero con ruta asignada · RAM-45-2B',
+    title: 'Saldo en cero con ruta asignada · DEF-13-04',
     detail: 'La unidad tiene ruta programada mañana a las 05:00 y no podrá cargar. Su consumo semanal promedio es de $1,850.',
-    meta: 'Ruta Norte · Rodolfo Aguirre',
+    meta: 'Corredor Norte · Lucía Rentería Madrigal',
     when: 'Hoy 09:02',
     action: { label: 'Fondear', route: 'dispersion', notice: 'Abriendo Saldos.' },
   },
@@ -72,7 +72,7 @@ export const fleetAlerts: FleetAlert[] = [
     severity: 'critical',
     title: 'Cargas sin odómetro · 9 unidades',
     detail:
-      'JKM-33-4A, NBV-62-3F, ZUT-08-5E y 6 más llevan más de 72 h cargando sin capturar odómetro; el rendimiento no se puede calcular.',
+      'EFG-46-21, CDE-84-59, EFG-44-35 y 6 más llevan más de 72 h cargando sin capturar odómetro; el rendimiento no se puede calcular.',
     meta: '9 unidades · Validación desactivada en su política',
     when: 'Ayer 18:00',
     action: { label: 'Revisar política', route: 'limits', notice: 'Abriendo Reglas y límites.' },
@@ -80,9 +80,9 @@ export const fleetAlerts: FleetAlert[] = [
   {
     id: 'a-5',
     severity: 'warning',
-    title: 'Rendimiento bajo umbral · 7 unidades de Ruta Sur',
+    title: 'Rendimiento bajo umbral · 7 unidades de Sureste',
     detail: 'Promedian 6.5 km/L contra 8.2 km/L esperado (−20.7%). Sobrecosto estimado de $38,400 al mes.',
-    meta: 'Ruta Sur · Mes actual',
+    meta: 'Sureste · Mes actual',
     when: 'Octubre 2026',
     action: { label: 'Ver reporte', route: 'reports', notice: 'Abriendo Reportes.' },
   },
@@ -90,7 +90,7 @@ export const fleetAlerts: FleetAlert[] = [
     id: 'a-6',
     severity: 'warning',
     title: 'Límite mensual al 90% · 4 tarjetas',
-    detail: 'ZUT-08-5E, NBV-62-3F, JKM-33-4A y TGP-91-7K agotarán su límite en 4 a 7 días hábiles al ritmo actual.',
+    detail: 'EFG-44-35, CDE-84-59, EFG-46-21 y CDE-42-33 agotarán su límite en 4 a 7 días hábiles al ritmo actual.',
     meta: '4 tarjetas · Ciclo 1–31 oct',
     when: 'Hoy',
     action: { label: 'Ajustar límites', route: 'limits', notice: 'Abriendo Reglas y límites.' },
@@ -98,9 +98,9 @@ export const fleetAlerts: FleetAlert[] = [
   {
     id: 'a-7',
     severity: 'warning',
-    title: 'Saldo atrapado · VLQ-12-9D sin conductor',
+    title: 'Saldo atrapado · LMN-71-46 sin conductor',
     detail: '$4,280 sin movimiento desde hace 21 días en una unidad sin conductor asignado.',
-    meta: 'Ruta Sur · Sin cargas en 21 días',
+    meta: 'Sureste · Sin cargas en 21 días',
     when: 'Hoy',
     action: { label: 'Recortar saldo', route: 'dispersion', notice: 'Abriendo Saldos.' },
   },
@@ -109,7 +109,7 @@ export const fleetAlerts: FleetAlert[] = [
     severity: 'warning',
     title: 'Cargas en horario restringido · 3 unidades',
     detail: 'Cargas entre 23:00 y 04:00 en unidades cuya política solo permite de 06:00 a 22:00. La política está pausada.',
-    meta: 'Flota ejecutiva · Últimos 7 días',
+    meta: 'Reserva y sustitución · Últimos 7 días',
     when: 'Ayer',
     action: { label: 'Revisar política', route: 'limits', notice: 'Abriendo Reglas y límites.' },
   },
@@ -143,7 +143,7 @@ export const fleetAlerts: FleetAlert[] = [
   {
     id: 'a-12',
     severity: 'success',
-    title: 'Meta de ahorro superada · Ruta Norte +12.3%',
+    title: 'Meta de ahorro superada · Corredor Norte +12.3%',
     detail: 'El 84% de los conductores cargó en las estaciones recomendadas por TED. Segundo mes consecutivo en primer lugar.',
     meta: 'Objetivo $52,000 · Logrado $58,400',
     when: 'Octubre 2026',
@@ -162,7 +162,7 @@ export const optimizationInsights: OptimizationInsight[] = [
   },
   {
     id: 'o-2',
-    title: 'Pasar Ruta Centro a reposición a tope semanal',
+    title: 'Pasar Zona Metropolitana a reposición a tope semanal',
     detail: 'Hoy recibe montos fijos y acumula $18,200 sin usar al cierre de mes. A tope solo se envía lo consumido.',
     savingsMXN: 18_200,
     effort: 'Bajo',
@@ -170,15 +170,15 @@ export const optimizationInsights: OptimizationInsight[] = [
   },
   {
     id: 'o-3',
-    title: 'Restringir Premium a Flota ejecutiva',
-    detail: '14% de las cargas de Ruta Norte y Ruta Sur son Premium aunque sus unidades usan Magna.',
+    title: 'Restringir Premium a Reserva y sustitución',
+    detail: '14% de las cargas de Corredor Norte y Sureste son Premium aunque sus unidades usan Magna.',
     savingsMXN: 9_700,
     effort: 'Bajo',
     action: { label: 'Editar política', route: 'limits', notice: 'Abriendo Reglas y límites.' },
   },
   {
     id: 'o-4',
-    title: 'Activar validación de odómetro en Ruta Sur',
+    title: 'Activar validación de odómetro en Sureste',
     detail: 'Sin odómetro no se detecta el bajo rendimiento; las flotas que lo validan reducen su consumo 6% en promedio.',
     savingsMXN: 7_900,
     effort: 'Medio',
@@ -237,13 +237,13 @@ export const regionOpportunities: RegionOpportunity[] = [
 ];
 
 export const stationSwaps: StationSwap[] = [
-  { plate: 'ZUT-08-5E', driver: 'Javier Ortiz', group: 'Ruta Centro', fromStation: 'PEMEX Autopista km 142', fromPrice: 25.34, toStation: 'G500 Cuautitlán Norte', toPrice: 23.46, detourKm: 2.4, monthlyLiters: 820 },
-  { plate: 'TGP-91-7K', driver: 'Marisol Vega', group: 'Ruta Centro', fromStation: 'BP Vallejo', fromPrice: 25.7, toStation: 'PEMEX Vallejo 2', toPrice: 24.3, detourKm: 0.8, monthlyLiters: 740 },
-  { plate: 'HGF-29-8T', driver: 'Miguel Santoyo', group: 'Ruta Sur', fromStation: 'PEMEX Toluca Centro', fromPrice: 25.0, toStation: 'Orsan Metepec', toPrice: 23.68, detourKm: 3.1, monthlyLiters: 680 },
-  { plate: 'RAM-45-2B', driver: 'Rodolfo Aguirre', group: 'Ruta Norte', fromStation: 'Gulf Monterrey Sur', fromPrice: 24.6, toStation: 'Hidrosina Apodaca', toPrice: 23.56, detourKm: 4.2, monthlyLiters: 900 },
-  { plate: 'NBV-62-3F', driver: 'Carla Ramos', group: 'Ruta Norte', fromStation: 'PEMEX Gdl Oriente', fromPrice: 25.18, toStation: 'Fuelgas Tlaquepaque', toPrice: 24.22, detourKm: 1.9, monthlyLiters: 760 },
-  { plate: 'JKM-33-4A', driver: 'Luis Beltrán', group: 'Ruta Norte', fromStation: 'Shell San Nicolás', fromPrice: 24.92, toStation: 'PEMEX Universidad', toPrice: 24.05, detourKm: 1.2, monthlyLiters: 640 },
-  { plate: 'PQR-77-1C', driver: 'Ana Sandoval', group: 'Flota ejecutiva', fromStation: 'Mobil Santa Fe', fromPrice: 26.1, toStation: 'G500 Vasco de Quiroga', toPrice: 24.88, detourKm: 1.6, monthlyLiters: 310 },
+  { plate: 'EFG-44-35', driver: 'Rodrigo Estrada Sarmiento', group: 'Zona Metropolitana', fromStation: 'PEMEX Autopista km 142', fromPrice: 25.34, toStation: 'G500 Cuautitlán Norte', toPrice: 23.46, detourKm: 2.4, monthlyLiters: 820 },
+  { plate: 'CDE-42-33', driver: 'Efraín Íñiguez Estrada', group: 'Zona Metropolitana', fromStation: 'BP Vallejo', fromPrice: 25.7, toStation: 'PEMEX Vallejo 2', toPrice: 24.3, detourKm: 0.8, monthlyLiters: 740 },
+  { plate: 'CDE-33-16', driver: 'Aristeo Sarmiento Nájera', group: 'Sureste', fromStation: 'PEMEX Toluca Centro', fromPrice: 25.0, toStation: 'Orsan Metepec', toPrice: 23.68, detourKm: 3.1, monthlyLiters: 680 },
+  { plate: 'DEF-13-04', driver: 'Lucía Rentería Madrigal', group: 'Corredor Norte', fromStation: 'Gulf Monterrey Sur', fromPrice: 24.6, toStation: 'Hidrosina Apodaca', toPrice: 23.56, detourKm: 4.2, monthlyLiters: 900 },
+  { plate: 'CDE-84-59', driver: 'Marisol Tirado Escalante', group: 'Corredor Norte', fromStation: 'PEMEX Gdl Oriente', fromPrice: 25.18, toStation: 'Fuelgas Tlaquepaque', toPrice: 24.22, detourKm: 1.9, monthlyLiters: 760 },
+  { plate: 'EFG-46-21', driver: 'Norma Ceballos Alcántara', group: 'Corredor Norte', fromStation: 'Shell San Nicolás', fromPrice: 24.92, toStation: 'PEMEX Universidad', toPrice: 24.05, detourKm: 1.2, monthlyLiters: 640 },
+  { plate: 'LMN-91-66', driver: 'Norma Escalante Bermúdez', group: 'Reserva y sustitución', fromStation: 'Mobil Santa Fe', fromPrice: 26.1, toStation: 'G500 Vasco de Quiroga', toPrice: 24.88, detourKm: 1.6, monthlyLiters: 310 },
 ];
 
 export const swapSavings = (swap: StationSwap) => (swap.fromPrice - swap.toPrice) * swap.monthlyLiters;
@@ -260,7 +260,7 @@ export const tedSuggestions = [
   '¿Qué tarjetas están cerca de su límite?',
   '¿Qué unidades tienen consumo anómalo?',
   '¿Cuánto ahorramos en octubre vs septiembre?',
-  '¿Dónde conviene cargar en Ruta Centro?',
+  '¿Dónde conviene cargar en Zona Metropolitana?',
   'Genera un resumen ejecutivo del mes',
 ];
 
@@ -268,32 +268,32 @@ export const tedAnswers: TedAnswer[] = [
   {
     keywords: ['gasto', 'semana', 'gastamos'],
     text:
-      'Esta semana llevas **$186,420** en combustible (7,517 L), un 4.2% más que la semana pasada.\n\n• Ruta Norte: $72,300\n• Ruta Centro: $61,850\n• Ruta Sur: $38,900\n• Flota ejecutiva: $13,370\n\nEl aumento viene de Ruta Centro, donde subieron las cargas en estaciones de autopista.',
+      'Esta semana llevas **$186,420** en combustible (7,517 L), un 4.2% más que la semana pasada.\n\n• Corredor Norte: $72,300\n• Zona Metropolitana: $61,850\n• Sureste: $38,900\n• Reserva y sustitución: $13,370\n\nEl aumento viene de Zona Metropolitana, donde subieron las cargas en estaciones de autopista.',
   },
   {
     keywords: ['límite', 'limite', 'tarjetas'],
     text:
-      'Hay **4 tarjetas al 90% o más** de su límite mensual:\n\n• ZUT-08-5E · 96% · se agota en 2 días\n• NBV-62-3F · 93%\n• JKM-33-4A · 91%\n• TGP-91-7K · 90% (tiene una alerta de consumo anómalo abierta)\n\nTe sugiero dar una excepción temporal a ZUT-08-5E y revisar TGP-91-7K antes de ampliarle el límite.',
+      'Hay **4 tarjetas al 90% o más** de su límite mensual:\n\n• EFG-44-35 · 96% · se agota en 2 días\n• CDE-84-59 · 93%\n• EFG-46-21 · 91%\n• CDE-42-33 · 90% (tiene una alerta de consumo anómalo abierta)\n\nTe sugiero dar una excepción temporal a EFG-44-35 y revisar CDE-42-33 antes de ampliarle el límite.',
   },
   {
     keywords: ['anómalo', 'anomalo', 'anomalía', 'fraude', 'sospech'],
     text:
-      'Detecté **2 casos críticos** en las últimas 24 h:\n\n1. **TGP-91-7K** · 3 cargas en 5 h por 312 L con un tanque de 80 L.\n2. **HGF-29-8T** · carga en Hermosillo mientras la unidad estaba en Puebla.\n\nAmbos tienen una alerta abierta en Insights & Alertas. Recomiendo bloquear la tarjeta de HGF-29-8T y pedir evidencia a Marisol Vega.',
+      'Detecté **2 casos críticos** en las últimas 24 h:\n\n1. **CDE-42-33** · 3 cargas en 5 h por 312 L con un tanque de 71 L.\n2. **CDE-33-16** · carga en Hermosillo mientras la unidad estaba en Puebla.\n\nAmbos tienen una alerta abierta en Insights & Alertas. Recomiendo bloquear la tarjeta de CDE-33-16 y pedir evidencia a Efraín Íñiguez Estrada.',
   },
   {
     keywords: ['ahorr', 'octubre', 'septiembre'],
     text:
-      'En octubre llevas **$58,400 de ahorro** por cargar en estaciones recomendadas, contra $49,100 en septiembre (+18.9%).\n\nRuta Norte aporta el 46% del ahorro. Si las 12 tarjetas pendientes cambian de estación, el ahorro mensual subiría unos $21,400 más.',
+      'En octubre llevas **$58,400 de ahorro** por cargar en estaciones recomendadas, contra $49,100 en septiembre (+18.9%).\n\nCorredor Norte aporta el 46% del ahorro. Si las 12 tarjetas pendientes cambian de estación, el ahorro mensual subiría unos $21,400 más.',
   },
   {
     keywords: ['dónde', 'donde', 'cargar', 'estación', 'estacion', 'centro'],
     text:
-      'Para Ruta Centro las mejores opciones de hoy son:\n\n• **G500 Cuautitlán Norte** · $23.46/L · a 2.4 km de la ruta\n• **PEMEX Vallejo 2** · $24.30/L · a 0.8 km\n\nCambiar las dos tarjetas con más consumo ahorraría alrededor de **$2,580 al mes**. Puedes enviarles la sugerencia desde el Optimizador.',
+      'Para Zona Metropolitana las mejores opciones de hoy son:\n\n• **G500 Cuautitlán Norte** · $23.46/L · a 2.4 km de la ruta\n• **PEMEX Vallejo 2** · $24.30/L · a 0.8 km\n\nCambiar las dos tarjetas con más consumo ahorraría alrededor de **$2,580 al mes**. Puedes enviarles la sugerencia desde el Optimizador.',
   },
   {
     keywords: ['resumen', 'ejecutivo', 'mes'],
     text:
-      '**Resumen de octubre (al día 15)**\n\n• Gasto: $412,300 · 16,625 L · 26 tarjetas activas\n• Rendimiento promedio: 7.8 km/L (−2.1% vs septiembre)\n• Ahorro por estación recomendada: $58,400\n• Alertas: 4 críticas, 4 advertencias\n• Proyección de cierre: $851,000, 3% sobre presupuesto\n\nLa principal palanca es Ruta Sur: corregir su rendimiento recuperaría unos $38,400 al mes.',
+      '**Resumen de octubre (al día 15)**\n\n• Gasto: $412,300 · 16,625 L · 26 tarjetas activas\n• Rendimiento promedio: 7.8 km/L (−2.1% vs septiembre)\n• Ahorro por estación recomendada: $58,400\n• Alertas: 4 críticas, 4 advertencias\n• Proyección de cierre: $851,000, 3% sobre presupuesto\n\nLa principal palanca es Sureste: corregir su rendimiento recuperaría unos $38,400 al mes.',
   },
 ];
 
