@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { ServiceOrderDialog } from '../components/maintenance/ServiceOrderDialog';
 import { AlertIcon, CalendarIcon, GearIcon, PlusIcon, SearchIcon, WalletIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
-import { vehicles } from '../data/dispersion';
+import { fleetVehicles as vehicles } from '../data/dispersion';
 import { VEHICLE_STATUS_LABEL, vehicleDetails } from '../data/fleet';
 import {
   ORDER_KIND_LABEL,

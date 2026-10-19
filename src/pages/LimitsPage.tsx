@@ -3,7 +3,8 @@ import { AssignmentsTable } from '../components/limits/AssignmentsTable';
 import { OverrideDialog } from '../components/limits/OverrideDialog';
 import { PoliciesSection } from '../components/limits/PoliciesSection';
 import { PolicyDialog } from '../components/limits/PolicyDialog';
-import { vehicles } from '../data/dispersion';
+import { DevNote } from '../components/dev/DevNote';
+import { autoconsumoUnits, vehicles } from '../data/dispersion';
 import {
   fleetUnits,
   formatMeasure,
@@ -128,6 +129,10 @@ export function LimitsPage({ onNotice }: LimitsPageProps) {
   return (
     <div className="limits">
       <ApiCoverageBanner page="limits" />
+      <DevNote label="Pregunta de producto">
+        ¿Autoconsumo tiene límites propios? De momento Límites solo cubre unidades TicketCar+: quedan fuera{' '}
+        {formatCount(autoconsumoUnits)} unidades de Autoconsumo.
+      </DevNote>
 
       <dl className="limits__summary">
         <div>

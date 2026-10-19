@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { TollPeriod, TollPolicy } from '../../types/toll';
-import { DAY_LABELS, assignableGroups } from '../../data/limits';
+import { DAY_LABELS, fleetAssignableGroups as assignableGroups } from '../../data/limits';
 import { TOLL_PERIOD_META, emptyTollPolicy, tollRoads, tollScheduleLabel } from '../../data/toll';
 import { Modal } from '../ui/Modal';
 import { formatCount, formatMoney } from '../../utils/format';

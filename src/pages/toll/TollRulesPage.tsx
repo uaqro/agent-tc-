@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import { PauseIcon, PlayIcon, PlusIcon, RuleIcon } from '../../components/icons/Icons';
 import { TollPolicyDialog } from '../../components/toll/TollPolicyDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { vehicles } from '../../data/dispersion';
-import { assignableGroups } from '../../data/limits';
+import { fleetVehicles as vehicles } from '../../data/dispersion';
+import { fleetAssignableGroups as assignableGroups } from '../../data/limits';
 import {
   TOLL_CATEGORY_LABEL,
   TOLL_PERIOD_META,

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { CardIcon, PlusIcon, SearchIcon } from '../../components/icons/Icons';
 import { TollAssignDialog } from '../../components/toll/TollAssignDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { vehicles } from '../../data/dispersion';
+import { fleetVehicles as vehicles } from '../../data/dispersion';
 import {
   TOLL_CATEGORY_LABEL,
   TOLL_TAG_STATUS_LABEL,
@@ -10,7 +10,7 @@ import {
   tollPolicies,
   tollTags as seedTags,
 } from '../../data/toll';
-import { assignableGroups } from '../../data/limits';
+import { fleetAssignableGroups as assignableGroups } from '../../data/limits';
 import type { TollCategory, TollTag, TollTagStatus, TollTagType } from '../../types/toll';
 import { formatDateTime, formatMoney } from '../../utils/format';
 import '../TablePage.css';

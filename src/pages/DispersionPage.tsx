@@ -11,13 +11,14 @@ import { SimulationDialog } from '../components/dispersion/SimulationDialog';
 import {
   account,
   attentionItems as seedAttention,
+  autoconsumoUnits,
   buildSimulation,
   fundingRules as seedRules,
   pastReceipts,
   vehicles as seedVehicles,
 } from '../data/dispersion';
 import type { AttentionItem, BulkRow, FundingRule, Receipt, RunSimulation, Vehicle } from '../types/dispersion';
-import { formatMoney, parseDate } from '../utils/format';
+import { formatCount, formatMoney, parseDate } from '../utils/format';
 import { ApiCoverageBanner } from '../components/api/ApiCoverage';
 import './DispersionPage.css';
 
@@ -217,6 +218,13 @@ export function DispersionPage({ onNotice }: DispersionPageProps) {
         committedMXN={committedMXN}
         onViewScheduled={() => setActivityTab('scheduled')}
       />
+
+      {autoconsumoUnits > 0 && (
+        <p className="dispersion__note" role="note">
+          {formatCount(autoconsumoUnits)} {autoconsumoUnits === 1 ? 'unidad' : 'unidades'} de Autoconsumo no usan saldo prepagado. Su
+          consumo aparece en Resumen y Reportes.
+        </p>
+      )}
 
       <ActivitySection
         receipts={sortedReceipts}

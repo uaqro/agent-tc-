@@ -13,3 +13,13 @@
     padding: 16px 14px 48px;
   }
 }
+
+.dispersion__note {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  font-size: 13px;
+  color: var(--text-body);
+}

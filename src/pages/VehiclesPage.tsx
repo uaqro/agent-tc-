@@ -3,7 +3,7 @@ import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
-import { PAYMENT_TYPE_LABEL, VEHICLE_STATUS_LABEL, paymentMedia, vehicleDetails, type VehicleStatus } from '../data/fleet';
+import { PAYMENT_TYPE_LABEL, VEHICLE_STATUS_LABEL, vehicleMedia, vehicleDetails, type VehicleStatus } from '../data/fleet';
 import { assignableGroups } from '../data/limits';
 import { formatCount } from '../utils/format';
 import './TablePage.css';
@@ -31,7 +31,7 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
     });
   }, [query, group, status]);
   const pagination = usePagination(rows);
-  const mediumByVehicle = useMemo(() => new Map(paymentMedia.map((medium) => [medium.vehicleId, medium])), []);
+  const mediumByVehicle = useMemo(() => new Map(vehicleMedia.map((medium) => [medium.vehicleId, medium])), []);
 
   const count = (key: VehicleStatus) => vehicleDetails.filter((detail) => detail.status === key).length;
 

@@ -9,6 +9,7 @@ import {
   groupLabel,
   operatingUnits,
   stableFraction,
+  unitById,
 } from './client';
 import { onSessionChange, unitInScope } from './session';
 
@@ -31,13 +32,13 @@ export const fundingRules: FundingRule[] = [
     name: 'Reposición a tope · Corredor Norte',
     type: 'top-off',
     scopeLabel: 'Grupo Corredor Norte',
-    units: 117,
+    units: 71,
     summary: 'Reponer a tope 600 L por unidad',
     triggerText: 'Cada quincena · días 1 y 15',
     measure: 'liters',
     nextRun: '2026-11-15',
     status: 'active',
-    projectedMXN: 209_700,
+    projectedMXN: 127_300,
     newUnits: 3,
     excludedUnits: 2,
     deltaPct: 4.2,
@@ -48,13 +49,13 @@ export const fundingRules: FundingRule[] = [
     name: 'Umbral 10% · Reserva y sustitución',
     type: 'balance-threshold',
     scopeLabel: 'Grupo Reserva y sustitución',
-    units: 18,
+    units: 8,
     summary: 'Si el saldo baja del 10% del depósito, recargar a tope',
     triggerText: 'Automático · al cruzar el umbral',
     measure: 'liters',
     nextRun: null,
     status: 'active',
-    projectedMXN: 27_900,
+    projectedMXN: 12_400,
     newUnits: 0,
     excludedUnits: 1,
     deltaPct: 9.4,
@@ -65,13 +66,13 @@ export const fundingRules: FundingRule[] = [
     name: 'Consumo histórico · Zona Metropolitana',
     type: 'consumption',
     scopeLabel: 'Grupo Zona Metropolitana',
-    units: 109,
+    units: 60,
     summary: 'Promedio de los últimos 30 días + 10% de colchón',
     triggerText: 'Mensual · día 1',
     measure: 'money',
     nextRun: '2026-12-01',
     status: 'active',
-    projectedMXN: 188_700,
+    projectedMXN: 103_900,
     newUnits: 1,
     excludedUnits: 0,
     deltaPct: 18.6,
@@ -82,14 +83,14 @@ export const fundingRules: FundingRule[] = [
     name: 'Monto fijo · Sureste',
     type: 'schedule-fixed',
     scopeLabel: 'Grupo Sureste',
-    units: 65,
+    units: 38,
     summary: 'Fondear $3,500 por unidad',
     triggerText: 'Semanal · lunes',
     measure: 'money',
     nextRun: '2026-10-19',
     status: 'paused',
     statusNote: 'Pausada desde el 28 de septiembre',
-    projectedMXN: 227_500,
+    projectedMXN: 133_000,
     newUnits: 0,
     excludedUnits: 4,
     deltaPct: 0,
@@ -109,7 +110,8 @@ function groupsOf(units: FleetUnit[]): VehicleGroup[] {
   ];
 }
 
-export let vehicleGroups: VehicleGroup[] = groupsOf(operatingUnits);
+/** Groups with the TicketCar+ units in scope: what funding rules and limit policies cover. */
+export let vehicleGroups: VehicleGroup[] = groupsOf(operatingUnits.filter((unit) => unit.product === 'ticketcar_plus'));
 
 /** Balances the attention list and the rules talk about. Every other unit gets a balance derived from its spend. */
 const SCENARIO_BALANCES: Record<string, number> = {
@@ -136,7 +138,7 @@ function weeklySpendByUnit(): Map<string, number> {
 
 const weeklySpend = weeklySpendByUnit();
 
-/** Units under contract, as the funding pages see them. Deregistered units have no card to fund. */
+/** Units under contract, both products. Deregistered units have no card to fund and no toll tag to top up. */
 const allVehicles: Vehicle[] = operatingUnits.map((unit) => {
   const avgWeeklySpendMXN = weeklySpend.get(unit.id) ?? 0;
   const derived = Math.round((avgWeeklySpendMXN * (0.3 + stableFraction(`${unit.id}:saldo`) * 1.1)) / 10) * 10;
@@ -151,7 +153,22 @@ const allVehicles: Vehicle[] = operatingUnits.map((unit) => {
   };
 });
 
-export let vehicles: Vehicle[] = allVehicles;
+const isTicketCar = (unitId: string): boolean => unitById(unitId)?.product === 'ticketcar_plus';
+
+/**
+ * Units Saldos and the funding rules work with: TicketCar+ only. Autoconsumo units fuel at the client's own stations
+ * and have no prepaid balance; their consumption is in Resumen and Reportes.
+ */
+export let vehicles: Vehicle[] = allVehicles.filter((vehicle) => isTicketCar(vehicle.id));
+
+/** Every operating unit, both products, for the pages that are not about prepaid balance (Mantenimiento, Peaje). */
+export let fleetVehicles: Vehicle[] = allVehicles;
+
+/** Groups with every operating unit, both products. */
+export let fleetGroups: VehicleGroup[] = groupsOf(operatingUnits);
+
+/** Autoconsumo units in scope, for the note in Saldos. */
+export let autoconsumoUnits = 0;
 
 const allAttentionItems: AttentionItem[] = [
   {
@@ -195,8 +212,12 @@ export let attentionItems: AttentionItem[] = allAttentionItems;
 
 // The session scope (ADR-TCP-001) narrows what every funding page sees: units, their groups and the attention list.
 onSessionChange(() => {
-  vehicles = allVehicles.filter((vehicle) => unitInScope(vehicle.id));
-  vehicleGroups = groupsOf(operatingUnits.filter((unit) => unitInScope(unit.id)));
+  const inScope = operatingUnits.filter((unit) => unitInScope(unit.id));
+  fleetVehicles = allVehicles.filter((vehicle) => unitInScope(vehicle.id));
+  vehicles = fleetVehicles.filter((vehicle) => isTicketCar(vehicle.id));
+  fleetGroups = groupsOf(inScope);
+  vehicleGroups = groupsOf(inScope.filter((unit) => unit.product === 'ticketcar_plus'));
+  autoconsumoUnits = inScope.filter((unit) => unit.product === 'autoconsumo').length;
   attentionItems = allAttentionItems.filter((item) => unitInScope(item.vehicleId));
 });
 
@@ -208,8 +229,8 @@ export const pastReceipts: Receipt[] = [
     user: account.user,
     sourceLabel: 'Reposición a tope · Corredor Norte',
     scopeLabel: 'Grupo Corredor Norte',
-    units: 115,
-    totalMXN: 200_460,
+    units: 70,
+    totalMXN: 122_020,
     lines: [],
   },
   {

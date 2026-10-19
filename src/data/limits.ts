@@ -9,13 +9,19 @@ import type {
   UnitAssignment,
 } from '../types/limits';
 import { formatCount, formatLiters, formatMoney } from '../utils/format';
-import { toLiters, toMoney, vehicleGroups } from './dispersion';
+import { fleetGroups, toLiters, toMoney, vehicleGroups } from './dispersion';
 import { onSessionChange, unitInScope } from './session';
+
+// TODO(producto): ¿Autoconsumo tiene límites propios? De momento Límites solo cubre unidades TicketCar+: los grupos y
+// las asignaciones salen de `vehicleGroups` y `vehicles` de `./dispersion`, que excluyen Autoconsumo. Ver `DevNote`.
 
 /** "Toda la flota" is a reporting group, a policy is never assigned to it. */
 export let assignableGroups = vehicleGroups.filter((group) => group.id !== 'g-all');
 
 export let fleetUnits = assignableGroups.reduce((sum, group) => sum + group.units, 0);
+
+/** Groups with both products, for toll policies: tolls are paid by every unit, Autoconsumo included. */
+export let fleetAssignableGroups = fleetGroups.filter((group) => group.id !== 'g-all');
 
 export const stationSubnets: StationSubnet[] = [
   { id: 's-norte', label: 'Corredor Norte', stations: 42 },
@@ -247,5 +253,6 @@ export let unitAssignments: UnitAssignment[] = allUnitAssignments;
 onSessionChange(() => {
   assignableGroups = vehicleGroups.filter((group) => group.id !== 'g-all');
   fleetUnits = assignableGroups.reduce((sum, group) => sum + group.units, 0);
+  fleetAssignableGroups = fleetGroups.filter((group) => group.id !== 'g-all');
   unitAssignments = allUnitAssignments.filter((assignment) => unitInScope(assignment.vehicleId));
 });

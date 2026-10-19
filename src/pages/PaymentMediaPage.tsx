@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { CardIcon, PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
-import { vehicles } from '../data/dispersion';
+import { DevNote } from '../components/dev/DevNote';
+import { autoconsumoUnits, vehicles } from '../data/dispersion';
 import {
   PAYMENT_STATUS_LABEL,
   PAYMENT_TYPE_LABEL,
@@ -58,6 +59,10 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
   return (
     <div className="table-page">
       <ApiCoverageBanner page="payment-media" />
+      <DevNote label="Pregunta de producto">
+        ¿Autoconsumo tiene límites propios? Hasta decidirlo, Medios de pago no muestra los tags de las{' '}
+        {formatCount(autoconsumoUnits)} unidades de Autoconsumo. Siguen visibles en Flota · Vehículos.
+      </DevNote>
 
       <dl className="table-page__summary">
         <div>

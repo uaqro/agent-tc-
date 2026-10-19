@@ -13,6 +13,7 @@ import {
   groupLabel,
   operatingUnits,
   stableFraction,
+  unitById,
 } from './client';
 import { allServiceOrders } from './maintenance';
 import { onSessionChange, sessionPrincipal, unitInScope } from './session';
@@ -296,13 +297,25 @@ const driverInScope = (driver: Driver): boolean =>
 
 export let vehicleDetails: VehicleDetail[] = allVehicleDetails;
 export let drivers: Driver[] = allDrivers;
-/** Media of the units in scope, plus the stock not yet assigned to any unit. */
-export let paymentMedia: PaymentMedium[] = allPaymentMedia;
+const isTicketCarMedium = (medium: PaymentMedium): boolean =>
+  medium.vehicleId === null || unitById(medium.vehicleId)?.product === 'ticketcar_plus';
+
+/** Media of every unit in scope, both products, for the vehicle catalogue. */
+export let vehicleMedia: PaymentMedium[] = allPaymentMedia;
+
+/**
+ * Media the Medios de pago page manages: TicketCar+ units plus the stock not yet assigned.
+ *
+ * TODO(producto): ¿Autoconsumo tiene límites propios? Hasta decidirlo, Medios de pago y Límites excluyen las unidades
+ * de Autoconsumo (sus tags de estación propia). Lo recuerda `DevNote` en las dos páginas con el modo Dev activo.
+ */
+export let paymentMedia: PaymentMedium[] = allPaymentMedia.filter(isTicketCarMedium);
 
 onSessionChange(() => {
   vehicleDetails = allVehicleDetails.filter((detail) => unitInScope(detail.vehicleId));
   drivers = allDrivers.filter(driverInScope);
-  paymentMedia = allPaymentMedia.filter((medium) => medium.vehicleId === null || unitInScope(medium.vehicleId));
+  vehicleMedia = allPaymentMedia.filter((medium) => medium.vehicleId === null || unitInScope(medium.vehicleId));
+  paymentMedia = vehicleMedia.filter(isTicketCarMedium);
 });
 
 /** Ids of the drivers the session can see, for the driver selector of the global filters. */

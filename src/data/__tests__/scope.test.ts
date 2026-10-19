@@ -43,7 +43,7 @@ describe('a fleet operator limited to División Noreste', () => {
     expect(vehicles.every((vehicle) => inNoreste(vehicle.id))).toBe(true);
     expect(vehicleDetails.every((detail) => inNoreste(detail.vehicleId))).toBe(true);
     expect(vehicleGroups.find((group) => group.id === 'g-all')!.units).toBe(
-      operatingUnits.filter((unit) => inNoreste(unit.id)).length,
+      operatingUnits.filter((unit) => inNoreste(unit.id) && unit.product === 'ticketcar_plus').length,
     );
   });
 
