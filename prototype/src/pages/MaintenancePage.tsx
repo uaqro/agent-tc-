@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { ServiceOrderDialog } from '../components/maintenance/ServiceOrderDialog';
 import { AlertIcon, CalendarIcon, GearIcon, PlusIcon, SearchIcon, WalletIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
-import { vehicles } from '../data/dispersion';
+import { fleetVehicles as vehicles } from '../data/dispersion';
 import { VEHICLE_STATUS_LABEL, vehicleDetails } from '../data/fleet';
 import {
   ORDER_KIND_LABEL,
@@ -13,6 +13,7 @@ import {
   type OrderStatus,
   type ServiceOrder,
 } from '../data/maintenance';
+import { today } from '../domain/demo/clock';
 import { daysUntil, formatCount, formatDateLong, formatMoney } from '../utils/format';
 import './intelligence/intelligence.css';
 import './MaintenancePage.css';
@@ -42,7 +43,8 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
   const [dialog, setDialog] = useState<{ vehicleId?: string } | null>(null);
 
   const needle = query.trim().toLowerCase();
-  const currentMonth = new Date().toISOString().slice(0, 7);
+  const now = today();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
   const openOrders = orders.filter((order) => OPEN_STATUSES.includes(order.status));
   const inShop = new Set(
@@ -165,7 +167,7 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
                         {vehicle.plate} · {detail ? `${detail.brand} ${detail.model}` : vehicle.driver}
                       </p>
                       <p className="maintenance__result-sub">
-                        {detail ? `${VEHICLE_STATUS_LABEL[detail.status]} · ${formatCount(detail.odometerKm)} km` : ''} ·{' '}
+                        {detail ? `${VEHICLE_STATUS_LABEL[detail.status]} · ${detail.odometerKm === null ? 'sin lectura de odómetro' : `${formatCount(detail.odometerKm)} km`}` : ''} ·{' '}
                         {open === 0 ? 'Sin órdenes abiertas' : `${open} ${open === 1 ? 'orden abierta' : 'órdenes abiertas'}`}
                         {next && ` · próximo: ${next.service}`}
                       </p>

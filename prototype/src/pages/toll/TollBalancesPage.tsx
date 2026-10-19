@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import { CardIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { TollAmountDialog, type TollAmountMode } from '../../components/toll/TollAmountDialog';
-import { vehicles } from '../../data/dispersion';
-import { assignableGroups } from '../../data/limits';
+import { fleetVehicles as vehicles } from '../../data/dispersion';
+import { fleetAssignableGroups as assignableGroups } from '../../data/limits';
 import {
   MOVEMENT_LABEL,
   tollAccount,
@@ -12,17 +12,21 @@ import {
   tollTags as seedTags,
 } from '../../data/toll';
 import type { TollAutoTopUp, TollMovement, TollTag } from '../../types/toll';
+import { businessNow } from '../../domain/demo/clock';
 import { formatDateTime, formatMoney } from '../../utils/format';
+import { ReadOnlyNotice } from '../../components/ui/ReadOnlyNotice';
 import '../TablePage.css';
 import './toll.css';
 
 interface TollBalancesPageProps {
   onNotice: (message: string) => void;
+  /** The role reads balances but can't top up, cut or change automatic top-ups (ADR-TCP-001). */
+  readOnly?: boolean;
 }
 
 let movementSequence = 100;
 
-export function TollBalancesPage({ onNotice }: TollBalancesPageProps) {
+export function TollBalancesPage({ onNotice, readOnly = false }: TollBalancesPageProps) {
   const [tags, setTags] = useState<TollTag[]>(seedTags);
   const [autoTopUps, setAutoTopUps] = useState<TollAutoTopUp[]>(seedAutoTopUps);
   const [movements, setMovements] = useState<TollMovement[]>(seedMovements);
@@ -57,7 +61,7 @@ export function TollBalancesPage({ onNotice }: TollBalancesPageProps) {
         id: `tm-${++movementSequence}`,
         kind: mode === 'top-up' ? 'top-up' : 'cut',
         tagId: tag.id,
-        at: new Date().toISOString(),
+        at: new Date(businessNow()).toISOString(),
         amountMXN: delta,
         detail: mode === 'top-up' ? 'Recarga puntual desde la bolsa de peaje' : 'Recorte a la bolsa de peaje',
       },
@@ -78,6 +82,7 @@ export function TollBalancesPage({ onNotice }: TollBalancesPageProps) {
 
   return (
     <div className="table-page">
+      {readOnly && <ReadOnlyNotice what="los saldos y las recargas de peaje" />}
       <dl className="table-page__summary">
         <div>
           <dt>Bolsa de peaje disponible</dt>
@@ -170,22 +175,26 @@ export function TollBalancesPage({ onNotice }: TollBalancesPageProps) {
                         )}
                       </td>
                       <td className="table-page__action">
-                        <button
-                          type="button"
-                          className="btn btn--secondary btn--sm"
-                          disabled={!operable}
-                          onClick={() => setDialog({ tag, mode: 'top-up' })}
-                        >
-                          Recargar
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn--ghost btn--sm"
-                          disabled={tag.balanceMXN <= 0}
-                          onClick={() => setDialog({ tag, mode: 'cut' })}
-                        >
-                          Recortar
-                        </button>
+                        {!readOnly && (
+                          <>
+                            <button
+                              type="button"
+                              className="btn btn--secondary btn--sm"
+                              disabled={!operable}
+                              onClick={() => setDialog({ tag, mode: 'top-up' })}
+                            >
+                              Recargar
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn--ghost btn--sm"
+                              disabled={tag.balanceMXN <= 0}
+                              onClick={() => setDialog({ tag, mode: 'cut' })}
+                            >
+                              Recortar
+                            </button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   );
@@ -215,6 +224,7 @@ export function TollBalancesPage({ onNotice }: TollBalancesPageProps) {
                   <input
                     type="checkbox"
                     checked={config.enabled}
+                    disabled={readOnly}
                     onChange={(event) => {
                       patchAutoTopUp(config.groupId, { enabled: event.target.checked });
                       onNotice(
@@ -232,7 +242,7 @@ export function TollBalancesPage({ onNotice }: TollBalancesPageProps) {
                     type="number"
                     min={0}
                     step={100}
-                    disabled={!config.enabled}
+                    disabled={readOnly || !config.enabled}
                     value={config.thresholdMXN}
                     onChange={(event) => patchAutoTopUp(config.groupId, { thresholdMXN: Number(event.target.value) })}
                   />
@@ -243,7 +253,7 @@ export function TollBalancesPage({ onNotice }: TollBalancesPageProps) {
                     type="number"
                     min={0}
                     step={100}
-                    disabled={!config.enabled}
+                    disabled={readOnly || !config.enabled}
                     value={config.targetMXN}
                     onChange={(event) => patchAutoTopUp(config.groupId, { targetMXN: Number(event.target.value) })}
                   />

@@ -97,4 +97,24 @@ export interface UnitAssignment {
   usedLiters: number;
   rejections7d: number;
   override?: LimitOverride;
+  /** Station allowed outside the policy's station subnet, applied from an optimizer recommendation. */
+  stationException?: StationException;
+}
+
+/** One station the unit may fuel at even if its policy limits the network, until a date. */
+export interface StationException {
+  station: string;
+  until: string;
+  /** Where it came from, for the audit trail: "Optimizador · tarjeta •••• 1234". */
+  source: string;
+}
+
+/** What the optimizer hands to Límites. Nothing is applied until the user confirms in Límites. */
+export interface StationRecommendationRequest {
+  vehicleId: string;
+  cardLabel: string;
+  fromStation: string;
+  toStation: string;
+  /** Gross saving of the loads behind the recommendation, in the optimizer period. */
+  estimatedSavingMXN: number;
 }

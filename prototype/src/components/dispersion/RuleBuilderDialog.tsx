@@ -12,6 +12,7 @@ import {
   triggerOf,
 } from '../../data/ruleTypes';
 import { Modal } from '../ui/Modal';
+import { UnitSelector } from './UnitSelector';
 import { formatCount } from '../../utils/format';
 import './RuleBuilderDialog.css';
 
@@ -113,26 +114,7 @@ export function RuleBuilderDialog({ open, vehicles, onClose, onCreate }: RuleBui
             </select>
           </label>
         ) : (
-          <ul className="builder__vehicles">
-            {vehicles.map((vehicle) => (
-              <li key={vehicle.id}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={draft.vehicleIds.includes(vehicle.id)}
-                    onChange={(event) =>
-                      patch({
-                        vehicleIds: event.target.checked
-                          ? [...draft.vehicleIds, vehicle.id]
-                          : draft.vehicleIds.filter((id) => id !== vehicle.id),
-                      })
-                    }
-                  />
-                  <strong>{vehicle.plate}</strong> {vehicle.driver}
-                </label>
-              </li>
-            ))}
-          </ul>
+          <UnitSelector vehicles={vehicles} selected={draft.vehicleIds} onChange={(vehicleIds) => patch({ vehicleIds })} />
         )}
       </fieldset>
 

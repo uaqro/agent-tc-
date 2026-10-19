@@ -145,6 +145,12 @@ export function AssignmentsTable({
                             {formatDateLong(assignment.override.until)} · {assignment.override.reason}
                           </span>
                         )}
+                        {assignment.stationException && (
+                          <span className="assignments__override">
+                            También puede cargar en {assignment.stationException.station} hasta el{' '}
+                            {formatDateLong(assignment.stationException.until)} · {assignment.stationException.source}
+                          </span>
+                        )}
                       </>
                     ) : (
                       <span className="assignments__sub">{formatLiters(assignment.usedLiters)} cargados · {policy ? 'sin límite acumulado de monto o volumen' : 'sin política'}</span>

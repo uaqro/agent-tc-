@@ -1,5 +1,6 @@
 import type { FundingRule, RuleType, Vehicle } from '../types/dispersion';
 import { PRICE_PER_LITER, vehicleGroups } from './dispersion';
+import { today as businessToday } from '../domain/demo/clock';
 import { formatMoney } from '../utils/format';
 
 export interface RuleTypeMeta {
@@ -66,7 +67,7 @@ export interface RuleDraft {
 export const emptyDraft: RuleDraft = {
   type: 'balance-threshold',
   scopeKind: 'group',
-  groupId: 'g-norte',
+  groupId: 'grp-02',
   vehicleIds: [],
   cadence: 'biweekly',
   capLiters: 600,
@@ -127,7 +128,7 @@ function perUnitMXN(draft: RuleDraft): number {
 const toIso = (date: Date): string =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-export function nextRunOf(draft: RuleDraft, today = new Date()): string | null {
+export function nextRunOf(draft: RuleDraft, today = businessToday()): string | null {
   if (draft.type === 'balance-threshold') return null;
 
   if (draft.cadence === 'weekly') {

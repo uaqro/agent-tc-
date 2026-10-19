@@ -126,33 +126,8 @@
   border-color: var(--brand-blue);
 }
 
-.builder__vehicles {
-  list-style: none;
-  margin: 0;
-  padding: 8px;
-  max-height: 170px;
-  overflow-y: auto;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2px;
-}
 
-.builder__vehicles label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  color: var(--text-body);
-  cursor: pointer;
-}
 
-.builder__vehicles label:hover {
-  background: var(--surface-sunken);
-}
 
 .builder__preview {
   margin: 0;
@@ -170,8 +145,7 @@
 
 @media (max-width: 640px) {
   .builder__types,
-  .builder__fields,
-  .builder__vehicles {
+  .builder__fields {
     grid-template-columns: minmax(0, 1fr);
   }
 }
