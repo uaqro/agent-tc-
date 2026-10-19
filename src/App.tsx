@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
+import { GlobalFilterBar, chipText } from './components/filters/GlobalFilterBar';
+import { useGlobalFilters } from './components/filters/GlobalFilters';
 import { FloatingControls } from './components/layout/FloatingControls';
 import { PageHeader } from './components/layout/PageHeader';
 import { SideMenu } from './components/layout/SideMenu';
 import { TopBar } from './components/layout/TopBar';
 import { devMenuGroup, menuGroups } from './data/dashboard';
-import { account } from './data/dispersion';
+import { useSession } from './components/session/Session';
+import { ROUTE_CAPABILITY, canAccessRoute } from './data/access';
+import { clientAccount, scopeLabel } from './data/client';
+import { DEFAULT_PRINCIPAL } from './data/session';
+import { canSession, sessionRoleName } from './domain/rbac/portal-roles';
 import { DispersionPage } from './pages/DispersionPage';
 import { FuelDashboardPage } from './pages/FuelDashboardPage';
 import { LimitsPage } from './pages/LimitsPage';
@@ -26,6 +32,7 @@ import { ParametersPage } from './pages/company/ParametersPage';
 import { UsersPage } from './pages/company/UsersPage';
 import { ApiImprovementsPage } from './pages/dev/ApiImprovementsPage';
 import type { AppRoute } from './types';
+import type { StationRecommendationRequest } from './types/limits';
 import { DevModeMenu, useDevMode } from './components/dev/DevMode';
 import './App.css';
 
@@ -40,7 +47,7 @@ const ROUTES: Record<AppRoute, { menuItem: string; section: string; title: strin
     menuItem: 'resumen',
     section: 'Combustible',
     title: 'Resumen',
-    subtitle: `${account.name} · Mes actual · Todas las unidades`,
+    subtitle: clientAccount.name,
   },
   dispersion: {
     menuItem: 'saldos',
@@ -143,7 +150,7 @@ const ROUTES: Record<AppRoute, { menuItem: string; section: string; title: strin
     menuItem: 'empresa-usuarios',
     section: 'Empresa',
     title: 'Usuarios',
-    subtitle: 'Accesos al portal, roles y alcance por región',
+    subtitle: 'Accesos al portal, roles y alcance por nodo del organigrama',
   },
   'dev-api-improvements': {
     menuItem: 'dev-mejoras-api',
@@ -163,8 +170,23 @@ function AppContent() {
   const [route, setRoute] = useState<AppRoute>('dashboard');
   const [activeItemId, setActiveItemId] = useState<string | null>(ROUTES.dashboard.menuItem);
   const [notice, setNotice] = useState<string | null>(null);
+  // "Aplicar en Límites" from the optimizer: Límites opens with it and applies nothing until confirmed.
+  const [stationRequest, setStationRequest] = useState<StationRecommendationRequest | null>(null);
   const { devMode } = useDevMode();
-  const groups = devMode ? [...menuGroups, devMenuGroup] : menuGroups;
+  const { principal, impersonating, signInAs } = useSession();
+  const allowed = useCallback((target: AppRoute) => canAccessRoute(principal.role, target), [principal.role]);
+  // Pages a role can see but not change render without their actions (ADR-TCP-001).
+  const writable = (target: AppRoute) => canSession(principal.role, ROUTE_CAPABILITY[target], 'escribir');
+  // ADR-TCP-001: a page the role can't open is not in its menu, and a group left empty disappears.
+  const groups = (devMode ? [...menuGroups, devMenuGroup] : menuGroups)
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        const target = ROUTE_BY_MENU_ITEM[item.id];
+        return !target || allowed(target);
+      }),
+    }))
+    .filter((group) => group.items.length > 0);
 
   useEffect(() => {
     if (!notice) return;
@@ -177,6 +199,10 @@ function AppContent() {
       const label = [...menuGroups, devMenuGroup].flatMap((group) => group.items).find((item) => item.id === itemId)?.label ?? itemId;
       const target = ROUTE_BY_MENU_ITEM[itemId];
 
+      if (target && !allowed(target)) {
+        setNotice(`${label}: tu rol no tiene acceso a este módulo.`);
+        return;
+      }
       setActiveItemId(itemId);
       if (target) {
         setRoute(target);
@@ -185,7 +211,7 @@ function AppContent() {
       }
       if (!menuPinned) setMenuOpen(false);
     },
-    [menuPinned],
+    [menuPinned, allowed],
   );
 
   const handleTogglePin = useCallback(() => {
@@ -195,22 +221,40 @@ function AppContent() {
     });
   }, []);
 
-  const navigate = useCallback((target: AppRoute) => {
-    setRoute(target);
-    setActiveItemId(ROUTES[target].menuItem);
-  }, []);
+  const navigate = useCallback(
+    (target: AppRoute) => {
+      if (!allowed(target)) {
+        setNotice(`${ROUTES[target].title}: tu rol no tiene acceso a este módulo.`);
+        return;
+      }
+      setRoute(target);
+      setActiveItemId(ROUTES[target].menuItem);
+    },
+    [allowed],
+  );
 
   // Leaving dev mode while on a dev page goes back home.
   useEffect(() => {
     if (!devMode && route === 'dev-api-improvements') navigate('dashboard');
   }, [devMode, route, navigate]);
 
+  // Viewing the portal as someone else, internal roles included, only exists in dev mode.
+  useEffect(() => {
+    if (!devMode && impersonating) signInAs(DEFAULT_PRINCIPAL);
+  }, [devMode, impersonating, signInAs]);
+
   const meta = ROUTES[route];
+  const { filters, chips } = useGlobalFilters();
+  // Pages that cut by the global filters say which slice they show.
+  const filtered = route === 'dashboard';
+  const subtitle = filtered
+    ? `${meta.subtitle} · Últimos ${filters.periodDays} ${filters.periodDays === 1 ? 'día' : 'días'} · ${chips.length > 0 ? chips.map(chipText).join(' · ') : principal.scopeNodeId === null ? 'toda la flota' : scopeLabel(principal.scopeNodeId)}`
+    : meta.subtitle;
 
   return (
     <div className="app">
       <TopBar
-        userName={account.user}
+        userName={principal.name}
         extra={<DevModeMenu onOpenImprovements={() => navigate('dev-api-improvements')} />}
         onAction={(actionId, detail) =>
           setNotice(actionId === 'search' ? `Buscando “${detail}” en unidades, tarjetas y conductores.` : TOP_BAR_MESSAGES[actionId])
@@ -227,33 +271,62 @@ function AppContent() {
       />
 
       <main className="app__main" id="main">
+        {impersonating && (
+          <p className="app__impersonation" role="status">
+            Modo Dev · viendo el portal como <strong>{principal.name}</strong> · {sessionRoleName(principal.role)} ·{' '}
+            {scopeLabel(principal.scopeNodeId)}
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => signInAs(DEFAULT_PRINCIPAL)}>
+              Volver a mi usuario
+            </button>
+          </p>
+        )}
         <PageHeader
           section={meta.section}
           title={meta.title}
           crumb={meta.crumb}
-          subtitle={meta.subtitle}
+          subtitle={subtitle}
           menuOpen={menuOpen}
           onBack={route === 'dashboard' ? undefined : () => navigate('dashboard')}
           onToggleMenu={() => setMenuOpen((open) => !open)}
-        />
+        >
+          {filtered && <GlobalFilterBar scopeNote="Los filtros recortan los indicadores y las tres gráficas de consumo. Recargas y recortes viene de Saldos." />}
+        </PageHeader>
 
         {route === 'dashboard' && (
           <FuelDashboardPage onCardOption={(chart, option) => setNotice(`${chart}: ${option}.`)} />
         )}
         {route === 'dispersion' && <DispersionPage onNotice={setNotice} />}
-        {route === 'limits' && <LimitsPage onNotice={setNotice} />}
+        {route === 'limits' && (
+          <LimitsPage onNotice={setNotice} stationRequest={stationRequest} onStationRequestHandled={() => setStationRequest(null)} />
+        )}
         {route === 'station-networks' && <StationNetworksPage onNotice={setNotice} />}
         {route === 'payment-media' && <PaymentMediaPage onNotice={setNotice} />}
-        {route === 'toll-balances' && <TollBalancesPage onNotice={setNotice} />}
-        {route === 'toll-rules' && <TollRulesPage onNotice={setNotice} />}
-        {route === 'toll-media' && <TollMediaPage onNotice={setNotice} />}
+        {route === 'toll-balances' && <TollBalancesPage onNotice={setNotice} readOnly={!writable(route)} />}
+        {route === 'toll-rules' && <TollRulesPage onNotice={setNotice} readOnly={!writable(route)} />}
+        {route === 'toll-media' && <TollMediaPage onNotice={setNotice} readOnly={!writable(route)} />}
         {route === 'maintenance' && <MaintenancePage onNotice={setNotice} />}
         {route === 'reports' && <ReportsPage />}
         {route === 'insights' && <InsightsPage onNotice={setNotice} onNavigate={navigate} />}
-        {route === 'optimizer' && <GasOptimizerPage onNotice={setNotice} />}
+        {route === 'optimizer' && (
+          <GasOptimizerPage
+            onNotice={setNotice}
+            onApplyInLimits={(request) => {
+              setStationRequest(request);
+              navigate('limits');
+            }}
+          />
+        )}
         {route === 'ted' && <TedPage />}
-        {route === 'vehicles' && <VehiclesPage onNotice={setNotice} />}
-        {route === 'drivers' && <DriversPage onNotice={setNotice} />}
+        {route === 'vehicles' && (
+          <VehiclesPage
+            onNotice={setNotice}
+            canEdit={canSession(principal.role, 'inventario.editar', 'escribir')}
+            showVin={canSession(principal.role, 'inventario.vin', 'ver')}
+          />
+        )}
+        {route === 'drivers' && (
+          <DriversPage onNotice={setNotice} canEdit={canSession(principal.role, 'tc.conductores', 'escribir')} />
+        )}
         {route === 'company-parameters' && <ParametersPage onNotice={setNotice} />}
         {route === 'company-invoices' && <InvoicesPage onNotice={setNotice} />}
         {route === 'company-users' && <UsersPage onNotice={setNotice} />}

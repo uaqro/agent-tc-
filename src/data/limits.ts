@@ -9,14 +9,22 @@ import type {
   OverrideDuration,
   UnitAssignment,
 } from '../types/limits';
+import { today as businessToday } from '../domain/demo/clock';
 import { formatCount, formatLiters, formatMoney } from '../utils/format';
-import { toLiters, toMoney, vehicleGroups } from './dispersion';
+import { fleetGroups, toLiters, toMoney, vehicleGroups } from './dispersion';
+import { onSessionChange, unitInScope } from './session';
 import { seedStationNetworks, networkModeLabel, type StationNetwork } from './stationNetworks';
 
-/** "Toda la flota" is a reporting group, a policy is never assigned to it. */
-export const assignableGroups = vehicleGroups.filter((group) => group.id !== 'g-all');
+// TODO(producto): ¿Autoconsumo tiene límites propios? De momento Límites solo cubre unidades TicketCar+: los grupos y
+// las asignaciones salen de `vehicleGroups` y `vehicles` de `./dispersion`, que excluyen Autoconsumo. Ver `DevNote`.
 
-export const fleetUnits = assignableGroups.reduce((sum, group) => sum + group.units, 0);
+/** "Toda la flota" is a reporting group, a policy is never assigned to it. */
+export let assignableGroups = vehicleGroups.filter((group) => group.id !== 'g-all');
+
+export let fleetUnits = assignableGroups.reduce((sum, group) => sum + group.units, 0);
+
+/** Groups with both products, for toll policies: tolls are paid by every unit, Autoconsumo included. */
+export let fleetAssignableGroups = fleetGroups.filter((group) => group.id !== 'g-all');
 
 export const FUEL_LABEL: Record<FuelType, string> = {
   magna: 'Magna',
@@ -49,9 +57,9 @@ export const OVERRIDE_REASONS = [
 export const limitPolicies: LimitPolicy[] = [
   {
     id: 'p-norte',
-    name: 'Carga pesada · Ruta Norte',
+    name: 'Carga pesada · Corredor Norte',
     status: 'active',
-    groupIds: ['g-norte'],
+    groupIds: ['grp-02'],
     measure: 'liters',
     period: 'fortnight',
     periodLimit: 600,
@@ -69,9 +77,9 @@ export const limitPolicies: LimitPolicy[] = [
   },
   {
     id: 'p-centro',
-    name: 'Reparto urbano · Ruta Centro',
+    name: 'Reparto urbano · Zona Metropolitana',
     status: 'active',
-    groupIds: ['g-centro'],
+    groupIds: ['grp-01'],
     measure: 'money',
     period: 'week',
     periodLimit: 2_500,
@@ -89,9 +97,9 @@ export const limitPolicies: LimitPolicy[] = [
   },
   {
     id: 'p-sur',
-    name: 'Estándar · Ruta Sur',
+    name: 'Estándar · Sureste',
     status: 'active',
-    groupIds: ['g-sur'],
+    groupIds: ['grp-05'],
     measure: 'money',
     period: 'week',
     periodLimit: 3_500,
@@ -109,9 +117,9 @@ export const limitPolicies: LimitPolicy[] = [
   },
   {
     id: 'p-exec',
-    name: 'Flota ejecutiva',
+    name: 'Reserva y sustitución',
     status: 'active',
-    groupIds: ['g-exec'],
+    groupIds: ['grp-06'],
     measure: 'liters',
     period: 'month',
     periodLimit: 220,
@@ -129,15 +137,15 @@ export const limitPolicies: LimitPolicy[] = [
   },
 ];
 
-export const unitAssignments: UnitAssignment[] = [
-  { vehicleId: 'v-1', policyId: 'p-norte', individual: false, tankLiters: 400, usedLiters: 412, rejections7d: 0 },
-  { vehicleId: 'v-2', policyId: 'p-centro', individual: false, tankLiters: 70, usedLiters: 61, rejections7d: 5 },
-  { vehicleId: 'v-3', policyId: 'p-sur', individual: false, tankLiters: 80, usedLiters: 0, rejections7d: 0 },
-  { vehicleId: 'v-4', policyId: 'p-norte', individual: false, tankLiters: 400, usedLiters: 538, rejections7d: 1 },
-  { vehicleId: 'v-5', policyId: 'p-exec', individual: false, tankLiters: 55, usedLiters: 74, rejections7d: 0 },
-  { vehicleId: 'v-6', policyId: 'p-centro', individual: false, tankLiters: 70, usedLiters: 96.8, rejections7d: 2 },
-  { vehicleId: 'v-7', policyId: null, individual: false, tankLiters: 400, usedLiters: 180, rejections7d: 0 },
-  { vehicleId: 'v-8', policyId: 'p-sur', individual: false, tankLiters: 70, usedLiters: 88, rejections7d: 1 },
+const allUnitAssignments: UnitAssignment[] = [
+  { vehicleId: 'ECO-3004', policyId: 'p-norte', individual: false, tankLiters: 518, usedLiters: 412, rejections7d: 0 },
+  { vehicleId: 'ECO-3033', policyId: 'p-centro', individual: false, tankLiters: 71, usedLiters: 61, rejections7d: 5 },
+  { vehicleId: 'ECO-3240', policyId: 'p-sur', individual: false, tankLiters: 81, usedLiters: 0, rejections7d: 0 },
+  { vehicleId: 'ECO-3215', policyId: 'p-norte', individual: false, tankLiters: 451, usedLiters: 538, rejections7d: 1 },
+  { vehicleId: 'ECO-3260', policyId: 'p-exec', individual: false, tankLiters: 89, usedLiters: 74, rejections7d: 0 },
+  { vehicleId: 'ECO-3035', policyId: 'p-centro', individual: false, tankLiters: 55, usedLiters: 96.8, rejections7d: 2 },
+  { vehicleId: 'ECO-3253', policyId: null, individual: false, tankLiters: 496, usedLiters: 180, rejections7d: 0 },
+  { vehicleId: 'ECO-3113', policyId: 'p-sur', individual: false, tankLiters: 125, usedLiters: 88, rejections7d: 1 },
 ];
 
 export const emptyPolicy: Omit<LimitPolicy, 'id'> = {
@@ -321,8 +329,12 @@ export function policySummary(policy: LimitPolicy): { controls: number; restrict
 const toIso = (date: Date): string =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-/** Last day of the running period. Weeks close on Sunday, fortnights on the 15th and month end. */
-export function periodEnd(period: LimitPeriod, today = new Date()): string {
+/**
+ * Last day of the running period. Weeks close on Sunday, fortnights on the 15th and month end.
+ * "Today" is the business date (the demo date by default), never the computer's: an exception's validity has to
+ * match the data it is set against.
+ */
+export function periodEnd(period: LimitPeriod, today = businessToday()): string {
   const end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   if (period === 'week') end.setDate(end.getDate() + ((7 - end.getDay()) % 7));
   if (period === 'fortnight' && end.getDate() <= 15) end.setDate(15);
@@ -330,8 +342,18 @@ export function periodEnd(period: LimitPeriod, today = new Date()): string {
   return toIso(end);
 }
 
-export function overrideUntil(duration: OverrideDuration, period: LimitPeriod, today = new Date()): string {
+export function overrideUntil(duration: OverrideDuration, period: LimitPeriod, today = businessToday()): string {
   if (duration === 'period') return periodEnd(period, today);
   const until = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (duration === '24h' ? 1 : 7));
   return toIso(until);
 }
+
+/** Assignments of the units inside the session scope, and the groups and fleet size they add up to (ADR-TCP-001). */
+export let unitAssignments: UnitAssignment[] = allUnitAssignments;
+
+onSessionChange(() => {
+  assignableGroups = vehicleGroups.filter((group) => group.id !== 'g-all');
+  fleetUnits = assignableGroups.reduce((sum, group) => sum + group.units, 0);
+  fleetAssignableGroups = fleetGroups.filter((group) => group.id !== 'g-all');
+  unitAssignments = allUnitAssignments.filter((assignment) => unitInScope(assignment.vehicleId));
+});

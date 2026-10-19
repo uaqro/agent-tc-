@@ -11,13 +11,16 @@ import { SimulationDialog } from '../components/dispersion/SimulationDialog';
 import {
   account,
   attentionItems as seedAttention,
+  autoconsumoUnits,
+  retiredUnits,
   buildSimulation,
   fundingRules as seedRules,
   pastReceipts,
   vehicles as seedVehicles,
 } from '../data/dispersion';
 import type { AttentionItem, BulkRow, FundingRule, Receipt, RunSimulation, Vehicle } from '../types/dispersion';
-import { formatMoney, parseDate } from '../utils/format';
+import { businessNow } from '../domain/demo/clock';
+import { formatCount, formatMoney, parseDate } from '../utils/format';
 import { ApiCoverageBanner } from '../components/api/ApiCoverage';
 import './DispersionPage.css';
 
@@ -103,7 +106,7 @@ export function DispersionPage({ onNotice }: DispersionPageProps) {
     const receipt: Receipt = {
       folio: nextFolio(),
       kind: 'rule',
-      issuedAt: new Date().toISOString(),
+      issuedAt: new Date(businessNow()).toISOString(),
       user: account.user,
       sourceLabel: data.rule.name,
       scopeLabel: `${data.rule.scopeLabel} · ${data.unitsAffected} unidades`,
@@ -133,7 +136,7 @@ export function DispersionPage({ onNotice }: DispersionPageProps) {
     const receipt: Receipt = {
       folio: nextFolio(),
       kind: isCut ? 'cut' : 'one-off',
-      issuedAt: new Date().toISOString(),
+      issuedAt: new Date(businessNow()).toISOString(),
       user: account.user,
       sourceLabel: isCut ? 'Recorte de saldo' : 'Dispersión puntual · excepción',
       scopeLabel: `${vehicle.plate} · ${vehicle.driver}`,
@@ -157,7 +160,7 @@ export function DispersionPage({ onNotice }: DispersionPageProps) {
     const receipt: Receipt = {
       folio: nextFolio(),
       kind: 'one-off',
-      issuedAt: new Date().toISOString(),
+      issuedAt: new Date(businessNow()).toISOString(),
       user: account.user,
       sourceLabel: 'Dispersión puntual',
       scopeLabel: `${vehicle.plate} · ${vehicle.driver}`,
@@ -192,7 +195,7 @@ export function DispersionPage({ onNotice }: DispersionPageProps) {
     const receipt: Receipt = {
       folio: nextFolio(),
       kind: 'bulk',
-      issuedAt: new Date().toISOString(),
+      issuedAt: new Date(businessNow()).toISOString(),
       user: account.user,
       sourceLabel: 'Carga masiva desde archivo',
       scopeLabel: `${fileName} · ${rows.length} unidades`,
@@ -217,6 +220,12 @@ export function DispersionPage({ onNotice }: DispersionPageProps) {
         committedMXN={committedMXN}
         onViewScheduled={() => setActivityTab('scheduled')}
       />
+
+      <p className="dispersion__note" role="note">
+        Saldos muestra las {formatCount(vehicles.length)} unidades TicketCar+ de alta. Del padrón de{' '}
+        {formatCount(vehicles.length + autoconsumoUnits + retiredUnits)}, {formatCount(autoconsumoUnits)} son de Autoconsumo y no usan
+        saldo prepagado (su consumo aparece en Resumen y Reportes) y {formatCount(retiredUnits)} están dadas de baja.
+      </p>
 
       <ActivitySection
         receipts={sortedReceipts}

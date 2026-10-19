@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import { PauseIcon, PlayIcon, PlusIcon, RuleIcon } from '../../components/icons/Icons';
 import { TollPolicyDialog } from '../../components/toll/TollPolicyDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { vehicles } from '../../data/dispersion';
-import { assignableGroups } from '../../data/limits';
+import { fleetVehicles as vehicles } from '../../data/dispersion';
+import { fleetAssignableGroups as assignableGroups } from '../../data/limits';
 import {
   TOLL_CATEGORY_LABEL,
   TOLL_PERIOD_META,
@@ -17,16 +17,19 @@ import {
 import type { TollPolicy, TollTag } from '../../types/toll';
 import { formatCount, formatMoney } from '../../utils/format';
 import '../../components/limits/PoliciesSection.css';
+import { ReadOnlyNotice } from '../../components/ui/ReadOnlyNotice';
 import '../TablePage.css';
 import './toll.css';
 
 interface TollRulesPageProps {
   onNotice: (message: string) => void;
+  /** The role reads toll policies but can't create, edit or pause them (ADR-TCP-001). */
+  readOnly?: boolean;
 }
 
 const usageTone = (ratio: number): string => (ratio >= 0.9 ? 'danger' : ratio >= 0.75 ? 'warn' : 'ok');
 
-export function TollRulesPage({ onNotice }: TollRulesPageProps) {
+export function TollRulesPage({ onNotice, readOnly = false }: TollRulesPageProps) {
   const [policies, setPolicies] = useState<TollPolicy[]>(seedPolicies);
   const [tags, setTags] = useState<TollTag[]>(seedTags);
   const [editor, setEditor] = useState<{ policy: TollPolicy | null } | null>(null);
@@ -97,6 +100,7 @@ export function TollRulesPage({ onNotice }: TollRulesPageProps) {
 
   return (
     <div className="table-page">
+      {readOnly && <ReadOnlyNotice what="las políticas de peaje" />}
       <dl className="table-page__summary">
         <div>
           <dt>TAGs con política</dt>
@@ -121,10 +125,12 @@ export function TollRulesPage({ onNotice }: TollRulesPageProps) {
           <h2 className="policies__title" id="toll-policies-title">
             Políticas de peaje
           </h2>
-          <button type="button" className="btn btn--primary btn--sm" onClick={() => setEditor({ policy: null })}>
-            <PlusIcon width={15} height={15} />
-            Nueva política
-          </button>
+          {!readOnly && (
+            <button type="button" className="btn btn--primary btn--sm" onClick={() => setEditor({ policy: null })}>
+              <PlusIcon width={15} height={15} />
+              Nueva política
+            </button>
+          )}
         </header>
 
         {policies.length === 0 && (
@@ -168,15 +174,17 @@ export function TollRulesPage({ onNotice }: TollRulesPageProps) {
                   </div>
                 </dl>
 
-                <footer className="policy-card__foot">
-                  <button type="button" className="btn btn--secondary btn--sm" onClick={() => setEditor({ policy })}>
-                    Editar
-                  </button>
-                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => toggleStatus(policy)}>
-                    {paused ? <PlayIcon width={13} height={13} /> : <PauseIcon width={13} height={13} />}
-                    {paused ? 'Activar' : 'Pausar'}
-                  </button>
-                </footer>
+                {!readOnly && (
+                  <footer className="policy-card__foot">
+                    <button type="button" className="btn btn--secondary btn--sm" onClick={() => setEditor({ policy })}>
+                      Editar
+                    </button>
+                    <button type="button" className="btn btn--ghost btn--sm" onClick={() => toggleStatus(policy)}>
+                      {paused ? <PlayIcon width={13} height={13} /> : <PauseIcon width={13} height={13} />}
+                      {paused ? 'Activar' : 'Pausar'}
+                    </button>
+                  </footer>
+                )}
               </li>
             );
           })}

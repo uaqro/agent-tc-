@@ -6,7 +6,15 @@
 
 export type ApiStatus = 'available' | 'partial' | 'unavailable';
 
-export type FuelPage = 'dashboard' | 'dispersion' | 'limits' | 'payment-media' | 'vehicles' | 'drivers' | 'parameters';
+export type FuelPage =
+  | 'dashboard'
+  | 'dispersion'
+  | 'limits'
+  | 'payment-media'
+  | 'vehicles'
+  | 'drivers'
+  | 'parameters'
+  | 'optimizer';
 
 export interface ApiCapability {
   id: string;
@@ -28,6 +36,7 @@ export const PAGE_LABEL: Record<FuelPage, string> = {
   vehicles: 'Flota · Vehículos',
   drivers: 'Flota · Conductores',
   parameters: 'Empresa · Parámetros',
+  optimizer: 'Inteligencia · Optimizador',
 };
 
 export const API_STATUS_LABEL: Record<ApiStatus, string> = {
@@ -416,6 +425,40 @@ export const apiCapabilities: ApiCapability[] = [
     methods: [],
     note: 'Son motor propio. El vehículo tiene un campo libre CustomParameters que quizá podría llevar estos valores, pero el documento no dice cómo se escribe; hay que confirmarlo.',
   },
+
+  // Optimizador (eOne)
+  {
+    id: 'opt-loads',
+    page: 'optimizer',
+    label: 'Cargas con estación, litros y precio pagado',
+    status: 'partial',
+    methods: ['TransactionGetFilteredList'],
+    note: 'Las cargas se pueden leer. La estación recomendada, su precio y el desvío vienen del motor de la plataforma de datos de eOne: en el prototipo, un dataset sintético de septiembre de 2026.',
+  },
+  {
+    id: 'opt-stations',
+    page: 'optimizer',
+    label: 'Mapa y precios de estaciones vecinas',
+    status: 'unavailable',
+    methods: [],
+    note: 'La API no expone coordenadas ni precios de estaciones fuera de la carga. El mapa usa teselas de OpenStreetMap y estaciones sintéticas.',
+  },
+  {
+    id: 'opt-send-driver',
+    page: 'optimizer',
+    label: 'Enviar recomendación al conductor · MOCK',
+    status: 'unavailable',
+    methods: [],
+    note: 'Canal SIMULADO. No hay método para notificar al conductor: el envío solo queda en el registro de la página y no sale a ningún sistema. No modifica las restricciones de la tarjeta.',
+  },
+  {
+    id: 'opt-apply-limits',
+    page: 'optimizer',
+    label: 'Aplicar recomendación en Límites',
+    status: 'unavailable',
+    methods: [],
+    note: 'Solo abre el flujo de Límites con la unidad y la estación precargadas. Límites no tiene escritura en la API (ver lim-policies y lim-override).',
+  },
 ];
 
 /** Things the API supports that the mockup doesn't show yet. */
@@ -492,6 +535,7 @@ export const apiOpportunities: Record<FuelPage, { label: string; methods: string
       note: 'Nivel corporativo (CorporateLevelName) para mostrar la estructura empresa → nivel → centro de costo.',
     },
   ],
+  optimizer: [],
   drivers: [
     {
       label: 'Conductores permitidos en notas vale',

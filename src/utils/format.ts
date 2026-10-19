@@ -1,3 +1,5 @@
+import { businessNow } from '../domain/demo/clock';
+
 const money = new Intl.NumberFormat('es-MX', {
   style: 'currency',
   currency: 'MXN',
@@ -52,7 +54,7 @@ export function formatSignedPercent(value: number): string {
   return `${value >= 0 ? '+' : '−'}${Math.abs(value).toFixed(1)}%`;
 }
 
-export function daysUntil(iso: string, from = new Date()): number {
+export function daysUntil(iso: string, from = new Date(businessNow())): number {
   const target = parseDate(iso).getTime();
   const start = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 12).getTime();
   return Math.round((target - start) / 86_400_000);

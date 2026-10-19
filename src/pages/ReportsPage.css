@@ -60,24 +60,7 @@
   box-shadow: var(--shadow-sm);
 }
 
-.reports__filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border-subtle);
-}
 
-.reports__filters select {
-  height: 34px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text-body);
-  font: inherit;
-  font-size: 13px;
-}
 
 @media (max-width: 900px) {
   .reports {

@@ -2,14 +2,27 @@ import { useMemo, useState } from 'react';
 import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
-import { vehicles } from '../data/dispersion';
-import { PAYMENT_TYPE_LABEL, VEHICLE_STATUS_LABEL, paymentMedia, vehicleDetails, type VehicleStatus } from '../data/fleet';
+import { Pagination, usePagination } from '../components/ui/Pagination';
+import {
+  PAYMENT_TYPE_LABEL,
+  REGISTRY_GAP_LABEL,
+  VEHICLE_STATUS_LABEL,
+  vehicleMedia,
+  vehicleDetails,
+  type RegistryGap,
+  type VehicleDetail,
+  type VehicleStatus,
+} from '../data/fleet';
 import { assignableGroups } from '../data/limits';
 import { formatCount } from '../utils/format';
 import './TablePage.css';
 
 interface VehiclesPageProps {
   onNotice: (message: string) => void;
+  /** Registering and editing units is admin only, as in ADR-001 (`inventario.editar`). */
+  canEdit?: boolean;
+  /** The VIN equivalence is visible to admin and flota (`inventario.vin`). */
+  showVin?: boolean;
 }
 
 const STATUS_CHIP: Record<VehicleStatus, string> = {
@@ -18,20 +31,29 @@ const STATUS_CHIP: Record<VehicleStatus, string> = {
   inactive: 'chip--paused',
 };
 
-export function VehiclesPage({ onNotice }: VehiclesPageProps) {
+/** Record filter: every unit, the incomplete ones, or the ones missing one piece. */
+type RecordFilter = '' | 'incomplete' | RegistryGap;
+
+export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: VehiclesPageProps) {
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('');
   const [status, setStatus] = useState<VehicleStatus | ''>('');
+  const [record, setRecord] = useState<RecordFilter>('');
+  // A role without access to the VIN equivalence does not learn which VINs are missing either (ADR-TCP-001).
+  const gapsOf = (detail: VehicleDetail): RegistryGap[] => detail.gaps.filter((gap) => gap !== 'vin' || showVin);
+  const gapKinds = (Object.keys(REGISTRY_GAP_LABEL) as RegistryGap[]).filter((gap) => gap !== 'vin' || showVin);
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return vehicles
-      .map((vehicle) => ({ vehicle, detail: vehicleDetails.find((detail) => detail.vehicleId === vehicle.id) }))
-      .filter(({ vehicle, detail }) => {
-        const haystack = `${vehicle.plate} ${vehicle.driver} ${detail?.brand ?? ''} ${detail?.model ?? ''}`.toLowerCase();
-        return (!group || vehicle.group === group) && (!status || detail?.status === status) && (!needle || haystack.includes(needle));
-      });
-  }, [query, group, status]);
+    return vehicleDetails.filter((detail) => {
+      const haystack = `${detail.vehicleId} ${detail.plate} ${detail.driver} ${detail.brand} ${detail.model}`.toLowerCase();
+      const gaps = gapsOf(detail);
+      const recordOk = !record || (record === 'incomplete' ? gaps.length > 0 : gaps.includes(record));
+      return (!group || detail.group === group) && (!status || detail.status === status) && recordOk && (!needle || haystack.includes(needle));
+    });
+  }, [query, group, status, record, showVin]);
+  const pagination = usePagination(rows);
+  const mediumByVehicle = useMemo(() => new Map(vehicleMedia.map((medium) => [medium.vehicleId, medium])), []);
 
   const count = (key: VehicleStatus) => vehicleDetails.filter((detail) => detail.status === key).length;
 
@@ -42,7 +64,7 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
       <dl className="table-page__summary">
         <div>
           <dt>Vehículos registrados</dt>
-          <dd>{vehicles.length}</dd>
+          <dd>{formatCount(vehicleDetails.length)}</dd>
         </div>
         <div>
           <dt>Activos</dt>
@@ -56,6 +78,10 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
           <dt>Inactivos</dt>
           <dd>{count('inactive')}</dd>
         </div>
+        <div>
+          <dt>Ficha incompleta</dt>
+          <dd>{vehicleDetails.filter((detail) => gapsOf(detail).length > 0).length}</dd>
+        </div>
       </dl>
 
       <section className="table-page__card" aria-labelledby="vehicles-title">
@@ -68,7 +94,7 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
             <label className="table-page__search">
               <SearchIcon width={15} height={15} />
               <span className="visually-hidden">Buscar vehículo</span>
-              <input type="search" value={query} placeholder="Placa, marca, modelo o conductor" onChange={(event) => setQuery(event.target.value)} />
+              <input type="search" value={query} placeholder="Unidad, placa, marca o conductor" onChange={(event) => setQuery(event.target.value)} />
             </label>
             <label>
               <span className="visually-hidden">Filtrar por grupo</span>
@@ -92,10 +118,24 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
                 ))}
               </select>
             </label>
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => onNotice('Alta de vehículo abierta.')}>
-              <PlusIcon width={14} height={14} />
-              Alta de vehículo
-            </button>
+            <label>
+              <span className="visually-hidden">Filtrar por ficha</span>
+              <select value={record} onChange={(event) => setRecord(event.target.value as RecordFilter)}>
+                <option value="">Toda la ficha</option>
+                <option value="incomplete">Ficha incompleta</option>
+                {gapKinds.map((gap) => (
+                  <option key={gap} value={gap}>
+                    {REGISTRY_GAP_LABEL[gap]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {canEdit && (
+              <button type="button" className="btn btn--primary btn--sm" onClick={() => onNotice('Alta de vehículo abierta.')}>
+                <PlusIcon width={14} height={14} />
+                Alta de vehículo
+              </button>
+            )}
             <ApiTag id="veh-create" />
           </div>
         </header>
@@ -114,6 +154,7 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
                   setQuery('');
                   setGroup('');
                   setStatus('');
+                  setRecord('');
                 }}
               >
                 Limpiar filtros
@@ -157,22 +198,41 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ vehicle, detail }) => {
-                  const medium = paymentMedia.find((candidate) => candidate.vehicleId === vehicle.id);
+                {pagination.pageRows.map((detail) => {
+                  const medium = mediumByVehicle.get(detail.vehicleId);
+                  const gaps = gapsOf(detail);
                   return (
-                    <tr key={vehicle.id}>
+                    <tr key={detail.vehicleId}>
                       <td>
-                        <span className="table-page__main">{vehicle.plate}</span>
-                        <span className="table-page__sub">{detail ? `${detail.brand} ${detail.model} · ${detail.year}` : '—'}</span>
+                        <span className="table-page__main">{detail.plate}</span>
+                        <span className="table-page__sub">
+                          {detail.vehicleId} · {detail.brand} {detail.model} · {detail.year}
+                        </span>
+                        {showVin && (
+                          <span className="table-page__sub table-page__nowrap">
+                            {detail.vin === '' ? 'VIN pendiente' : `VIN ${detail.vin}`}
+                          </span>
+                        )}
+                        {gaps.length > 0 && (
+                          <span className="chip chip--review table-page__gap" title={`Ficha incompleta: ${gaps.map((gap) => REGISTRY_GAP_LABEL[gap]).join(', ')}`}>
+                            {gaps.map((gap) => REGISTRY_GAP_LABEL[gap]).join(' · ')}
+                          </span>
+                        )}
                       </td>
-                      <td>{vehicle.group}</td>
+                      <td>{detail.group}</td>
                       <td>
-                        {detail?.fuel ?? '—'}
-                        {detail && <span className="table-page__sub table-page__nowrap">Tanque de {detail.tankLiters} L</span>}
+                        {detail.fuel}
+                        <span className="table-page__sub table-page__nowrap">Tanque de {detail.tankLiters} L</span>
                       </td>
-                      <td>{detail ? `${detail.expectedKmPerLiter} km/L` : '—'}</td>
-                      <td>{detail ? `${formatCount(detail.odometerKm)} km` : '—'}</td>
-                      <td>{vehicle.driver}</td>
+                      <td>{detail.expectedKmPerLiter} km/L</td>
+                      <td>
+                        {detail.odometerKm === null ? (
+                          <span className="table-page__sub">Sin lectura</span>
+                        ) : (
+                          `${formatCount(detail.odometerKm)} km`
+                        )}
+                      </td>
+                      <td>{detail.driver}</td>
                       <td>
                         {medium ? (
                           <>
@@ -183,7 +243,9 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
                           <span className="table-page__sub">Sin medio</span>
                         )}
                       </td>
-                      <td>{detail && <span className={`chip ${STATUS_CHIP[detail.status]}`}>{VEHICLE_STATUS_LABEL[detail.status]}</span>}</td>
+                      <td>
+                        <span className={`chip ${STATUS_CHIP[detail.status]}`}>{VEHICLE_STATUS_LABEL[detail.status]}</span>
+                      </td>
                     </tr>
                   );
                 })}
@@ -191,6 +253,7 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
             </table>
           </div>
         )}
+        <Pagination {...pagination} noun="vehículos" onPage={pagination.setPage} />
       </section>
     </div>
   );

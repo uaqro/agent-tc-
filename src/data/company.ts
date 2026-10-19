@@ -1,4 +1,6 @@
 /** Empresa mock data: modular parameter catalogs, invoices (CFDI) and platform users. */
+import { PORTAL_ROLES, type PortalRoleId } from '../domain/rbac/portal-roles';
+import { CLIENT_ACCOUNT_ID } from './client';
 
 export type ParameterFieldType = 'text' | 'select' | 'ref';
 
@@ -201,7 +203,8 @@ export const invoices: Invoice[] = [
   { uuid: 'A8F04D2C-91E7', folio: 'TC-A 57699', issued: '2026-09-01', due: '2026-09-16', billingGroup: 'Operación Norte', product: 'fuel', subtotalMXN: 18_600, status: 'cancelled' },
 ];
 
-export type UserRole = 'admin' | 'fleet' | 'finance' | 'viewer';
+/** Portal roles of ADR-TCP-001: the client roles of ADR-001 plus the Ticket Car+ extension. */
+export type UserRole = PortalRoleId;
 export type UserStatus = 'active' | 'invited' | 'suspended';
 
 export interface PlatformUser {
@@ -209,24 +212,24 @@ export interface PlatformUser {
   name: string;
   email: string;
   role: UserRole;
-  /** Region names; empty means every region. */
-  regions: string[];
+  /** Org chart node the user is limited to; null means the whole account. */
+  scopeNodeId: string | null;
   lastAccess: string | null;
   status: UserStatus;
 }
 
 export const USER_ROLE_LABEL: Record<UserRole, string> = {
-  admin: 'Administrador',
-  fleet: 'Operador de flota',
-  finance: 'Finanzas',
-  viewer: 'Consulta',
+  admin: PORTAL_ROLES.admin.name,
+  flota: PORTAL_ROLES.flota.name,
+  finanzas: PORTAL_ROLES.finanzas.name,
+  consulta: PORTAL_ROLES.consulta.name,
 };
 
 export const USER_ROLE_DESCRIPTION: Record<UserRole, string> = {
-  admin: 'Todo, incluidos usuarios y parámetros de la empresa',
-  fleet: 'Saldos, reglas, medios de pago, flota y mantenimiento',
-  finance: 'Facturas, saldos y reportes; sin cambios en reglas',
-  viewer: 'Solo lectura de resúmenes y reportes',
+  admin: PORTAL_ROLES.admin.summary,
+  flota: PORTAL_ROLES.flota.summary,
+  finanzas: PORTAL_ROLES.finanzas.summary,
+  consulta: PORTAL_ROLES.consulta.summary,
 };
 
 export const USER_STATUS_LABEL: Record<UserStatus, string> = {
@@ -235,12 +238,14 @@ export const USER_STATUS_LABEL: Record<UserStatus, string> = {
   suspended: 'Suspendido',
 };
 
+const node = (slug: string): string => `org:${CLIENT_ACCOUNT_ID}:${slug}`;
+
 export const platformUsers: PlatformUser[] = [
-  { id: 'u-1', name: 'U. Aquino', email: 'u.aquino@edenredmexico1.mx', role: 'admin', regions: [], lastAccess: '2026-10-16T09:12:00', status: 'active' },
-  { id: 'u-2', name: 'Mariana Treviño', email: 'm.trevino@edenredmexico1.mx', role: 'fleet', regions: ['Norte'], lastAccess: '2026-10-15T18:40:00', status: 'active' },
-  { id: 'u-3', name: 'Jorge Salinas', email: 'j.salinas@edenredmexico1.mx', role: 'fleet', regions: ['Centro'], lastAccess: '2026-10-14T11:05:00', status: 'active' },
-  { id: 'u-4', name: 'Ana Lucía Ortega', email: 'a.ortega@edenredmexico1.mx', role: 'finance', regions: [], lastAccess: '2026-10-15T13:22:00', status: 'active' },
-  { id: 'u-5', name: 'Paola Rangel', email: 'p.rangel@edenredmexico1.mx', role: 'fleet', regions: ['Bajío'], lastAccess: null, status: 'invited' },
-  { id: 'u-6', name: 'Héctor Villalobos', email: 'h.villalobos@edenredmexico1.mx', role: 'viewer', regions: ['Norte', 'Centro'], lastAccess: '2026-09-02T08:47:00', status: 'suspended' },
-  { id: 'u-7', name: 'Luis Cárdenas', email: 'l.cardenas@edenredmexico1.mx', role: 'viewer', regions: ['Sur'], lastAccess: '2026-10-10T16:30:00', status: 'active' },
+  { id: 'u-1', name: 'U. Aquino', email: 'u.aquino@ganorte.mx', role: 'admin', scopeNodeId: null, lastAccess: '2026-10-16T09:12:00', status: 'active' },
+  { id: 'u-2', name: 'Mariana Treviño', email: 'm.trevino@ganorte.mx', role: 'flota', scopeNodeId: node('division-noreste'), lastAccess: '2026-10-15T18:40:00', status: 'active' },
+  { id: 'u-3', name: 'Jorge Salinas', email: 'j.salinas@ganorte.mx', role: 'flota', scopeNodeId: node('division-occidente'), lastAccess: '2026-10-14T11:05:00', status: 'active' },
+  { id: 'u-4', name: 'Ana Lucía Ortega', email: 'a.ortega@ganorte.mx', role: 'finanzas', scopeNodeId: null, lastAccess: '2026-10-15T13:22:00', status: 'active' },
+  { id: 'u-5', name: 'Paola Rangel', email: 'p.rangel@ganorte.mx', role: 'flota', scopeNodeId: node('division-noroeste'), lastAccess: null, status: 'invited' },
+  { id: 'u-6', name: 'Héctor Villalobos', email: 'h.villalobos@ganorte.mx', role: 'consulta', scopeNodeId: node('division-noreste'), lastAccess: '2026-09-02T08:47:00', status: 'suspended' },
+  { id: 'u-7', name: 'Luis Cárdenas', email: 'l.cardenas@ganorte.mx', role: 'consulta', scopeNodeId: node('departamento-guadalajara'), lastAccess: '2026-10-10T16:30:00', status: 'active' },
 ];

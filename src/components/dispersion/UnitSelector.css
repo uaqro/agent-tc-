@@ -1,0 +1,117 @@
+.unit-selector {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.unit-selector__tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.unit-selector__search {
+  display: flex;
+  flex: 1 1 220px;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+
+.unit-selector__search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-strong);
+}
+
+.unit-selector__node select {
+  height: 34px;
+  max-width: 220px;
+  padding: 0 8px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.unit-selector__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  background: var(--surface-muted);
+  font-size: 12.5px;
+}
+
+.unit-selector__count {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.unit-selector__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.unit-selector__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+}
+
+.unit-selector__list label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-body);
+  cursor: pointer;
+}
+
+.unit-selector__list label:hover {
+  background: var(--surface-sunken);
+}
+
+.unit-selector__list span {
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unit-selector__empty {
+  margin: 0;
+  padding: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.unit-selector .pagination {
+  padding: 8px 10px;
+}
+
+@media (max-width: 700px) {
+  .unit-selector__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

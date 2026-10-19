@@ -50,3 +50,22 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+.app__impersonation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 1600px;
+  margin: 12px auto 0;
+  padding: 8px 14px;
+  border: 1px solid #6b4dc7;
+  border-radius: var(--radius-sm);
+  background: #f1edfc;
+  font-size: 13px;
+  color: #4b2fa8;
+}
+
+.app__impersonation .btn {
+  margin-left: auto;
+}

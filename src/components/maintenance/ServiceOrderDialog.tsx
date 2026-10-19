@@ -7,6 +7,7 @@ import {
   type OrderKind,
   type ServiceOrder,
 } from '../../data/maintenance';
+import { today as businessToday } from '../../domain/demo/clock';
 import { Modal } from '../ui/Modal';
 import '../limits/PolicyDialog.css';
 import './ServiceOrderDialog.css';
@@ -23,7 +24,7 @@ const toISODate = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
 export function ServiceOrderDialog({ vehicles, initialVehicleId, nextFolio, onClose, onCreate }: ServiceOrderDialogProps) {
-  const today = toISODate(new Date());
+  const today = toISODate(businessToday());
   const [vehicleId, setVehicleId] = useState(initialVehicleId ?? '');
   const [kind, setKind] = useState<OrderKind>('preventive');
   const [system, setSystem] = useState(MAINTENANCE_SYSTEMS[0]);

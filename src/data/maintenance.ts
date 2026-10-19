@@ -1,4 +1,5 @@
-/** Maintenance mock data. Vehicle ids match `data/dispersion` and `data/fleet`. */
+/** Maintenance mock data. Vehicle ids are padrón units of the client account (`data/client`). */
+import { onSessionChange, unitInScope } from './session';
 
 export type OrderKind = 'preventive' | 'corrective';
 export type OrderStatus = 'scheduled' | 'in-shop' | 'waiting-parts' | 'done';
@@ -46,10 +47,10 @@ export const MAINTENANCE_SYSTEMS = [
 
 export const WORKSHOPS = ['TallerMax Norte', 'AutoServicio Sur', 'Servicio Diésel Bajío', 'Agencia Nissan Vallejo', 'Llantera del Centro'];
 
-export const serviceOrders: ServiceOrder[] = [
+export const allServiceOrders: ServiceOrder[] = [
   {
     folio: 'OS-2026-0418',
-    vehicleId: 'v-7',
+    vehicleId: 'ECO-3253',
     kind: 'corrective',
     system: 'Motor y transmisión',
     workshop: 'Servicio Diésel Bajío',
@@ -61,7 +62,7 @@ export const serviceOrders: ServiceOrder[] = [
   },
   {
     folio: 'OS-2026-0421',
-    vehicleId: 'v-2',
+    vehicleId: 'ECO-3033',
     kind: 'corrective',
     system: 'Frenos',
     workshop: 'Agencia Nissan Vallejo',
@@ -73,7 +74,7 @@ export const serviceOrders: ServiceOrder[] = [
   },
   {
     folio: 'OS-2026-0423',
-    vehicleId: 'v-1',
+    vehicleId: 'ECO-3004',
     kind: 'preventive',
     system: 'Aceite y filtros',
     workshop: 'TallerMax Norte',
@@ -85,7 +86,7 @@ export const serviceOrders: ServiceOrder[] = [
   },
   {
     folio: 'OS-2026-0424',
-    vehicleId: 'v-8',
+    vehicleId: 'ECO-3113',
     kind: 'preventive',
     system: 'Neumáticos',
     workshop: 'Llantera del Centro',
@@ -97,7 +98,7 @@ export const serviceOrders: ServiceOrder[] = [
   },
   {
     folio: 'OS-2026-0409',
-    vehicleId: 'v-4',
+    vehicleId: 'ECO-3215',
     kind: 'preventive',
     system: 'Suspensión y dirección',
     workshop: 'TallerMax Norte',
@@ -109,7 +110,7 @@ export const serviceOrders: ServiceOrder[] = [
   },
   {
     folio: 'OS-2026-0402',
-    vehicleId: 'v-6',
+    vehicleId: 'ECO-3035',
     kind: 'corrective',
     system: 'Sistema eléctrico',
     workshop: 'AutoServicio Sur',
@@ -121,12 +122,12 @@ export const serviceOrders: ServiceOrder[] = [
   },
 ];
 
-export const upcomingServices: UpcomingService[] = [
-  { vehicleId: 'v-3', service: 'Servicio de 130,000 km', dueDate: '2026-10-05', dueKm: 130_000 },
-  { vehicleId: 'v-5', service: 'Afinación híbrido 20,000 km', dueDate: '2026-10-12', dueKm: 20_000 },
-  { vehicleId: 'v-6', service: 'Cambio de aceite 60,000 km', dueDate: '2026-10-29', dueKm: 60_000 },
-  { vehicleId: 'v-4', service: 'Servicio mayor 300,000 km', dueDate: '2026-11-08', dueKm: 300_000 },
-  { vehicleId: 'v-2', service: 'Rotación de llantas', dueDate: '2026-11-20', dueKm: 65_000 },
+const allUpcomingServices: UpcomingService[] = [
+  { vehicleId: 'ECO-3240', service: 'Servicio de 75,000 km', dueDate: '2026-10-05', dueKm: 75_000 },
+  { vehicleId: 'ECO-3260', service: 'Afinación 170,000 km', dueDate: '2026-10-12', dueKm: 170_000 },
+  { vehicleId: 'ECO-3035', service: 'Cambio de aceite 120,000 km', dueDate: '2026-10-29', dueKm: 120_000 },
+  { vehicleId: 'ECO-3215', service: 'Servicio mayor 240,000 km', dueDate: '2026-11-08', dueKm: 240_000 },
+  { vehicleId: 'ECO-3033', service: 'Rotación de llantas', dueDate: '2026-11-20', dueKm: 45_000 },
 ];
 
 /** Spend of the current month by system, in MXN. */
@@ -138,3 +139,12 @@ export const spendBySystem = [
   { system: 'Frenos', amountMXN: 6_850, color: '#ca0e00' },
   { system: 'Sistema eléctrico', amountMXN: 4_150, color: '#6b4dc7' },
 ];
+
+/** Orders and upcoming services of the units inside the session scope (ADR-TCP-001). */
+export let serviceOrders: ServiceOrder[] = allServiceOrders;
+export let upcomingServices: UpcomingService[] = allUpcomingServices;
+
+onSessionChange(() => {
+  serviceOrders = allServiceOrders.filter((order) => unitInScope(order.vehicleId));
+  upcomingServices = allUpcomingServices.filter((service) => unitInScope(service.vehicleId));
+});

@@ -12,9 +12,11 @@ import type {
 } from '../types/toll';
 import { formatMoney } from '../utils/format';
 import { daysLabel } from './limits';
+import { clientAccount } from './client';
+import { onSessionChange, unitInScope } from './session';
 
 export const tollAccount = {
-  name: 'EDENRED MEXICO1 · Peaje',
+  name: `${clientAccount.name} · Peaje`,
   availableMXN: 186_400,
   monthBudgetMXN: 240_000,
   spentMonthMXN: 131_850,
@@ -68,9 +70,9 @@ export const tollRoads: TollRoad[] = [
 export const tollPolicies: TollPolicy[] = [
   {
     id: 'tp-norte',
-    name: 'Corredor de carga · Ruta Norte',
+    name: 'Corredor de carga · Corredor Norte',
     status: 'active',
-    groupIds: ['g-norte'],
+    groupIds: ['grp-02'],
     period: 'week',
     periodLimitMXN: 9_500,
     maxCrossingsPerDay: 8,
@@ -83,9 +85,9 @@ export const tollPolicies: TollPolicy[] = [
   },
   {
     id: 'tp-centro',
-    name: 'Reparto metropolitano · Ruta Centro',
+    name: 'Reparto metropolitano · Zona Metropolitana',
     status: 'active',
-    groupIds: ['g-centro'],
+    groupIds: ['grp-01'],
     period: 'week',
     periodLimitMXN: 1_200,
     maxCrossingsPerDay: 6,
@@ -98,9 +100,9 @@ export const tollPolicies: TollPolicy[] = [
   },
   {
     id: 'tp-sur',
-    name: 'Estándar · Ruta Sur',
+    name: 'Estándar · Sureste',
     status: 'active',
-    groupIds: ['g-sur'],
+    groupIds: ['grp-05'],
     period: 'month',
     periodLimitMXN: 6_000,
     maxCrossingsPerDay: 4,
@@ -113,9 +115,9 @@ export const tollPolicies: TollPolicy[] = [
   },
   {
     id: 'tp-exec',
-    name: 'Flota ejecutiva',
+    name: 'Reserva y sustitución',
     status: 'active',
-    groupIds: ['g-exec'],
+    groupIds: ['grp-06'],
     period: 'month',
     periodLimitMXN: 2_500,
     maxCrossingsPerDay: 10,
@@ -143,32 +145,32 @@ export const emptyTollPolicy: Omit<TollPolicy, 'id'> = {
   categoryLock: true,
 };
 
-export const tollTags: TollTag[] = [
-  { id: 'tt-1', type: 'drive-tag', number: 'TLV-0451-2B', vehicleId: 'v-1', status: 'active', category: 'T3S2', balanceMXN: 2_840, policyId: 'tp-norte', spentPeriodMXN: 6_120, crossingsToday: 3, rejections7d: 0, lastCrossing: '2026-10-15T09:42:00', lastPlaza: 'Palmillas · México–Querétaro' },
-  { id: 'tt-2', type: 'toll-tag', number: 'TLV-0917-7K', vehicleId: 'v-2', status: 'active', category: 'A', balanceMXN: 310, policyId: 'tp-centro', spentPeriodMXN: 1_040, crossingsToday: 2, rejections7d: 3, lastCrossing: '2026-10-15T08:15:00', lastPlaza: 'Tepotzotlán · México–Querétaro' },
-  { id: 'tt-3', type: 'drive-tag', number: 'TLV-1293-9D', vehicleId: 'v-3', status: 'blocked', category: 'C2', balanceMXN: 1_150, policyId: 'tp-sur', spentPeriodMXN: 0, crossingsToday: 0, rejections7d: 0, lastCrossing: '2026-09-24T07:10:00', lastPlaza: 'Magdalena · Corredor Sonora' },
-  { id: 'tt-4', type: 'drive-tag', number: 'TLV-3344-4A', vehicleId: 'v-4', status: 'active', category: 'T3S2', balanceMXN: 4_610, policyId: 'tp-norte', spentPeriodMXN: 8_870, crossingsToday: 5, rejections7d: 1, lastCrossing: '2026-10-15T10:05:00', lastPlaza: 'Sabinas Hidalgo · Monterrey–Nuevo Laredo' },
-  { id: 'tt-5', type: 'toll-tag', number: 'TLV-7712-1C', vehicleId: 'v-5', status: 'active', category: 'A', balanceMXN: 920, policyId: 'tp-exec', spentPeriodMXN: 640, crossingsToday: 0, rejections7d: 0, lastCrossing: '2026-10-12T19:20:00', lastPlaza: 'Tlalpan · México–Cuernavaca' },
-  { id: 'tt-6', type: 'drive-tag', number: 'TLV-0855-5E', vehicleId: 'v-6', status: 'active', category: 'C2', balanceMXN: 140, policyId: 'tp-centro', spentPeriodMXN: 980, crossingsToday: 4, rejections7d: 2, lastCrossing: '2026-10-15T07:55:00', lastPlaza: 'San Martín · México–Puebla' },
-  { id: 'tt-7', type: 'toll-tag', number: 'TLV-6234-3F', vehicleId: 'v-7', status: 'replacement', category: 'C3', balanceMXN: 0, policyId: 'tp-norte', spentPeriodMXN: 0, crossingsToday: 0, rejections7d: 0, lastCrossing: '2026-10-08T16:30:00', lastPlaza: 'Arco Norte · Tula' },
-  { id: 'tt-8', type: 'drive-tag', number: 'TLV-2988-8T', vehicleId: 'v-8', status: 'active', category: 'C2', balanceMXN: 1_780, policyId: 'tp-sur', spentPeriodMXN: 3_960, crossingsToday: 1, rejections7d: 1, lastCrossing: '2026-10-15T05:12:00', lastPlaza: 'Hermosillo · Corredor Sonora' },
+const allTollTags: TollTag[] = [
+  { id: 'tt-1', type: 'drive-tag', number: 'TLV-0451-2B', vehicleId: 'ECO-3004', status: 'active', category: 'T3S2', balanceMXN: 2_840, policyId: 'tp-norte', spentPeriodMXN: 6_120, crossingsToday: 3, rejections7d: 0, lastCrossing: '2026-10-15T09:42:00', lastPlaza: 'Palmillas · México–Querétaro' },
+  { id: 'tt-2', type: 'toll-tag', number: 'TLV-0917-7K', vehicleId: 'ECO-3033', status: 'active', category: 'A', balanceMXN: 310, policyId: 'tp-centro', spentPeriodMXN: 1_040, crossingsToday: 2, rejections7d: 3, lastCrossing: '2026-10-15T08:15:00', lastPlaza: 'Tepotzotlán · México–Querétaro' },
+  { id: 'tt-3', type: 'drive-tag', number: 'TLV-1293-9D', vehicleId: 'ECO-3240', status: 'blocked', category: 'C2', balanceMXN: 1_150, policyId: 'tp-sur', spentPeriodMXN: 0, crossingsToday: 0, rejections7d: 0, lastCrossing: '2026-09-24T07:10:00', lastPlaza: 'Magdalena · Corredor Sonora' },
+  { id: 'tt-4', type: 'drive-tag', number: 'TLV-3344-4A', vehicleId: 'ECO-3215', status: 'active', category: 'T3S2', balanceMXN: 4_610, policyId: 'tp-norte', spentPeriodMXN: 8_870, crossingsToday: 5, rejections7d: 1, lastCrossing: '2026-10-15T10:05:00', lastPlaza: 'Sabinas Hidalgo · Monterrey–Nuevo Laredo' },
+  { id: 'tt-5', type: 'toll-tag', number: 'TLV-7712-1C', vehicleId: 'ECO-3260', status: 'active', category: 'A', balanceMXN: 920, policyId: 'tp-exec', spentPeriodMXN: 640, crossingsToday: 0, rejections7d: 0, lastCrossing: '2026-10-12T19:20:00', lastPlaza: 'Tlalpan · México–Cuernavaca' },
+  { id: 'tt-6', type: 'drive-tag', number: 'TLV-0855-5E', vehicleId: 'ECO-3035', status: 'active', category: 'C2', balanceMXN: 140, policyId: 'tp-centro', spentPeriodMXN: 980, crossingsToday: 4, rejections7d: 2, lastCrossing: '2026-10-15T07:55:00', lastPlaza: 'San Martín · México–Puebla' },
+  { id: 'tt-7', type: 'toll-tag', number: 'TLV-6234-3F', vehicleId: 'ECO-3253', status: 'replacement', category: 'C3', balanceMXN: 0, policyId: 'tp-norte', spentPeriodMXN: 0, crossingsToday: 0, rejections7d: 0, lastCrossing: '2026-10-08T16:30:00', lastPlaza: 'Arco Norte · Tula' },
+  { id: 'tt-8', type: 'drive-tag', number: 'TLV-2988-8T', vehicleId: 'ECO-3113', status: 'active', category: 'C2', balanceMXN: 1_780, policyId: 'tp-sur', spentPeriodMXN: 3_960, crossingsToday: 1, rejections7d: 1, lastCrossing: '2026-10-15T05:12:00', lastPlaza: 'Hermosillo · Corredor Sonora' },
   { id: 'tt-9', type: 'toll-tag', number: 'TLV-8810-0X', vehicleId: null, status: 'unassigned', category: 'C2', balanceMXN: 0, policyId: null, spentPeriodMXN: 0, crossingsToday: 0, rejections7d: 0, lastCrossing: null, lastPlaza: null },
   { id: 'tt-10', type: 'drive-tag', number: 'TLV-4471-0Y', vehicleId: null, status: 'unassigned', category: 'A', balanceMXN: 0, policyId: null, spentPeriodMXN: 0, crossingsToday: 0, rejections7d: 0, lastCrossing: null, lastPlaza: null },
 ];
 
 export const tollAutoTopUps: TollAutoTopUp[] = [
-  { groupId: 'g-norte', enabled: true, thresholdMXN: 1_000, targetMXN: 5_000 },
-  { groupId: 'g-centro', enabled: true, thresholdMXN: 200, targetMXN: 800 },
-  { groupId: 'g-sur', enabled: false, thresholdMXN: 500, targetMXN: 2_500 },
-  { groupId: 'g-exec', enabled: false, thresholdMXN: 300, targetMXN: 1_500 },
+  { groupId: 'grp-02', enabled: true, thresholdMXN: 1_000, targetMXN: 5_000 },
+  { groupId: 'grp-01', enabled: true, thresholdMXN: 200, targetMXN: 800 },
+  { groupId: 'grp-05', enabled: false, thresholdMXN: 500, targetMXN: 2_500 },
+  { groupId: 'grp-06', enabled: false, thresholdMXN: 300, targetMXN: 1_500 },
 ];
 
-export const tollMovements: TollMovement[] = [
+const allTollMovements: TollMovement[] = [
   { id: 'tm-1', kind: 'crossing', tagId: 'tt-4', at: '2026-10-15T10:05:00', amountMXN: -1_284, detail: 'Sabinas Hidalgo · Monterrey–Nuevo Laredo' },
   { id: 'tm-2', kind: 'crossing', tagId: 'tt-1', at: '2026-10-15T09:42:00', amountMXN: -1_037, detail: 'Palmillas · México–Querétaro' },
   { id: 'tm-3', kind: 'rejected', tagId: 'tt-2', at: '2026-10-15T08:40:00', amountMXN: 0, detail: 'Chalco · Fuera de las autopistas autorizadas' },
   { id: 'tm-4', kind: 'crossing', tagId: 'tt-2', at: '2026-10-15T08:15:00', amountMXN: -112, detail: 'Tepotzotlán · México–Querétaro' },
-  { id: 'tm-5', kind: 'top-up', tagId: 'tt-6', at: '2026-10-15T06:00:00', amountMXN: 660, detail: 'Recarga automática · Ruta Centro' },
+  { id: 'tm-5', kind: 'top-up', tagId: 'tt-6', at: '2026-10-15T06:00:00', amountMXN: 660, detail: 'Recarga automática · Zona Metropolitana' },
   { id: 'tm-6', kind: 'crossing', tagId: 'tt-8', at: '2026-10-15T05:12:00', amountMXN: -246, detail: 'Hermosillo · Corredor Sonora' },
   { id: 'tm-7', kind: 'cut', tagId: 'tt-3', at: '2026-10-14T17:30:00', amountMXN: -1_000, detail: 'Recorte a la bolsa de peaje · unidad inactiva' },
 ];
@@ -196,3 +198,13 @@ export function tollLocksLabel(policy: TollPolicy): string {
 
 export const tollLimitLabel = (policy: TollPolicy): string =>
   `${formatMoney(policy.periodLimitMXN)} por ${TOLL_PERIOD_META[policy.period].noun}`;
+
+/** TAGs of the units inside the session scope, plus stock not yet assigned, and their movements (ADR-TCP-001). */
+export let tollTags: TollTag[] = allTollTags;
+export let tollMovements: TollMovement[] = allTollMovements;
+
+onSessionChange(() => {
+  tollTags = allTollTags.filter((tag) => tag.vehicleId === null || unitInScope(tag.vehicleId));
+  const visible = new Set(tollTags.map((tag) => tag.id));
+  tollMovements = allTollMovements.filter((movement) => visible.has(movement.tagId));
+});
