@@ -1,0 +1,149 @@
+.policy-form__block {
+  border: none;
+  padding: 0;
+  margin: 0 0 20px;
+}
+
+.policy-form__block legend {
+  padding: 0;
+  margin-bottom: 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.policy-form__fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.policy-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.policy-form__field span,
+.policy-form__label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.policy-form__label {
+  margin: 0 0 6px;
+}
+
+.policy-form__field select,
+.policy-form__field input,
+.policy-form__inline-number {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 13.5px;
+  color: var(--text-strong);
+  outline: none;
+}
+
+.policy-form__field select:focus,
+.policy-form__field input:focus,
+.policy-form__inline-number:focus {
+  border-color: var(--brand-blue);
+}
+
+.policy-form__inline-number {
+  width: 76px;
+  height: 30px;
+}
+
+.policy-form__inline-number:disabled {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+
+.policy-form__checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  margin-top: 10px;
+}
+
+.policy-form__checks label,
+.policy-form__switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-body);
+  cursor: pointer;
+}
+
+.policy-form__checks label:hover {
+  background: var(--surface-sunken);
+}
+
+.policy-form__switch {
+  margin-top: 8px;
+  padding-left: 0;
+}
+
+.policy-form__warning {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: #a85c02;
+}
+
+.policy-form__pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.policy-form__pills button {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface);
+}
+
+.policy-form__pills button.is-active {
+  border-color: var(--brand-blue);
+  background: rgba(47, 107, 255, 0.09);
+  color: #1d55e0;
+}
+
+.policy-form__preview {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  font-size: 13px;
+  color: var(--text-body);
+}
+
+.policy-form__preview-error {
+  color: #b4001a;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .policy-form__fields,
+  .policy-form__checks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.policy-form__preview--spaced {
+  margin-top: 16px;
+}

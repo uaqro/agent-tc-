@@ -1,0 +1,97 @@
+import { useState } from 'react';
+import type { Vehicle } from '../../types/dispersion';
+import type { LimitOverride, LimitPolicy, OverrideDuration, UnitAssignment } from '../../types/limits';
+import {
+  OVERRIDE_DURATIONS,
+  OVERRIDE_REASONS,
+  PERIOD_META,
+  formatEquivalent,
+  formatMeasure,
+  overrideUntil,
+  usedInMeasure,
+} from '../../data/limits';
+import { Modal } from '../ui/Modal';
+import { formatDateLong } from '../../utils/format';
+import './PolicyDialog.css';
+
+interface OverrideDialogProps {
+  vehicle: Vehicle;
+  assignment: UnitAssignment;
+  policy: LimitPolicy;
+  onClose: () => void;
+  onConfirm: (override: LimitOverride) => void;
+}
+
+export function OverrideDialog({ vehicle, assignment, policy, onClose, onConfirm }: OverrideDialogProps) {
+  const [extra, setExtra] = useState(Math.round(policy.periodLimit * 0.2));
+  const [duration, setDuration] = useState<OverrideDuration>('period');
+  const [reason, setReason] = useState(OVERRIDE_REASONS[0]);
+
+  const until = overrideUntil(duration, policy.period);
+  const valid = extra > 0;
+
+  return (
+    <Modal
+      open
+      title="Excepción temporal de límite"
+      subtitle={`${vehicle.plate} · ${vehicle.driver} · ${policy.name}`}
+      onClose={onClose}
+      footer={
+        <>
+          <button type="button" className="btn btn--ghost" onClick={onClose}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className="btn btn--primary"
+            disabled={!valid}
+            onClick={() => onConfirm({ extra, until, reason })}
+          >
+            Aplicar excepción
+          </button>
+        </>
+      }
+    >
+      <div className="policy-form__fields">
+        <label className="policy-form__field">
+          <span>Ampliación ({policy.measure === 'liters' ? 'L' : 'MXN'})</span>
+          <input
+            type="number"
+            min={1}
+            step={policy.measure === 'liters' ? 10 : 100}
+            value={extra}
+            onChange={(event) => setExtra(Number(event.target.value))}
+          />
+        </label>
+        <label className="policy-form__field">
+          <span>Vigencia</span>
+          <select value={duration} onChange={(event) => setDuration(event.target.value as OverrideDuration)}>
+            {OVERRIDE_DURATIONS.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="policy-form__field">
+          <span>Motivo</span>
+          <select value={reason} onChange={(event) => setReason(event.target.value)}>
+            {OVERRIDE_REASONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <p className="policy-form__preview policy-form__preview--spaced">
+        Lleva {formatMeasure(usedInMeasure(assignment, policy), policy.measure)} de{' '}
+        {formatMeasure(policy.periodLimit, policy.measure)} por {PERIOD_META[policy.period].noun}. Con la excepción su
+        límite sube a <strong>{formatMeasure(policy.periodLimit + Math.max(0, extra), policy.measure)}</strong> (≈{' '}
+        {formatEquivalent(policy.periodLimit + Math.max(0, extra), policy.measure)}) hasta el {formatDateLong(until)}.
+        Después regresa al límite de la política.
+      </p>
+    </Modal>
+  );
+}

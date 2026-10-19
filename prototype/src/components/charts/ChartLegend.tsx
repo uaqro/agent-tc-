@@ -1,0 +1,16 @@
+import type { ChartSeries } from '../../types';
+
+export function ChartLegend({ series }: { series: ChartSeries[] }) {
+  if (series.length === 0) return null;
+
+  return (
+    <ul className="chart-legend">
+      {series.map((item) => (
+        <li className="chart-legend__item" key={item.name}>
+          <span className="chart-legend__swatch" style={{ background: item.color }} />
+          {item.name}
+        </li>
+      ))}
+    </ul>
+  );
+}

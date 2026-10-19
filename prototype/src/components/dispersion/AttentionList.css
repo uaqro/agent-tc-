@@ -1,0 +1,131 @@
+.attention {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: visible;
+}
+
+.attention__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.attention__clear-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 14px 18px;
+  font-size: 13px;
+  color: var(--accent-green);
+}
+
+.attention__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.attention__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.attention__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 18px;
+}
+
+.attention__item + .attention__item {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.attention__icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.attention__icon--zero-balance {
+  background: rgba(226, 0, 26, 0.1);
+  color: #b4001a;
+}
+
+.attention__icon--balance-request {
+  background: rgba(47, 107, 255, 0.12);
+  color: #1d55e0;
+}
+
+.attention__icon--anomalous-consumption {
+  background: rgba(242, 134, 13, 0.14);
+  color: #a85c02;
+}
+
+.attention__icon--trapped-balance {
+  background: rgba(47, 107, 255, 0.12);
+  color: #1d55e0;
+}
+
+.attention__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.attention__unit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-strong);
+}
+
+.attention__driver {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.attention__detail {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-body);
+}
+
+.attention__meta {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.attention__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 760px) {
+  .attention__item {
+    flex-wrap: wrap;
+  }
+
+  .attention__actions {
+    width: 100%;
+    padding-left: 48px;
+  }
+}

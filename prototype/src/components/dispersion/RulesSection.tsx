@@ -1,0 +1,125 @@
+import type { FundingRule, RuleStatus, RuleType } from '../../types/dispersion';
+import { toLiters } from '../../data/dispersion';
+import { EyeIcon, PauseIcon, PlayIcon, PlusIcon, RuleIcon, UploadIcon } from '../icons/Icons';
+import { EmptyState } from '../ui/EmptyState';
+import { formatCount, formatDateLong, formatLiters, formatMoney } from '../../utils/format';
+import { ApiTag } from '../api/ApiCoverage';
+import './RulesSection.css';
+
+interface RulesSectionProps {
+  rules: FundingRule[];
+  onSimulate: (rule: FundingRule) => void;
+  onToggleStatus: (rule: FundingRule) => void;
+  onCreate: () => void;
+  onBulkUpload: () => void;
+  onEdit: (rule: FundingRule) => void;
+}
+
+const STATUS_META: Record<RuleStatus, { label: string; chip: string }> = {
+  active: { label: 'Activa', chip: 'chip--active' },
+  paused: { label: 'Pausada', chip: 'chip--paused' },
+  'needs-review': { label: 'Necesita revisión', chip: 'chip--review' },
+};
+
+const TYPE_LABEL: Record<RuleType, string> = {
+  'balance-threshold': 'Automática por saldo',
+  consumption: 'Automática por consumo',
+  'top-off': 'Calendario · a tope',
+  'schedule-fixed': 'Calendario · monto fijo',
+};
+
+export function RulesSection({ rules, onSimulate, onToggleStatus, onCreate, onBulkUpload, onEdit }: RulesSectionProps) {
+  return (
+    <section className="rules" aria-labelledby="rules-title">
+      <header className="rules__head">
+        <h2 className="rules__title" id="rules-title">
+          Automatización de dispersiones
+          <ApiTag id="disp-rules" />
+        </h2>
+        <div className="rules__actions">
+          <ApiTag id="disp-bulk" />
+          <button type="button" className="btn btn--secondary btn--sm" onClick={onBulkUpload}>
+            <UploadIcon width={15} height={15} />
+            Carga masiva desde archivo
+          </button>
+          <button type="button" className="btn btn--primary btn--sm" onClick={onCreate}>
+            <PlusIcon width={15} height={15} />
+            Nueva automatización
+          </button>
+        </div>
+      </header>
+
+      {rules.length === 0 && (
+        <EmptyState
+          card
+          icon={<RuleIcon width={22} height={22} />}
+          title="Aún no hay automatizaciones"
+          description="Crea una regla para que el saldo se disperse solo: por calendario, a tope o cuando una unidad baje de cierto saldo. Si solo necesitas un envío único, carga un archivo."
+          actions={
+            <>
+              <button type="button" className="btn btn--primary btn--sm" onClick={onCreate}>
+                <PlusIcon width={15} height={15} />
+                Crear primera automatización
+              </button>
+              <button type="button" className="btn btn--secondary btn--sm" onClick={onBulkUpload}>
+                <UploadIcon width={15} height={15} />
+                Carga masiva desde archivo
+              </button>
+            </>
+          }
+        />
+      )}
+
+      <ul className="rules__list">
+        {rules.map((rule) => {
+          const status = STATUS_META[rule.status];
+          const paused = rule.status === 'paused';
+
+          return (
+            <li className={`rule-card${paused ? ' rule-card--paused' : ''}`} key={rule.id}>
+              <header className="rule-card__head">
+                <h3 className="rule-card__name">{rule.name}</h3>
+                <span className={`chip ${status.chip}`}>{status.label}</span>
+              </header>
+
+              {rule.statusNote && <p className="rule-card__note">{rule.statusNote}</p>}
+
+              <p className="rule-card__scope">
+                <span className="chip chip--info">{TYPE_LABEL[rule.type]}</span>
+                {rule.scopeLabel} · {formatCount(rule.units)} unidades
+              </p>
+
+              <p className="rule-card__summary">{rule.summary}</p>
+
+              <p className="rule-card__trigger">
+                {rule.triggerText}
+                {rule.nextRun && ` · próxima: ${formatDateLong(rule.nextRun)}`}
+              </p>
+
+              <footer className="rule-card__foot">
+                <span className="rule-card__amount">
+                  {formatMoney(rule.projectedMXN)}
+                  <small>{formatLiters(toLiters(rule.projectedMXN))}</small>
+                </span>
+
+                <div className="rule-card__buttons">
+                  <button type="button" className="btn btn--secondary btn--sm" onClick={() => onSimulate(rule)}>
+                    <EyeIcon width={15} height={15} />
+                    Simular
+                  </button>
+                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => onToggleStatus(rule)}>
+                    {paused ? <PlayIcon width={13} height={13} /> : <PauseIcon width={13} height={13} />}
+                    {paused ? 'Activar' : 'Pausar'}
+                  </button>
+                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => onEdit(rule)}>
+                    Editar
+                  </button>
+                </div>
+              </footer>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
