@@ -59,6 +59,7 @@ const TC_ROWS: Record<TcCapabilityId, [PermissionLevel, PermissionLevel, Permiss
   'tc.peaje_saldos': [C, L, C, L],
   'tc.peaje_reglas': [C, C, L, L],
   'tc.peaje_medios': [C, C, L, L],
+  'tc.conductores': [C, C, L, L],
   'tc.mantenimiento': [C, C, N, N],
   'tc.facturas': [C, N, C, N],
   'tc.parametros': [G, N, N, N],
@@ -177,6 +178,22 @@ describe('decisiones del 19-oct-2026', () => {
     expect(canSession('flota', 'tc.peaje_medios', 'escribir')).toBe(true)
     expect(canSession('finanzas', 'tc.peaje_medios', 'ver')).toBe(true)
     expect(canSession('finanzas', 'tc.peaje_medios', 'escribir')).toBe(false)
+  })
+
+  it('Conductores: alta, edición y baja para admin y flota; finanzas y consulta leen', () => {
+    for (const role of ['admin', 'flota'] as const) expect(canSession(role, 'tc.conductores', 'escribir'), role).toBe(true)
+    for (const role of ['finanzas', 'consulta'] as const) {
+      expect(canSession(role, 'tc.conductores', 'ver'), role).toBe(true)
+      expect(canSession(role, 'tc.conductores', 'escribir'), role).toBe(false)
+    }
+    // Es permiso propio de Ticket Car+, como Peaje: no es una fila de ADR-001.
+    expect((ADR_PORTAL_CAPABILITIES as readonly string[]).includes('tc.conductores')).toBe(false)
+    expect(TC_CAPABILITIES).toContain('tc.conductores')
+  })
+
+  it('Vehículos sigue siendo solo de admin: flota edita conductores, no unidades', () => {
+    expect(canSession('flota', 'inventario.editar', 'escribir')).toBe(false)
+    expect(canSession('flota', 'tc.conductores', 'escribir')).toBe(true)
   })
 
   it('Peaje: admin completo en todo y consulta lectura en todo', () => {

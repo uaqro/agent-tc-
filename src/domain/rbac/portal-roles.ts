@@ -64,7 +64,7 @@ export const PORTAL_ROLES: Record<PortalRoleId, PortalRoleDefinition> = {
   flota: {
     id: 'flota',
     name: 'Operador de flota',
-    summary: 'Ve consumos, inventario y VIN, gestiona alertas y opera mantenimiento, límites, reglas de peaje y TAGs.',
+    summary: 'Ve consumos, inventario y VIN, gestiona alertas y opera conductores, mantenimiento, límites, reglas de peaje y TAGs.',
     adrBase: ['visualizador', 'gestor_alertas'],
     extension:
       'Operación de flota de Ticket Car+: Mantenimiento, Límites, reglas de peaje, alta, baja y reasignación de TAGs, y el VIN en lectura. La edición de unidades queda para admin.',
@@ -139,6 +139,7 @@ export const TC_CAPABILITIES = [
   'tc.peaje_saldos',
   'tc.peaje_reglas',
   'tc.peaje_medios',
+  'tc.conductores',
   'tc.mantenimiento',
   'tc.facturas',
   'tc.parametros',
@@ -174,6 +175,7 @@ export const PORTAL_CAPABILITY_NAMES: Record<PortalCapabilityId, string> = {
   'tc.peaje_saldos': 'Peaje · Saldos y recargas',
   'tc.peaje_reglas': 'Peaje · Reglas y límites',
   'tc.peaje_medios': 'Peaje · TAGs (alta, baja y reasignación; saldo y consumo por TAG)',
+  'tc.conductores': 'Flota · Conductores (alta, edición y baja)',
   'tc.mantenimiento': 'Mantenimiento',
   'tc.facturas': 'Empresa · Facturas',
   'tc.parametros': 'Empresa · Parámetros',
@@ -220,6 +222,7 @@ export const PORTAL_MATRIX: Record<PortalCapabilityId, Record<PortalRoleId, Gran
   'tc.peaje_saldos': { admin: C, flota: L, finanzas: C, consulta: L },
   'tc.peaje_reglas': { admin: C, flota: C, finanzas: L, consulta: L },
   'tc.peaje_medios': { admin: C, flota: C, finanzas: L, consulta: L },
+  'tc.conductores': { admin: C, flota: C, finanzas: L, consulta: L },
   'tc.mantenimiento': { admin: C, flota: C, finanzas: N, consulta: N },
   'tc.facturas': { admin: C, flota: N, finanzas: C, consulta: N },
   'tc.parametros': { admin: G, flota: N, finanzas: N, consulta: N },

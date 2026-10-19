@@ -316,7 +316,7 @@ export default function App() {
           />
         )}
         {route === 'drivers' && (
-          <DriversPage onNotice={setNotice} canEdit={canSession(principal.role, 'inventario.editar', 'escribir')} />
+          <DriversPage onNotice={setNotice} canEdit={canSession(principal.role, 'tc.conductores', 'escribir')} />
         )}
         {route === 'company-parameters' && <ParametersPage onNotice={setNotice} />}
         {route === 'company-invoices' && <InvoicesPage onNotice={setNotice} />}

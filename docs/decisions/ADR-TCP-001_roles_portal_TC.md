@@ -23,9 +23,9 @@ El portal Ticket Car+ integra la analítica de eOne (Resumen, Reportes, Optimiza
    | Rol del portal | Base en ADR-001 | Extensión de Ticket Car+ |
    | --- | --- | --- |
    | `admin` · Administrador | Admin de Cuenta, tal cual | Nivel completo en los módulos de Ticket Car+ que ADR-001 no cubre |
-   | `flota` · Operador de flota | Visualizador + Gestor de Alertas (todo lo del rol, véase 5.4) | Operación de flota: Mantenimiento, Límites, lectura de equivalencias VIN, reglas y TAGs de peaje, y envío de recomendaciones de estación al conductor. Lee Vehículos y Conductores, pero no los edita (5.1) |
-   | `finanzas` · Finanzas | Visualizador | Exportar reportes, Saldos, Medios de pago de combustible, Saldos y recargas de peaje y Facturas. Lee reglas y TAGs de peaje. No configura alertas |
-   | `consulta` · Consulta | Visualizador, tal cual: solo lectura y **sin exportación** | Lectura de Peaje (saldos, reglas y TAGs) |
+   | `flota` · Operador de flota | Visualizador + Gestor de Alertas (todo lo del rol, véase 5.4) | Operación de flota: alta, edición y baja de Conductores (5.5), Mantenimiento, Límites, lectura de equivalencias VIN, reglas y TAGs de peaje, y envío de recomendaciones de estación al conductor. Lee Vehículos, pero no los edita (5.1) |
+   | `finanzas` · Finanzas | Visualizador | Exportar reportes, Saldos, Medios de pago de combustible, Saldos y recargas de peaje y Facturas. Lee reglas y TAGs de peaje y Conductores. No configura alertas |
+   | `consulta` · Consulta | Visualizador, tal cual: solo lectura y **sin exportación** | Lectura de Peaje (saldos, reglas y TAGs) y de Conductores |
 
    Con esto ningún permiso de ADR-001 queda huérfano: los tres roles cliente del ADR están contenidos en algún rol del portal. `flota` y `finanzas` **no están en ADR-001**; son una extensión de Ticket Car+ y esta decisión las documenta.
 
@@ -59,7 +59,7 @@ Las celdas marcadas con `*` superan lo que ADR-001 concede al rol base. Son exte
 | `consumos.ineficiencias` · Optimizador | L | L | L | L | L | L | — |
 | `consumos.export` · Exportar reportes | C | — | C* | — | C | — | — |
 | `inventario.ver` · Vehículos y conductores | L | L | L | L | L | L | — |
-| `inventario.editar` · Alta y edición de unidades (alias, grupo, metadatos) y conductores | C | — | — | — | C | — | — |
+| `inventario.editar` · Alta y edición de unidades (alias, grupo, metadatos) | C | — | — | — | C | — | — |
 | `inventario.vin` · Equivalencias VIN | C | L* | — | — | C | — | — |
 | `alertas.panel` · Ver alertas | L | C | L | L | L | L | C |
 | `alertas.configurar` · Umbrales | C | C | — | — | C | — | C |
@@ -84,6 +84,7 @@ Quedan fuera del portal, porque Ticket Car+ no tiene esos módulos:
 | `tc.peaje_saldos` · Peaje · Saldos y recargas | C | L | C | L |
 | `tc.peaje_reglas` · Peaje · Reglas y límites | C | C | L | L |
 | `tc.peaje_medios` · Peaje · TAGs (alta, baja, reasignación; saldo y consumo por TAG) | C | C | L | L |
+| `tc.conductores` · Conductores: alta, edición y baja (véase 5.5) | C | C | L | L |
 | `tc.mantenimiento` · Mantenimiento | C | C | — | — |
 | `tc.facturas` · Facturas | C | — | C | — |
 | `tc.parametros` · Parámetros | G | — | — | — |
@@ -92,7 +93,7 @@ Quedan fuera del portal, porque Ticket Car+ no tiene esos módulos:
 
 ## 5. Decisiones (antes supuestos por confirmar)
 
-Revisión del 19-oct-2026. Los cuatro supuestos de la primera versión quedan cerrados así:
+Revisión del 19-oct-2026. Los cuatro supuestos de la primera versión quedan cerrados así, y se añade Conductores (5.5):
 
 1. **VIN y edición de unidades.** La tabla de equivalencias VIN y la edición de unidades (alias, grupo, metadatos) son **solo de `admin`**, como el Admin de Cuenta de ADR-001. `flota` lee el inventario y el VIN, pero no los edita.
    - `inventario.editar` vuelve a ser exactamente la columna de ADR-001: deja de ser extensión.
@@ -114,6 +115,12 @@ Revisión del 19-oct-2026. Los cuatro supuestos de la primera versión quedan ce
    - `admin` ve el panel en lectura y configura umbrales y destinatarios.
    - `flota` tiene todo lo del Gestor de Alertas, incluidos reconocer y resolver alertas. Reconocer y resolver llegan en la **Fase 2**.
    - **Punto a revisar en ADR-001, no en ADR-TCP-001:** con la matriz actual, el Admin de Cuenta configura las alertas pero no las resuelve. Si se cambia, se cambia en ADR-001 y esta matriz lo hereda.
+
+5. **Conductores.** Revisión del 19-oct-2026. Es un permiso **propio de Ticket Car+, sin equivalente en ADR-001**, igual que Peaje: `tc.conductores`.
+   - Alta, edición y baja de conductores: `admin` y `flota`. Mantener el padrón de conductores es operación de flota.
+   - `finanzas` y `consulta`: lectura.
+   - Vehículos no cambia: el alta y la edición de unidades siguen siendo solo de `admin` (`inventario.editar`, 5.1).
+   - ADR-001 juntaba vehículos y conductores en `inventario.editar`. Ticket Car+ los separa y esa fila queda solo para unidades. Si ADR-001 quiere separarlos también, es un punto a revisar allí.
 
 Sigue abierta, fuera de esta ADR: **¿Autoconsumo tiene límites propios?** Hoy Límites y Medios de pago excluyen Autoconsumo.
 

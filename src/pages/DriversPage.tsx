@@ -10,7 +10,10 @@ import './TablePage.css';
 
 interface DriversPageProps {
   onNotice: (message: string) => void;
-  /** Registering drivers is admin only, with the rest of the inventory edits (`inventario.editar`). */
+  /**
+   * Registering, editing and deregistering drivers: admin and flota (`tc.conductores`, a Ticket Car+ permission with no
+   * equivalent in ADR-001). Vehicles stay admin only. Finanzas and consulta read.
+   */
   canEdit?: boolean;
 }
 
@@ -179,6 +182,16 @@ export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
                         <button type="button" className="btn btn--ghost btn--sm" onClick={() => onNotice(`Expediente de ${driver.name} abierto.`)}>
                           Ver expediente
                         </button>
+                        {canEdit && (
+                          <>
+                            <button type="button" className="btn btn--ghost btn--sm" onClick={() => onNotice(`Edición de ${driver.name} abierta.`)}>
+                              Editar
+                            </button>
+                            <button type="button" className="btn btn--ghost btn--sm" onClick={() => onNotice(`Baja de ${driver.name} solicitada: pendiente de confirmar.`)}>
+                              Dar de baja
+                            </button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   );
