@@ -65,26 +65,42 @@
   color: #a85c02;
 }
 
-.policy-card__limit {
+.policy-card__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0 0;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.policy-card__summary > div {
   display: flex;
-  align-items: baseline;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
   gap: 6px;
-  flex-wrap: wrap;
-  margin: 12px 0 0;
-  font-size: 19px;
+}
+
+.policy-card__summary dt {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.policy-card__summary dd {
+  margin: 0;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text-strong);
 }
 
-.policy-card__limit span {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-body);
-}
-
-.policy-card__limit small {
-  font-size: 11.5px;
-  font-weight: 500;
+.policy-card__summary dd span {
+  margin-left: 5px;
+  font-size: 11px;
+  font-weight: 400;
   color: var(--text-muted);
 }
 
@@ -93,8 +109,6 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px 16px;
   margin: 12px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-subtle);
 }
 
 .policy-card__locks-wide {
@@ -112,6 +126,7 @@
   margin: 2px 0 0;
   font-size: 13px;
   color: var(--text-body);
+  overflow-wrap: anywhere;
 }
 
 .policy-card__foot {

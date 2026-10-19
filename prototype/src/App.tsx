@@ -8,6 +8,8 @@ import { account } from './data/dispersion';
 import { DispersionPage } from './pages/DispersionPage';
 import { FuelDashboardPage } from './pages/FuelDashboardPage';
 import { LimitsPage } from './pages/LimitsPage';
+import { StationNetworksPage } from './pages/StationNetworksPage';
+import { FuelPolicyProvider } from './data/FuelPolicyContext';
 import { DriversPage } from './pages/DriversPage';
 import { MaintenancePage } from './pages/MaintenancePage';
 import { PaymentMediaPage } from './pages/PaymentMediaPage';
@@ -49,14 +51,20 @@ const ROUTES: Record<AppRoute, { menuItem: string; section: string; title: strin
   limits: {
     menuItem: 'reglas-limites',
     section: 'Combustible',
-    title: 'Reglas y límites',
-    subtitle: 'Candados de carga por grupo y por unidad',
+    title: 'Políticas de uso',
+    subtitle: 'Controles de transacción, restricciones de consumo y configuraciones de uso por grupo y vehículo',
   },
   'payment-media': {
     menuItem: 'medios-pago',
     section: 'Combustible',
     title: 'Medios de pago',
     subtitle: 'Tarjetas chip, tags y tarjetas virtuales de la flota',
+  },
+  'station-networks': {
+    menuItem: 'red-estaciones',
+    section: 'Combustible',
+    title: 'Red de estaciones personalizadas',
+    subtitle: 'Redes de estaciones permitidas o no permitidas para las restricciones de tus políticas de uso',
   },
   'toll-balances': {
     menuItem: 'peaje-saldos',
@@ -149,7 +157,7 @@ const ROUTE_BY_MENU_ITEM = Object.fromEntries(
   (Object.keys(ROUTES) as AppRoute[]).map((route) => [ROUTES[route].menuItem, route]),
 ) as Record<string, AppRoute>;
 
-export default function App() {
+function AppContent() {
   const [menuOpen, setMenuOpen] = useState(true);
   const [menuPinned, setMenuPinned] = useState(true);
   const [route, setRoute] = useState<AppRoute>('dashboard');
@@ -234,6 +242,7 @@ export default function App() {
         )}
         {route === 'dispersion' && <DispersionPage onNotice={setNotice} />}
         {route === 'limits' && <LimitsPage onNotice={setNotice} />}
+        {route === 'station-networks' && <StationNetworksPage onNotice={setNotice} />}
         {route === 'payment-media' && <PaymentMediaPage onNotice={setNotice} />}
         {route === 'toll-balances' && <TollBalancesPage onNotice={setNotice} />}
         {route === 'toll-rules' && <TollRulesPage onNotice={setNotice} />}
@@ -260,4 +269,8 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+export default function App() {
+  return <FuelPolicyProvider><AppContent /></FuelPolicyProvider>;
 }

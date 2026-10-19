@@ -51,7 +51,7 @@ export const apiImprovements: ApiImprovement[] = [
     title: 'Leer y escribir candados de carga',
     kind: 'new-method',
     priority: 'high',
-    problem: 'Reglas y límites completa depende de candados que hoy no se pueden leer ni escribir: litros o monto por periodo, cargas por día, intervalo, combustibles, días y horario, estaciones, odómetro y rendimiento mínimo.',
+    problem: 'Políticas de uso depende de controles y configuraciones que hoy no se pueden leer ni escribir: placa, conductor, kilometraje, horómetro, límites de consumo, horarios, estaciones y opciones de experiencia de transacción.',
     proposal: 'CRUD de políticas de restricción reutilizables, asignables a un grupo de tarjetas o a una tarjeta en lo individual.',
     contract:
       'RestrictionPolicyGetFilteredList / RestrictionPolicyExecute (Create | Update | Pause | Delete)\n  Measure: Liters | Amount · Period: Day | Week | Fortnight | Month · PeriodLimit\n  MaxQuantityPerFill · MaxFillsPerDay · MinHoursBetweenFills · TankCapacityLock\n  MerchandiseList · UsageRestrictionList (días/horario) · AcceptanceRestrictionIdentification\n  OdometerRequired · MinPerformance\nCardRestrictionAssign(CardNumber | CardGroupIdentification, PolicyIdentification)',

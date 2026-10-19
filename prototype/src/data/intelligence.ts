@@ -75,7 +75,7 @@ export const fleetAlerts: FleetAlert[] = [
       'JKM-33-4A, NBV-62-3F, ZUT-08-5E y 6 más llevan más de 72 h cargando sin capturar odómetro; el rendimiento no se puede calcular.',
     meta: '9 unidades · Validación desactivada en su política',
     when: 'Ayer 18:00',
-    action: { label: 'Revisar política', route: 'limits', notice: 'Abriendo Reglas y límites.' },
+    action: { label: 'Revisar política', route: 'limits', notice: 'Abriendo Políticas de uso.' },
   },
   {
     id: 'a-5',
@@ -93,7 +93,7 @@ export const fleetAlerts: FleetAlert[] = [
     detail: 'ZUT-08-5E, NBV-62-3F, JKM-33-4A y TGP-91-7K agotarán su límite en 4 a 7 días hábiles al ritmo actual.',
     meta: '4 tarjetas · Ciclo 1–31 oct',
     when: 'Hoy',
-    action: { label: 'Ajustar límites', route: 'limits', notice: 'Abriendo Reglas y límites.' },
+    action: { label: 'Ajustar límites', route: 'limits', notice: 'Abriendo Políticas de uso.' },
   },
   {
     id: 'a-7',
@@ -111,7 +111,7 @@ export const fleetAlerts: FleetAlert[] = [
     detail: 'Cargas entre 23:00 y 04:00 en unidades cuya política solo permite de 06:00 a 22:00. La política está pausada.',
     meta: 'Flota ejecutiva · Últimos 7 días',
     when: 'Ayer',
-    action: { label: 'Revisar política', route: 'limits', notice: 'Abriendo Reglas y límites.' },
+    action: { label: 'Revisar política', route: 'limits', notice: 'Abriendo Políticas de uso.' },
   },
   {
     id: 'a-9',
@@ -174,7 +174,7 @@ export const optimizationInsights: OptimizationInsight[] = [
     detail: '14% de las cargas de Ruta Norte y Ruta Sur son Premium aunque sus unidades usan Magna.',
     savingsMXN: 9_700,
     effort: 'Bajo',
-    action: { label: 'Editar política', route: 'limits', notice: 'Abriendo Reglas y límites.' },
+    action: { label: 'Editar política', route: 'limits', notice: 'Abriendo Políticas de uso.' },
   },
   {
     id: 'o-4',
@@ -182,7 +182,7 @@ export const optimizationInsights: OptimizationInsight[] = [
     detail: 'Sin odómetro no se detecta el bajo rendimiento; las flotas que lo validan reducen su consumo 6% en promedio.',
     savingsMXN: 7_900,
     effort: 'Medio',
-    action: { label: 'Editar política', route: 'limits', notice: 'Abriendo Reglas y límites.' },
+    action: { label: 'Editar política', route: 'limits', notice: 'Abriendo Políticas de uso.' },
   },
   {
     id: 'o-5',
