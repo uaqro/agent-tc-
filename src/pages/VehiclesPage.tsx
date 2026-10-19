@@ -10,6 +10,10 @@ import './TablePage.css';
 
 interface VehiclesPageProps {
   onNotice: (message: string) => void;
+  /** Registering and editing units is admin only, as in ADR-001 (`inventario.editar`). */
+  canEdit?: boolean;
+  /** The VIN equivalence is visible to admin and flota (`inventario.vin`). */
+  showVin?: boolean;
 }
 
 const STATUS_CHIP: Record<VehicleStatus, string> = {
@@ -18,7 +22,7 @@ const STATUS_CHIP: Record<VehicleStatus, string> = {
   inactive: 'chip--paused',
 };
 
-export function VehiclesPage({ onNotice }: VehiclesPageProps) {
+export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: VehiclesPageProps) {
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('');
   const [status, setStatus] = useState<VehicleStatus | ''>('');
@@ -92,10 +96,12 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
                 ))}
               </select>
             </label>
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => onNotice('Alta de vehículo abierta.')}>
-              <PlusIcon width={14} height={14} />
-              Alta de vehículo
-            </button>
+            {canEdit && (
+              <button type="button" className="btn btn--primary btn--sm" onClick={() => onNotice('Alta de vehículo abierta.')}>
+                <PlusIcon width={14} height={14} />
+                Alta de vehículo
+              </button>
+            )}
             <ApiTag id="veh-create" />
           </div>
         </header>
@@ -166,6 +172,11 @@ export function VehiclesPage({ onNotice }: VehiclesPageProps) {
                         <span className="table-page__sub">
                           {detail.vehicleId} · {detail.brand} {detail.model} · {detail.year}
                         </span>
+                        {showVin && (
+                          <span className="table-page__sub table-page__nowrap">
+                            {detail.vin === '' ? 'VIN pendiente' : `VIN ${detail.vin}`}
+                          </span>
+                        )}
                       </td>
                       <td>{detail.group}</td>
                       <td>

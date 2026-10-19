@@ -40,8 +40,8 @@ const ADR_ROWS: Record<AdrPortalCapabilityId, [PermissionLevel, PermissionLevel,
   'consumos.ineficiencias': [L, L, L, L, L, L, N],
   'consumos.export': [C, N, C, N, C, N, N],
   'inventario.ver': [L, L, L, L, L, L, N],
-  'inventario.editar': [C, C, N, N, C, N, N],
-  'inventario.vin': [C, C, N, N, C, N, N],
+  'inventario.editar': [C, N, N, N, C, N, N],
+  'inventario.vin': [C, L, N, N, C, N, N],
   'alertas.panel': [L, C, L, L, L, L, C],
   'alertas.configurar': [C, C, N, N, C, N, C],
   'alertas.destinatarios': [C, C, N, N, C, N, C],
@@ -56,9 +56,9 @@ const TC_ROWS: Record<TcCapabilityId, [PermissionLevel, PermissionLevel, Permiss
   'tc.saldos': [C, N, C, N],
   'tc.limites': [C, C, N, N],
   'tc.medios_pago': [C, N, C, N],
-  'tc.peaje_saldos': [C, N, C, N],
-  'tc.peaje_reglas': [C, C, N, N],
-  'tc.peaje_medios': [C, N, C, N],
+  'tc.peaje_saldos': [C, L, C, L],
+  'tc.peaje_reglas': [C, C, L, L],
+  'tc.peaje_medios': [C, C, L, L],
   'tc.mantenimiento': [C, C, N, N],
   'tc.facturas': [C, N, C, N],
   'tc.parametros': [G, N, N, N],
@@ -154,5 +154,51 @@ describe('roles internos: solo modo Dev, solo la cuenta activa', () => {
       expect(canSession('account_manager', capability, 'escribir'), capability).toBe(false)
     }
     expect(canSession('account_manager', 'tc.saldos', 'ver')).toBe(true)
+  })
+})
+
+describe('decisiones del 19-oct-2026', () => {
+  it('VIN y edición de unidades: solo admin escribe, como en ADR-001; flota ve el VIN en lectura', () => {
+    for (const capability of ['inventario.editar', 'inventario.vin'] as const) {
+      expect(canSession('admin', capability, 'escribir'), capability).toBe(true)
+      for (const role of ['flota', 'finanzas', 'consulta'] as const) expect(canSession(role, capability, 'escribir'), `${capability} · ${role}`).toBe(false)
+    }
+    expect(canSession('flota', 'inventario.vin', 'ver')).toBe(true)
+    expect(canSession('flota', 'inventario.ver', 'ver')).toBe(true)
+  })
+
+  it('Peaje: finanzas escribe saldos y recargas, flota reglas y TAGs, el resto lee', () => {
+    expect(canSession('finanzas', 'tc.peaje_saldos', 'escribir')).toBe(true)
+    expect(canSession('flota', 'tc.peaje_saldos', 'escribir')).toBe(false)
+    expect(canSession('flota', 'tc.peaje_saldos', 'ver')).toBe(true)
+    expect(canSession('flota', 'tc.peaje_reglas', 'escribir')).toBe(true)
+    expect(canSession('finanzas', 'tc.peaje_reglas', 'escribir')).toBe(false)
+    expect(canSession('finanzas', 'tc.peaje_reglas', 'ver')).toBe(true)
+    expect(canSession('flota', 'tc.peaje_medios', 'escribir')).toBe(true)
+    expect(canSession('finanzas', 'tc.peaje_medios', 'ver')).toBe(true)
+    expect(canSession('finanzas', 'tc.peaje_medios', 'escribir')).toBe(false)
+  })
+
+  it('Peaje: admin completo en todo y consulta lectura en todo', () => {
+    for (const capability of ['tc.peaje_saldos', 'tc.peaje_reglas', 'tc.peaje_medios'] as const) {
+      expect(canSession('admin', capability, 'escribir'), capability).toBe(true)
+      expect(canSession('consulta', capability, 'ver'), capability).toBe(true)
+      expect(canSession('consulta', capability, 'escribir'), capability).toBe(false)
+    }
+  })
+
+  it('TED: lo ven los cuatro roles y para ninguno es una capacidad de escritura', () => {
+    for (const role of PORTAL_ROLE_ORDER) {
+      expect(canSession(role, 'tc.asistente', 'ver'), role).toBe(true)
+      expect(canSession(role, 'tc.asistente', 'escribir'), role).toBe(false)
+    }
+  })
+
+  it('Alertas tal cual ADR-001: admin ve el panel en lectura y configura; flota tiene todo lo del Gestor de Alertas', () => {
+    expect(PORTAL_MATRIX['alertas.panel'].admin.level).toBe('lectura')
+    expect(canSession('admin', 'alertas.configurar', 'escribir')).toBe(true)
+    expect(canSession('admin', 'alertas.destinatarios', 'escribir')).toBe(true)
+    expect(canSession('admin', 'alertas.panel', 'escribir')).toBe(false)
+    expect(canSession('flota', 'alertas.panel', 'escribir')).toBe(true)
   })
 })

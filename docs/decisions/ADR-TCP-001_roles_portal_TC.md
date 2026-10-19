@@ -3,10 +3,10 @@
 | Campo | Valor |
 | --- | --- |
 | Estado | **PROPUESTO**: pendiente de aprobación |
-| Fecha | 2026-10-19 |
+| Fecha | 2026-10-19 · revisada el mismo día: la sección 5 pasa de supuestos a decisiones |
 | Relacionado con | ADR-001 · Control de acceso basado en roles (RBAC) de eOne, también en estado PROPUESTO |
 | Código | `src/domain/rbac/portal-roles.ts` (matriz), `src/domain/rbac/scope.ts` (alcance), `src/data/access.ts` (páginas) |
-| Tests | `src/domain/rbac/__tests__/portal-roles.test.ts` usa la tabla de la sección 4 como fixture. `src/data/__tests__/scope.test.ts` cubre el alcance |
+| Tests | `src/domain/rbac/__tests__/portal-roles.test.ts` usa la tabla de la sección 4 como fixture y cubre las decisiones de la sección 5. `src/data/__tests__/scope.test.ts` cubre el alcance. `src/data/__tests__/ted.test.ts` comprueba que TED no lleva acciones |
 
 ## 1. Contexto
 
@@ -23,9 +23,9 @@ El portal Ticket Car+ integra la analítica de eOne (Resumen, Reportes, Optimiza
    | Rol del portal | Base en ADR-001 | Extensión de Ticket Car+ |
    | --- | --- | --- |
    | `admin` · Administrador | Admin de Cuenta, tal cual | Nivel completo en los módulos de Ticket Car+ que ADR-001 no cubre |
-   | `flota` · Operador de flota | Visualizador + Gestor de Alertas (ver, configurar umbrales, gestionar destinatarios) | Operación de flota: Vehículos y Conductores (editar), Mantenimiento, Límites, reglas de peaje y envío de recomendaciones de estación al conductor |
-   | `finanzas` · Finanzas | Visualizador | Exportar reportes, Saldos, Medios de pago (combustible y peaje), Saldos de peaje y Facturas. No configura alertas |
-   | `consulta` · Consulta | Visualizador, tal cual: solo lectura y **sin exportación** | — |
+   | `flota` · Operador de flota | Visualizador + Gestor de Alertas (todo lo del rol, véase 5.4) | Operación de flota: Mantenimiento, Límites, lectura de equivalencias VIN, reglas y TAGs de peaje, y envío de recomendaciones de estación al conductor. Lee Vehículos y Conductores, pero no los edita (5.1) |
+   | `finanzas` · Finanzas | Visualizador | Exportar reportes, Saldos, Medios de pago de combustible, Saldos y recargas de peaje y Facturas. Lee reglas y TAGs de peaje. No configura alertas |
+   | `consulta` · Consulta | Visualizador, tal cual: solo lectura y **sin exportación** | Lectura de Peaje (saldos, reglas y TAGs) |
 
    Con esto ningún permiso de ADR-001 queda huérfano: los tres roles cliente del ADR están contenidos en algún rol del portal. `flota` y `finanzas` **no están en ADR-001**; son una extensión de Ticket Car+ y esta decisión las documenta.
 
@@ -59,8 +59,8 @@ Las celdas marcadas con `*` superan lo que ADR-001 concede al rol base. Son exte
 | `consumos.ineficiencias` · Optimizador | L | L | L | L | L | L | — |
 | `consumos.export` · Exportar reportes | C | — | C* | — | C | — | — |
 | `inventario.ver` · Vehículos y conductores | L | L | L | L | L | L | — |
-| `inventario.editar` · Editar vehículos y conductores | C | C* | — | — | C | — | — |
-| `inventario.vin` · Equivalencias VIN | C | C* | — | — | C | — | — |
+| `inventario.editar` · Alta y edición de unidades (alias, grupo, metadatos) y conductores | C | — | — | — | C | — | — |
+| `inventario.vin` · Equivalencias VIN | C | L* | — | — | C | — | — |
 | `alertas.panel` · Ver alertas | L | C | L | L | L | L | C |
 | `alertas.configurar` · Umbrales | C | C | — | — | C | — | C |
 | `alertas.destinatarios` · Destinatarios | C | C | — | — | C | — | C |
@@ -81,21 +81,41 @@ Quedan fuera del portal, porque Ticket Car+ no tiene esos módulos:
 | `tc.saldos` · Saldos y reglas de fondeo | C | — | C | — |
 | `tc.limites` · Reglas y límites | C | C | — | — |
 | `tc.medios_pago` · Medios de pago | C | — | C | — |
-| `tc.peaje_saldos` · Peaje · Saldos | C | — | C | — |
-| `tc.peaje_reglas` · Peaje · Reglas y límites | C | C | — | — |
-| `tc.peaje_medios` · Peaje · TAGs | C | — | C | — |
+| `tc.peaje_saldos` · Peaje · Saldos y recargas | C | L | C | L |
+| `tc.peaje_reglas` · Peaje · Reglas y límites | C | C | L | L |
+| `tc.peaje_medios` · Peaje · TAGs (alta, baja, reasignación; saldo y consumo por TAG) | C | C | L | L |
 | `tc.mantenimiento` · Mantenimiento | C | C | — | — |
 | `tc.facturas` · Facturas | C | — | C | — |
 | `tc.parametros` · Parámetros | G | — | — | — |
-| `tc.asistente` · Asistente TED | L | L | L | L |
+| `tc.asistente` · Asistente TED (nunca transaccional, véase 5.3) | L | L | L | L |
 | `tc.recomendaciones` · Enviar recomendación de estación al conductor | C | C | — | — |
 
-## 5. Supuestos por confirmar
+## 5. Decisiones (antes supuestos por confirmar)
 
-1. **Peaje.** La decisión de producto no lo menciona. Se aplicó la misma lógica que en combustible: los saldos y los TAGs de peaje son de `finanzas`, como Saldos y Medios de pago, y las reglas de peaje son de `flota`, como Límites.
-2. **TED.** Responde preguntas de consumo, así que lo ve quien ve consumos: los cuatro roles, en lectura.
-3. **`inventario.vin` para `flota`.** Conciliar el VIN se trató como parte de la ficha del vehículo, es decir, de la operación de flota.
-4. **Admin y alertas.** `alertas.panel` es L para `admin` porque ADR-001 lo da así al Admin de Cuenta. Aun así puede configurar umbrales y destinatarios (C).
+Revisión del 19-oct-2026. Los cuatro supuestos de la primera versión quedan cerrados así:
+
+1. **VIN y edición de unidades.** La tabla de equivalencias VIN y la edición de unidades (alias, grupo, metadatos) son **solo de `admin`**, como el Admin de Cuenta de ADR-001. `flota` lee el inventario y el VIN, pero no los edita.
+   - `inventario.editar` vuelve a ser exactamente la columna de ADR-001: deja de ser extensión.
+   - `inventario.vin` es L para `flota`. Es la única extensión de lectura en las filas de ADR-001.
+   - En pantalla: «Alta de vehículo» y «Alta de conductor» solo aparecen a `admin`. El VIN de cada unidad aparece en el detalle de Vehículos para `admin` y `flota`.
+2. **Peaje.** Se reparte igual que combustible, separando dinero y operación:
+
+   | Peaje | Escribe | Lee |
+   | --- | --- | --- |
+   | Saldos y recargas | `finanzas` | `flota`, `consulta` |
+   | Reglas | `flota` | `finanzas`, `consulta` |
+   | TAGs: alta, baja y reasignación | `flota` | `finanzas` ve el saldo y el consumo por TAG; `consulta` |
+
+   `admin` tiene nivel completo en todo y `consulta` lectura en todo. En pantalla, quien solo lee ve la página sin sus acciones y con el aviso «Solo lectura».
+3. **TED.** Lo ven los cuatro roles.
+   - Nunca es transaccional: explica, resume y enlaza a la pantalla que corresponda, donde la acción sigue sujeta al permiso de esa pantalla. Sus respuestas son texto y no llevan acciones; un test lo comprueba.
+   - Solo responde con datos del alcance de la sesión y de la cuenta activa. **Fase 2**: hoy las respuestas son textos fijos que no dependen de la sesión; hay un TODO en `TedPage.tsx`.
+4. **Alertas.** Se aplica ADR-001 tal cual.
+   - `admin` ve el panel en lectura y configura umbrales y destinatarios.
+   - `flota` tiene todo lo del Gestor de Alertas, incluidos reconocer y resolver alertas. Reconocer y resolver llegan en la **Fase 2**.
+   - **Punto a revisar en ADR-001, no en ADR-TCP-001:** con la matriz actual, el Admin de Cuenta configura las alertas pero no las resuelve. Si se cambia, se cambia en ADR-001 y esta matriz lo hereda.
+
+Sigue abierta, fuera de esta ADR: **¿Autoconsumo tiene límites propios?** Hoy Límites y Medios de pago excluyen Autoconsumo.
 
 ## 6. Consecuencias
 

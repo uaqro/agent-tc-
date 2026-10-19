@@ -10,6 +10,8 @@ import './TablePage.css';
 
 interface DriversPageProps {
   onNotice: (message: string) => void;
+  /** Registering drivers is admin only, with the rest of the inventory edits (`inventario.editar`). */
+  canEdit?: boolean;
 }
 
 /** Licences that expire within this many days are flagged. */
@@ -17,7 +19,7 @@ const LICENSE_WARNING_DAYS = 60;
 
 const licenseDate = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
 
-export function DriversPage({ onNotice }: DriversPageProps) {
+export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('');
 
@@ -80,10 +82,12 @@ export function DriversPage({ onNotice }: DriversPageProps) {
                 ))}
               </select>
             </label>
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => onNotice('Alta de conductor abierta.')}>
-              <PlusIcon width={14} height={14} />
-              Alta de conductor
-            </button>
+            {canEdit && (
+              <button type="button" className="btn btn--primary btn--sm" onClick={() => onNotice('Alta de conductor abierta.')}>
+                <PlusIcon width={14} height={14} />
+                Alta de conductor
+              </button>
+            )}
             <ApiTag id="drv-create" />
           </div>
         </header>

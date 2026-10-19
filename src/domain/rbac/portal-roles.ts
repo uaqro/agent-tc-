@@ -2,6 +2,9 @@
  * ADR-TCP-001 · Roles del portal Ticket Car+ sobre ADR-001.
  * ═════════════════════════════════════════════════════════
  * Estado: PROPUESTO. Documento: `docs/decisions/ADR-TCP-001_roles_portal_TC.md`.
+ * Revisión del 19-oct-2026: VIN y edición de unidades solo admin; Peaje
+ * repartido entre finanzas (saldos) y flota (reglas y TAGs), con lectura para
+ * el resto; TED solo explica; alertas tal cual ADR-001.
  *
  * El portal de cliente de Ticket Car+ expone cuatro roles —admin, flota,
  * finanzas, consulta— y los construye SOBRE los roles cliente de ADR-001:
@@ -61,21 +64,22 @@ export const PORTAL_ROLES: Record<PortalRoleId, PortalRoleDefinition> = {
   flota: {
     id: 'flota',
     name: 'Operador de flota',
-    summary: 'Ve consumos e inventario, gestiona alertas y opera vehículos, conductores, mantenimiento y límites.',
+    summary: 'Ve consumos, inventario y VIN, gestiona alertas y opera mantenimiento, límites, reglas de peaje y TAGs.',
     adrBase: ['visualizador', 'gestor_alertas'],
-    extension: 'Operación de flota de Ticket Car+: Vehículos, Conductores, Mantenimiento, Límites y reglas de peaje.',
+    extension:
+      'Operación de flota de Ticket Car+: Mantenimiento, Límites, reglas de peaje, alta, baja y reasignación de TAGs, y el VIN en lectura. La edición de unidades queda para admin.',
   },
   finanzas: {
     id: 'finanzas',
     name: 'Finanzas',
-    summary: 'Ve consumos e inventario, exporta reportes y opera saldos, medios de pago y facturas. Sin configurar alertas.',
+    summary: 'Ve consumos e inventario, exporta reportes y opera saldos y recargas, medios de pago y facturas. Sin configurar alertas.',
     adrBase: ['visualizador'],
-    extension: 'Exportar reportes, Saldos, Medios de pago (combustible y peaje) y Facturas.',
+    extension: 'Exportar reportes, Saldos, Medios de pago, saldos y recargas de peaje y Facturas; reglas y TAGs de peaje en lectura.',
   },
   consulta: {
     id: 'consulta',
     name: 'Consulta',
-    summary: 'Solo lectura del resumen, consumos, optimizador e inventario. Sin exportación ni administración.',
+    summary: 'Solo lectura del resumen, consumos, optimizador, inventario y peaje. Sin exportación ni administración.',
     adrBase: ['visualizador'],
     extension: null,
   },
@@ -155,8 +159,8 @@ export const PORTAL_CAPABILITY_NAMES: Record<PortalCapabilityId, string> = {
   'consumos.ineficiencias': 'Optimizador de estaciones',
   'consumos.export': 'Exportar reportes',
   'inventario.ver': 'Ver vehículos y conductores',
-  'inventario.editar': 'Editar vehículos y conductores',
-  'inventario.vin': 'Equivalencias VIN',
+  'inventario.editar': 'Editar unidades (alta, alias, grupo, metadatos)',
+  'inventario.vin': 'Tabla de equivalencias VIN',
   'alertas.panel': 'Ver alertas',
   'alertas.configurar': 'Configurar umbrales de alertas',
   'alertas.destinatarios': 'Gestionar destinatarios de alertas',
@@ -167,13 +171,13 @@ export const PORTAL_CAPABILITY_NAMES: Record<PortalCapabilityId, string> = {
   'tc.saldos': 'Combustible · Saldos y reglas de fondeo',
   'tc.limites': 'Combustible · Reglas y límites',
   'tc.medios_pago': 'Combustible · Medios de pago',
-  'tc.peaje_saldos': 'Peaje · Saldos',
+  'tc.peaje_saldos': 'Peaje · Saldos y recargas',
   'tc.peaje_reglas': 'Peaje · Reglas y límites',
-  'tc.peaje_medios': 'Peaje · Medios de pago (TAGs)',
+  'tc.peaje_medios': 'Peaje · TAGs (alta, baja y reasignación; saldo y consumo por TAG)',
   'tc.mantenimiento': 'Mantenimiento',
   'tc.facturas': 'Empresa · Facturas',
   'tc.parametros': 'Empresa · Parámetros',
-  'tc.asistente': 'Asistente TED',
+  'tc.asistente': 'Asistente TED (solo explica, resume y enlaza)',
   'tc.recomendaciones': 'Enviar recomendación de estación al conductor',
 }
 
@@ -200,8 +204,8 @@ export const PORTAL_MATRIX: Record<PortalCapabilityId, Record<PortalRoleId, Gran
   'consumos.ineficiencias': { admin: L, flota: L, finanzas: L, consulta: L },
   'consumos.export': { admin: C, flota: N, finanzas: C, consulta: N },
   'inventario.ver': { admin: L, flota: L, finanzas: L, consulta: L },
-  'inventario.editar': { admin: C, flota: C, finanzas: N, consulta: N },
-  'inventario.vin': { admin: C, flota: C, finanzas: N, consulta: N },
+  'inventario.editar': { admin: C, flota: N, finanzas: N, consulta: N },
+  'inventario.vin': { admin: C, flota: L, finanzas: N, consulta: N },
   'alertas.panel': { admin: L, flota: C, finanzas: L, consulta: L },
   'alertas.configurar': { admin: C, flota: C, finanzas: N, consulta: N },
   'alertas.destinatarios': { admin: C, flota: C, finanzas: N, consulta: N },
@@ -213,9 +217,9 @@ export const PORTAL_MATRIX: Record<PortalCapabilityId, Record<PortalRoleId, Gran
   'tc.saldos': { admin: C, flota: N, finanzas: C, consulta: N },
   'tc.limites': { admin: C, flota: C, finanzas: N, consulta: N },
   'tc.medios_pago': { admin: C, flota: N, finanzas: C, consulta: N },
-  'tc.peaje_saldos': { admin: C, flota: N, finanzas: C, consulta: N },
-  'tc.peaje_reglas': { admin: C, flota: C, finanzas: N, consulta: N },
-  'tc.peaje_medios': { admin: C, flota: N, finanzas: C, consulta: N },
+  'tc.peaje_saldos': { admin: C, flota: L, finanzas: C, consulta: L },
+  'tc.peaje_reglas': { admin: C, flota: C, finanzas: L, consulta: L },
+  'tc.peaje_medios': { admin: C, flota: C, finanzas: L, consulta: L },
   'tc.mantenimiento': { admin: C, flota: C, finanzas: N, consulta: N },
   'tc.facturas': { admin: C, flota: N, finanzas: C, consulta: N },
   'tc.parametros': { admin: G, flota: N, finanzas: N, consulta: N },
@@ -225,8 +229,7 @@ export const PORTAL_MATRIX: Record<PortalCapabilityId, Record<PortalRoleId, Gran
 
 /** Celdas de filas de ADR-001 que el portal sube por encima de lo que el ADR concede al rol base. */
 export const EXTENSIONS: { capability: AdrPortalCapabilityId; role: PortalRoleId; reason: string }[] = [
-  { capability: 'inventario.editar', role: 'flota', reason: 'Operación de flota de TC+: alta y edición de vehículos y conductores.' },
-  { capability: 'inventario.vin', role: 'flota', reason: 'Operación de flota de TC+: conciliar el VIN es parte de la ficha del vehículo.' },
+  { capability: 'inventario.vin', role: 'flota', reason: 'Flota ve la tabla de equivalencias VIN en lectura; editarla sigue siendo solo de admin, como en ADR-001.' },
   { capability: 'consumos.export', role: 'finanzas', reason: 'Finanzas exporta reportes para conciliación y presupuesto.' },
 ]
 

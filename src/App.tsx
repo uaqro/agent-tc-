@@ -7,10 +7,10 @@ import { SideMenu } from './components/layout/SideMenu';
 import { TopBar } from './components/layout/TopBar';
 import { devMenuGroup, menuGroups } from './data/dashboard';
 import { useSession } from './components/session/Session';
-import { canAccessRoute } from './data/access';
+import { ROUTE_CAPABILITY, canAccessRoute } from './data/access';
 import { clientAccount, scopeLabel } from './data/client';
 import { DEFAULT_PRINCIPAL } from './data/session';
-import { sessionRoleName } from './domain/rbac/portal-roles';
+import { canSession, sessionRoleName } from './domain/rbac/portal-roles';
 import { DispersionPage } from './pages/DispersionPage';
 import { FuelDashboardPage } from './pages/FuelDashboardPage';
 import { LimitsPage } from './pages/LimitsPage';
@@ -167,6 +167,8 @@ export default function App() {
   const { devMode } = useDevMode();
   const { principal, impersonating, signInAs } = useSession();
   const allowed = useCallback((target: AppRoute) => canAccessRoute(principal.role, target), [principal.role]);
+  // Pages a role can see but not change render without their actions (ADR-TCP-001).
+  const writable = (target: AppRoute) => canSession(principal.role, ROUTE_CAPABILITY[target], 'escribir');
   // ADR-TCP-001: a page the role can't open is not in its menu, and a group left empty disappears.
   const groups = (devMode ? [...menuGroups, devMenuGroup] : menuGroups)
     .map((group) => ({
@@ -290,9 +292,9 @@ export default function App() {
           <LimitsPage onNotice={setNotice} stationRequest={stationRequest} onStationRequestHandled={() => setStationRequest(null)} />
         )}
         {route === 'payment-media' && <PaymentMediaPage onNotice={setNotice} />}
-        {route === 'toll-balances' && <TollBalancesPage onNotice={setNotice} />}
-        {route === 'toll-rules' && <TollRulesPage onNotice={setNotice} />}
-        {route === 'toll-media' && <TollMediaPage onNotice={setNotice} />}
+        {route === 'toll-balances' && <TollBalancesPage onNotice={setNotice} readOnly={!writable(route)} />}
+        {route === 'toll-rules' && <TollRulesPage onNotice={setNotice} readOnly={!writable(route)} />}
+        {route === 'toll-media' && <TollMediaPage onNotice={setNotice} readOnly={!writable(route)} />}
         {route === 'maintenance' && <MaintenancePage onNotice={setNotice} />}
         {route === 'reports' && <ReportsPage />}
         {route === 'insights' && <InsightsPage onNotice={setNotice} onNavigate={navigate} />}
@@ -306,8 +308,16 @@ export default function App() {
           />
         )}
         {route === 'ted' && <TedPage />}
-        {route === 'vehicles' && <VehiclesPage onNotice={setNotice} />}
-        {route === 'drivers' && <DriversPage onNotice={setNotice} />}
+        {route === 'vehicles' && (
+          <VehiclesPage
+            onNotice={setNotice}
+            canEdit={canSession(principal.role, 'inventario.editar', 'escribir')}
+            showVin={canSession(principal.role, 'inventario.vin', 'ver')}
+          />
+        )}
+        {route === 'drivers' && (
+          <DriversPage onNotice={setNotice} canEdit={canSession(principal.role, 'inventario.editar', 'escribir')} />
+        )}
         {route === 'company-parameters' && <ParametersPage onNotice={setNotice} />}
         {route === 'company-invoices' && <InvoicesPage onNotice={setNotice} />}
         {route === 'company-users' && <UsersPage onNotice={setNotice} />}
