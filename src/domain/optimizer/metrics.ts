@@ -22,8 +22,9 @@ export function median(values: number[]): number | null {
   return sorted.length % 2 === 0 ? (sorted[mid - 1]! + sorted[mid]!) / 2 : sorted[mid]!
 }
 
+/** Gasto de la carga: su importe, el mismo que suma el Resumen (Ticket Car+). */
 export function spendOf(load: Load): number {
-  return load.pricePaid * load.liters
+  return load.amountMxn
 }
 
 // ── US-018 · KPIs ─────────────────────────────────────────────────────────
@@ -125,7 +126,8 @@ export function computeOptimizerKpis(
     monthlyProjection: days > 0 ? (saving * 30) / days : null,
     periodDays: days,
     spend,
-    loads: loads.length,
+    // Los abonos restan del gasto pero no son cargas.
+    loads: loads.filter((load) => !load.refund).length,
     liters,
     redirectableLiters,
     redirectableLitersShare: liters > 0 ? redirectableLiters / liters : 0,

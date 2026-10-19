@@ -7,8 +7,9 @@
  * era la mejor opción de su zona (`optimal`) y, si no, a qué estación habría
  * convenido ir y cuánto se habría ahorrado (`savingCents`, BRUTO).
  *
- * El prototipo no tiene motor: `dataset.ts` genera cargas SINTÉTICAS con la
- * misma forma. Nada de aquí sale de un cliente real.
+ * El prototipo no tiene motor. En Ticket Car+ las cargas son los despachos
+ * SINTÉTICOS del padrón (`loads.ts`) y la recomendación sale del directorio de
+ * estaciones (`stations/directory`). Nada de aquí sale de un cliente real.
  *
  * ── «Ahorro» ya significa otra cosa en el resto del código ────────────────
  * `savingMxn` del dashboard es precio de lista − precio de contrato. El ahorro
@@ -43,15 +44,21 @@ export type Station = {
    * directorio. El directorio no tiene todavía fuente ni responsable.
    */
   cv: boolean
+  /** Planta propia del cliente (Autoconsumo). El motor no la propone nunca como destino. */
+  own?: boolean
 }
 
 /**
  * Una carga, tal como la entregaría el motor. La tarjeta NO viaja completa:
- * solo un identificador sintético y cuatro dígitos ficticios. Ver `masking`.
+ * solo un identificador y cuatro dígitos ficticios. Ver `masking`.
+ *
+ * Ticket Car+: ya no sale de un dataset propio. Es un despacho del padrón
+ * (`data/fleet-activity`) con la recomendación del motor encima, y por eso
+ * lleva su unidad, su conductor del día y su ruta del organigrama.
  */
 export type Load = {
   id: string
-  /** Día del recorte, 1-based dentro del mes del dataset. */
+  /** Día absoluto de la carga (`stations/directory.dayIndexOf`). */
   day: number
   /** Marca temporal local de la carga. */
   at: number
@@ -64,7 +71,18 @@ export type Load = {
   zone: ZoneId
   division: string
   costCenter: string
+  /** Unidad del padrón que cargó. */
+  unitId: string
+  /** Conductor de la jornada. `null` si nadie la llevaba ese día. */
+  driverId: string | null
+  /** Ruta del organigrama de la unidad: empresa → división → departamento → área. */
+  orgPath: readonly string[]
+  /** Negativa en los abonos. */
   liters: number
+  /** Importe cobrado. Es el mismo número que suma el Resumen. */
+  amountMxn: number
+  /** Abono de una carga mal imputada: resta, no se redirige. */
+  refund: boolean
   /** Estación habitual: donde se cargó. */
   stationId: string
   /** $/L pagado. */

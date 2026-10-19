@@ -1,6 +1,7 @@
 // US-018 · US-020 · US-086 · US-087 · US-111 · US-112 · US-113
 /**
- * Reglas comunes del optimizador, filtros facetados y dataset sintético.
+ * Reglas comunes del optimizador, filtros facetados y cargas del padrón
+ * (Ticket Car+: ya no hay dataset propio, ver `fixture.ts`).
  */
 import { describe, expect, it } from 'vitest'
 import {
@@ -14,14 +15,8 @@ import {
   tripsOf,
 } from '../rules'
 import { maskCard } from '../masking'
-import {
-  DATASET_DAYS,
-  DIVISIONS,
-  EMPTY_DAYS,
-  OPTIMIZER_ACCOUNT_ID,
-  SEARCH_RADIUS_M,
-  getOptimizerDataset,
-} from '../dataset'
+import { SEARCH_RADIUS_M, STATION_ACCOUNT_ID } from '../../stations/directory'
+import { DAYS, loads as padronLoads, stationsById as padronStations } from './fixture'
 import {
   DEFAULT_OPTIMIZER_FILTERS,
   applyOptimizerFilters,
@@ -50,7 +45,7 @@ function load(overrides: Partial<Load> = {}): Load {
     id: 'CRG-T',
     day: 1,
     at: 0,
-    cardId: 'TC-000001',
+    cardId: 'TAR-ECO-3001',
     cardLast4: '4321',
     vehicleType: 'mediano',
     fuel: 'diesel',
@@ -58,7 +53,12 @@ function load(overrides: Partial<Load> = {}): Load {
     zone: 'monterrey',
     division: 'División Noreste',
     costCenter: 'CC-01 · Reparto urbano',
+    unitId: 'ECO-3001',
+    driverId: 'OP-3001',
+    orgPath: [],
     liters: 100,
+    amountMxn: 2400,
+    refund: false,
     stationId: 'A',
     pricePaid: 24,
     recommendedStationId: 'B',
@@ -223,44 +223,43 @@ describe('enmascarado de tarjeta', () => {
     expect(maskCard('4000 0000 0000 9876')).toBe('•••• 9876')
   })
 
-  it('las cargas del dataset no llevan más que cuatro dígitos', () => {
-    const { loads } = getOptimizerDataset()
-    for (const l of loads.slice(0, 500)) {
+  it('las cargas no llevan más que cuatro dígitos de la tarjeta', () => {
+    for (const l of padronLoads.slice(0, 500)) {
       expect(l.cardLast4).toMatch(/^\d{4}$/)
-      expect(l.cardId).toMatch(/^TC-\d{6}$/)
+      expect(l.cardId).toMatch(/^TAR-ECO-\d{4}$/)
     }
     // Patrón del escaneo del build: 15–16 dígitos seguidos. Las marcas de tiempo en ms tienen 13.
-    expect(JSON.stringify(loads)).not.toMatch(/\d{15,}/)
+    expect(JSON.stringify(padronLoads)).not.toMatch(/\d{15,}/)
   })
 
   it('cuatro dígitos distintos por tarjeta: el enmascarado no confunde dos tarjetas', () => {
-    const { loads } = getOptimizerDataset()
     const byCard = new Map<string, string>()
-    for (const l of loads) byCard.set(l.cardId, l.cardLast4)
+    for (const l of padronLoads) byCard.set(l.cardId, l.cardLast4)
     expect(new Set(byCard.values()).size).toBe(byCard.size)
+  })
+
+  it('la tarjeta es la de la unidad que cargó', () => {
+    for (const l of padronLoads.slice(0, 200)) expect(l.cardId).toBe(`TAR-${l.unitId}`)
   })
 })
 
-describe('dataset sintético: los puntos negativos de la demo', () => {
-  const { loads, stations } = getOptimizerDataset()
-  const stationsById = new Map(stations.map((s) => [s.id, s]))
-  const kpis = computeOptimizerKpis(loads, DEFAULT_ASSUMPTIONS, 'neto', DATASET_DAYS)
+describe('cargas del padrón: los casos que la demo tiene que poder enseñar', () => {
+  const loads = padronLoads
+  const stationsById = padronStations
+  const kpis = computeOptimizerKpis(loads, DEFAULT_ASSUMPTIONS, 'neto', DAYS)
 
   it('vive en la cuenta ficticia Grupo Alimentario Norte', () => {
-    expect(OPTIMIZER_ACCOUNT_ID).toBe('acc_grupo_alimentario')
+    expect(STATION_ACCOUNT_ID).toBe('acc_grupo_alimentario')
   })
 
-  it('con 6 km/L ida y vuelta el neto sale NEGATIVO frente a un bruto positivo, en la proporción del hallazgo', () => {
+  it('el neto descuenta el desvío: queda por debajo del bruto', () => {
     expect(kpis.grossSaving).toBeGreaterThan(0)
-    expect(kpis.netSaving).toBeLessThan(0)
-    // Hallazgo real: −130 k neto frente a 363,6 k bruto ≈ −0,36. Se mantiene la proporción.
-    const ratio = kpis.netSaving / kpis.grossSaving
-    expect(ratio).toBeGreaterThan(-0.45)
-    expect(ratio).toBeLessThan(-0.28)
+    expect(kpis.netSaving).toBeLessThan(kpis.grossSaving)
+    expect(kpis.detourCost).toBeCloseTo(kpis.grossSaving - kpis.netSaving, 6)
   })
 
-  it('hay un grupo visible de cargas con más de 3 km de desvío para ahorrar menos de $1', () => {
-    expect(farForTinyLoads(loads).length).toBeGreaterThanOrEqual(30)
+  it('hay cargas con más de 3 km de desvío para ahorrar menos de $1', () => {
+    expect(farForTinyLoads(loads).length).toBeGreaterThan(0)
   })
 
   it('hay estaciones 100 % óptimas, mixtas y con mucha oportunidad', () => {
@@ -270,11 +269,11 @@ describe('dataset sintético: los puntos negativos de la demo', () => {
     expect(categories.filter((c) => c === 'oportunidad').length).toBeGreaterThanOrEqual(5)
   })
 
-  it('hay días sin cargas dentro del recorte, y la serie diaria los dibuja en cero', () => {
-    for (const day of EMPTY_DAYS) expect(loads.some((l) => l.day === day)).toBe(false)
-    const series = dailySeries(loads, 1, DATASET_DAYS, DEFAULT_ASSUMPTIONS, 'bruto')
-    expect(series).toHaveLength(DATASET_DAYS)
-    for (const day of EMPTY_DAYS) expect(series.find((p) => p.day === day)!.cargas).toBe(0)
+  it('la serie diaria tiene un punto por día del recorte, haya cargas o no', () => {
+    const from = Math.min(...loads.map((l) => l.day))
+    const series = dailySeries(loads, from, from + DAYS - 1, DEFAULT_ASSUMPTIONS, 'bruto')
+    expect(series).toHaveLength(DAYS)
+    expect(series.reduce((sum, point) => sum + point.cargas, 0)).toBe(loads.length)
   })
 
   it('hay redirecciones que pierden el control volumétrico', () => {
@@ -283,26 +282,39 @@ describe('dataset sintético: los puntos negativos de la demo', () => {
     expect(cv.losing.length).toBe(cv.matrix.pierde.loads)
   })
 
-  it('el motor no propone destinos fuera de 5 km ni a la misma estación', () => {
+  it('el motor no propone destinos fuera de 5 km, ni a la misma estación, ni plantas propias', () => {
     for (const l of loads) {
       if (l.recommendedStationId === null) continue
       expect(l.detourM).toBeLessThanOrEqual(SEARCH_RADIUS_M)
       expect(l.recommendedStationId).not.toBe(l.stationId)
       expect(l.priceRecommended!).toBeLessThan(l.pricePaid)
+      expect(stationsById.get(l.recommendedStationId)!.own).not.toBe(true)
     }
   })
 
-  it('las divisiones son las del organigrama, y «Servicios» no tiene cargas', () => {
-    expect(new Set(loads.map((l) => l.division))).toEqual(new Set(DIVISIONS.slice(0, 3)))
-    expect(DIVISIONS).toContain('División Servicios')
+  it('Autoconsumo carga en planta propia y no se redirige; los abonos tampoco', () => {
+    const own = loads.filter((l) => l.product === 'autoconsumo' || l.refund)
+    expect(own.length).toBeGreaterThan(0)
+    expect(own.every((l) => !isRedirectable(l))).toBe(true)
+    expect(loads.filter((l) => l.product === 'autoconsumo').every((l) => stationsById.get(l.stationId)!.own)).toBe(true)
+  })
+
+  it('las divisiones son las de la ruta de cada unidad, y «Servicios» no tiene cargas', () => {
+    for (const l of loads.slice(0, 500)) expect(l.division).toBe(l.orgPath[1] ?? 'org:acc_grupo_alimentario:sin-asignar')
+    expect(loads.some((l) => l.division.endsWith('division-servicios'))).toBe(false)
+  })
+
+  it('el gasto es la suma de los importes del padrón, y los abonos no cuentan como cargas', () => {
+    expect(kpis.spend).toBeCloseTo(loads.reduce((sum, l) => sum + l.amountMxn, 0), 6)
+    expect(kpis.loads).toBe(loads.filter((l) => !l.refund).length)
   })
 
   it('el recorte filtrado sigue cuadrando: la suma de las bandas es el ahorro del modo', () => {
     const recorte = applyOptimizerFilters(loads, { ...DEFAULT_OPTIMIZER_FILTERS, zone: ['monterrey'] })
-    const k = computeOptimizerKpis(recorte, DEFAULT_ASSUMPTIONS, 'neto', DATASET_DAYS)
+    const k = computeOptimizerKpis(recorte, DEFAULT_ASSUMPTIONS, 'neto', DAYS)
     const bands = distanceBands(recorte, DEFAULT_ASSUMPTIONS, 'neto')
-    expect(bands.reduce((s, b) => s + b.saving, 0)).toBeCloseTo(k.saving, 6)
-    expect(bands.reduce((s, b) => s + b.loads, 0)).toBe(k.redirectableLoads)
+    expect(bands.reduce((sum, b) => sum + b.saving, 0)).toBeCloseTo(k.saving, 6)
+    expect(bands.reduce((sum, b) => sum + b.loads, 0)).toBe(k.redirectableLoads)
   })
 })
 

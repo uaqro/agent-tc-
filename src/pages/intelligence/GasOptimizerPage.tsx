@@ -11,15 +11,15 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { can } from '../../data/access';
 import { niceMax } from '../../data/dashboardCharts';
 import {
-  OPTIMIZER_WINDOWS,
-  optimizerLoads,
+  optimizerWindows,
+  scopedOptimizerLoads,
   optimizerOrgView,
   regionSummaries,
   stationsById,
 } from '../../data/optimizer';
 import { sendStationRecommendation, type RecommendationInput } from '../../data/recommendations';
 import { scopeLabel } from '../../data/client';
-import { dayLabel } from '../../domain/optimizer/dataset';
+import { dayLabel } from '../../domain/optimizer/loads';
 import { DEFAULT_OPTIMIZER_FILTERS, applyOptimizerFilters, periodDays, type OptimizerFilters } from '../../domain/optimizer/filters';
 import { maskedCardOf, stationName } from '../../domain/optimizer/labels';
 import {
@@ -78,7 +78,8 @@ const pricePerLiter = (value: number | null) => (value === null ? '—' : `$${va
 export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPageProps) {
   const { principal } = useSession();
   const [tab, setTab] = useState<Tab>('resumen');
-  const [windowId, setWindowId] = useState(OPTIMIZER_WINDOWS[0].id);
+  const windows = useMemo(() => optimizerWindows(), []);
+  const [windowId, setWindowId] = useState(windows[0].id);
   const [mode, setMode] = useState<SavingMode>('bruto');
   const [assumptions, setAssumptions] = useState<Assumptions>(DEFAULT_ASSUMPTIONS);
   const [facets, setFacets] = useState({ fuel: '', vehicleType: '', zone: '' });
@@ -86,7 +87,7 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const [sending, setSending] = useState<RecommendationInput | null>(null);
 
-  const range = OPTIMIZER_WINDOWS.find((candidate) => candidate.id === windowId) ?? OPTIMIZER_WINDOWS[0];
+  const range = windows.find((candidate) => candidate.id === windowId) ?? windows[0];
   const filters = useMemo<OptimizerFilters>(
     () => ({
       ...DEFAULT_OPTIMIZER_FILTERS,
@@ -99,7 +100,9 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
     [range, facets],
   );
 
-  const loads = useMemo(() => applyOptimizerFilters(optimizerLoads, filters), [filters]);
+  // The page remounts on a session change, so the scoped loads can be read once.
+  const optimizerLoads = useMemo(() => scopedOptimizerLoads(), []);
+  const loads = useMemo(() => applyOptimizerFilters(optimizerLoads, filters), [optimizerLoads, filters]);
   const days = periodDays(filters);
   const kpis = useMemo(() => computeOptimizerKpis(loads, assumptions, mode, days), [loads, assumptions, mode, days]);
   const bands = useMemo(() => distanceBands(loads, assumptions, mode), [loads, assumptions, mode]);
@@ -122,8 +125,8 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
         <EmptyState
           card
           icon={<CompassIcon width={24} height={24} />}
-          title="No hay cargas del optimizador dentro de tu alcance"
-          description={`El análisis llega hasta el nivel de departamento. Tu usuario está acotado a ${scopeLabel(principal.scopeNodeId)}, por debajo de ese nivel, así que no hay cargas que mostrarte.`}
+          title="No hay cargas dentro de tu alcance"
+          description={`${scopeLabel(principal.scopeNodeId)} no tiene cargas en los últimos 30 días.`}
         />
       </div>
     );
@@ -137,7 +140,7 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
         <label className="optimizer__control">
           <span>Periodo</span>
           <select value={windowId} onChange={(event) => setWindowId(event.target.value)}>
-            {OPTIMIZER_WINDOWS.map((option) => (
+            {windows.map((option) => (
               <option key={option.id} value={option.id}>
                 {option.label}
               </option>
@@ -332,8 +335,8 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
             <p className="optimizer__note">
               Una carga es redirigible cuando el motor propone otra estación más barata a menos de 5 km de la habitual. El ahorro
               bruto es la diferencia de precio por los litros cargados; el neto descuenta el combustible del desvío con el
-              rendimiento supuesto. El optimizador solo analiza: no cambia tarjetas ni límites. Datos sintéticos de septiembre de
-              2026.
+              rendimiento supuesto. El optimizador solo analiza: no cambia tarjetas ni límites. Son las mismas cargas que suman el
+              Resumen y el reporte consolidado (datos sintéticos); las de Autoconsumo cargan en planta propia y no se redirigen.
             </p>
           </section>
         </div>

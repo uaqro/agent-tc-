@@ -54,6 +54,8 @@ import type {
 } from '../dashboard/types'
 import type { Account } from './accounts'
 import { ACCOUNTS } from './accounts'
+import { CONTRACT_DISCOUNT, LIST_PRICE } from './prices'
+import { contractPriceAt, dayIndexOf, stationForDispatch } from '../stations/directory'
 
 const HOUR = 60 * 60_000
 const DAY = 24 * HOUR
@@ -233,11 +235,8 @@ export function fleetDriversOf(account: Account): FleetDriver[] {
   return drivers
 }
 
-/** Precio de lista por litro, en pesos. Referencia de mercado. */
-const LIST_PRICE: Record<FuelType, number> = { magna: 24.1, premium: 26.4, diesel: 25.8 }
-
-/** Descuento negociado por Edenred sobre el precio de lista. */
-const CONTRACT_DISCOUNT = 0.042
+// Precio de lista y descuento de contrato: en `./prices`, compartidos con el
+// directorio de estaciones (Ticket Car+).
 
 /**
  * Hace once días el mercado se desplomó por debajo del precio de contrato.
@@ -661,27 +660,37 @@ function dayPlan(
     // Un camión no reposta todos los días: la probabilidad es por perfil.
     if (status === 'activa' && rnd() < profile.refuelOdds * intensity) {
       events.push(
-        fuelEvent(rnd, unit, driverId, orgPath, context, price, profile.liters, shiftStart, shiftEnd),
+        fuelEvent(rnd, account, unit, driverId, orgPath, context, price, profile.liters, shiftStart, shiftEnd, 0),
       )
       // Doble carga en jornadas largas.
       if (profile.refuelOdds > 0.5 && rnd() < 0.12) {
         events.push(
-          fuelEvent(rnd, unit, driverId, orgPath, context, price, profile.liters, shiftStart, shiftEnd),
+          fuelEvent(rnd, account, unit, driverId, orgPath, context, price, profile.liters, shiftStart, shiftEnd, 1),
         )
       }
     }
 
+    /**
+     * Unidad dada de baja — Ticket Car+.
+     *
+     * En eOne seguía cargando después de su baja: el padrón la tenía de baja y
+     * el histórico le seguía sumando litros. Aquí, desde el día de la baja no
+     * reporta ni carga. Las tiradas de arriba se hacen igual y se descartan,
+     * para no mover el sorteo de las demás unidades.
+     */
+    const retired = unit.deregisteredAt !== null && unit.deregisteredAt <= dayStart
+
     plans.push({
       unit,
-      status,
-      driverId,
+      status: retired ? 'sin_reportar' : status,
+      driverId: retired ? null : driverId,
       orgPath,
       routeId,
       behavior: behaviorProfile.id,
       shiftStart,
       shiftEnd,
-      kmTotal,
-      events,
+      kmTotal: retired ? 0 : kmTotal,
+      events: retired ? [] : events,
     })
   }
 
@@ -699,6 +708,7 @@ function dayPlan(
     const profile = COST_CENTERS.find((c) => c.id === abonada.unit.costCenter) ?? COST_CENTERS[0]!
     const cargo = fuelEvent(
       rnd,
+      account,
       abonada.unit,
       abonada.driverId,
       abonada.orgPath,
@@ -707,6 +717,7 @@ function dayPlan(
       profile.liters,
       abonada.shiftStart,
       abonada.shiftEnd,
+      2,
     )
     abonada.events.push({
       ...cargo,
@@ -725,6 +736,7 @@ type DayContext = { routeId: RouteId; behavior: DrivingBehavior; consumption: nu
 
 function fuelEvent(
   rnd: Random,
+  account: Account,
   unit: FleetUnit,
   driverId: string | null,
   orgPath: readonly string[],
@@ -733,12 +745,19 @@ function fuelEvent(
   litersRange: readonly [number, number],
   shiftStart: number,
   shiftEnd: number,
+  /** Orden del despacho en la jornada de la unidad: fija su estación. */
+  ordinal: number,
 ): FuelEvent {
   const liters = round(
     (randomInt(rnd, litersRange[0], litersRange[1]) + rnd()) * context.consumption,
     2,
   )
   const tariff = price[unit.fuel]
+  // Estación y precio de esa estación — Ticket Car+. Sin directorio, el
+  // precio de contrato único de eOne.
+  const day = dayIndexOf(shiftStart)
+  const stationId = stationForDispatch(account, unit.id, unit.product, day, ordinal)
+  const contract = stationId === null ? tariff.contract : contractPriceAt(stationId, unit.fuel, day)
   return {
     unitId: unit.id,
     plate: unit.plate,
@@ -753,9 +772,10 @@ function fuelEvent(
     behavior: context.behavior,
     at: shiftStart + Math.round(rnd() * (shiftEnd - shiftStart)),
     liters,
-    amountMxn: round(liters * tariff.contract, 2),
+    amountMxn: round(liters * contract, 2),
     listAmountMxn: round(liters * tariff.list, 2),
     refund: false,
+    stationId,
   }
 }
 
@@ -966,6 +986,32 @@ export function todayUnits(account: Account, now: number): UnitDay[] {
   if (!account.active) return []
   const todayStart = startOfDay(now)
   return snapshotUnits(dayPlan(account, todayStart, todayStart, () => NO_ORG_PATH), now)
+}
+
+/**
+ * Todos los despachos de los días CERRADOS entre dos fechas — Ticket Car+.
+ * ═════════════════════════════════════════════════════════════════════
+ * La puerta del reporte consolidado: sus dos fuentes (ERP de Autoconsumo y
+ * switch de TicketCar+) se construyen con estos despachos, que son los mismos
+ * que suman el dashboard y el optimizador. Antes el reporte sorteaba los suyos.
+ *
+ * Se recorre día a día y se queda solo con los despachos: la memoria que se
+ * retiene es la de la lista, no la de los planes.
+ */
+export function eventsBetween(
+  account: Account,
+  fromAt: number,
+  toAt: number,
+  now: number,
+  orgPathOf: (unitId: string) => readonly string[] = () => NO_ORG_PATH,
+): FuelEvent[] {
+  if (!account.active) return []
+  const todayStart = startOfDay(now)
+  const events: FuelEvent[] = []
+  for (let dayStart = startOfDay(fromAt); dayStart <= startOfDay(toAt) && dayStart < todayStart; dayStart = startOfDay(dayStart + DAY + HOUR)) {
+    events.push(...eventsUpTo(dayPlan(account, dayStart, todayStart, orgPathOf), dayStart + DAY - 1))
+  }
+  return events
 }
 
 /** Foto de una cuenta en el instante `now`. */

@@ -17,4 +17,5 @@ export {
   startOfDay,
   todayUnits,
   unitDayRows,
+  eventsBetween,
 } from '../data/fleet-activity'

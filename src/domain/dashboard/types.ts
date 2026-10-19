@@ -289,6 +289,12 @@ export type FuelEvent = {
   listAmountMxn: number
   /** Devolución de una carga mal imputada. */
   refund: boolean
+  /**
+   * Estación donde se despachó — Ticket Car+ (`stations/directory`). `null`
+   * en las cuentas sin directorio de estaciones. El importe es el precio de
+   * contrato de ESTA estación ese día.
+   */
+  stationId: string | null
 }
 
 /** Actividad de UNA unidad en el día en curso, recortada a la hora actual. */

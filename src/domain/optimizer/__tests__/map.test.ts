@@ -3,7 +3,7 @@
  * Mapa de estaciones: filtros propios, panel lateral y tamaño de los puntos.
  */
 import { describe, expect, it } from 'vitest'
-import { DATASET_DAYS, getOptimizerDataset } from '../dataset'
+import { DAYS as DATASET_DAYS, loads, stationsById as byId } from './fixture'
 import {
   MIN_MARKER_RADIUS,
   MAX_MARKER_RADIUS,
@@ -18,8 +18,6 @@ import {
 } from '../metrics'
 import { DEFAULT_ASSUMPTIONS, isRedirectable } from '../rules'
 
-const { loads, stations } = getOptimizerDataset()
-const byId = new Map(stations.map((s) => [s.id, s]))
 const stats = stationStats(loads, byId, DEFAULT_ASSUMPTIONS)
 
 describe('filtros del mapa', () => {

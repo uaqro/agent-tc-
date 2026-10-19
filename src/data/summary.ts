@@ -76,3 +76,16 @@ export function summaryMetricsFor(filters: GlobalFilters, at?: number): SummaryM
     metric('average-km', 'Promedio kilómetros por unidad', 'green', 'km', (totals) => (totals.activeUnits > 0 ? round(totals.km / totals.activeUnits) : 0), true),
   ];
 }
+
+/**
+ * Spend of the closed days of the period, in MXN, through the same scope and filters as the indicators. It is the
+ * figure the consolidated report and the optimizer must also reach for the same days (`consistency.test.ts`).
+ */
+export function periodSpend(filters: GlobalFilters, at?: number): number {
+  let amount = 0;
+  for (const point of scopedSnapshot(filters.periodDays, at).accounts[0].period) {
+    if (point.partial) continue;
+    for (const row of point.rows) if (matches(row, filters)) amount += row.amountMxn;
+  }
+  return amount;
+}

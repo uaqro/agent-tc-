@@ -1,32 +1,50 @@
 /**
- * The eOne load optimizer (Sprint 8, `domain/optimizer`) as Ticket Car shows it: its dataset scoped to the session,
- * the view by region kept from the previous Ticket Car optimizer, and the link from each card to a padrón unit.
+ * The eOne load optimizer as Ticket Car shows it, on the same fuelling the Resumen and the consolidated report read.
+ *
+ * Loads are the padrón's dispatches of the last closed days (`domain/optimizer/loads`): each one carries its unit,
+ * its card, the driver of the day, its station and its org path, so the session scope works down to area level and
+ * the total spend matches the other two screens.
  *
  * The optimizer is analytical: nothing here changes a card or a limit. "Aplicar en Límites" only opens the Límites
  * flow with the unit and station preloaded, and "Enviar al conductor" only sends a recommendation (`recommendations`).
  */
-import type { FleetUnit } from '../domain/dashboard/types';
-import { DATASET_DAYS, ZONES, getOptimizerDataset } from '../domain/optimizer/dataset';
-import { departmentNodeIdOf, optimizerOrg, withOrgDivision } from '../domain/optimizer/org';
+import { businessNow } from '../domain/demo/clock';
 import { isRedirectable, savingIn } from '../domain/optimizer/rules';
+import { loadsFromEvents } from '../domain/optimizer/loads';
+import { optimizerOrg } from '../domain/optimizer/org';
 import { loadsInScope } from '../domain/optimizer/session-scope';
-import type { Assumptions, Load, SavingMode, Station, ZoneId } from '../domain/optimizer/types';
-import { assignedDriverName, clientOrgTree, operatingUnits, orgPathOf } from './client';
-import { onSessionChange, sessionPrincipal } from './session';
+import type { Assumptions, Load, SavingMode, Station } from '../domain/optimizer/types';
+import { dayIndexOf, stations } from '../domain/stations/directory';
+import { clientAccount, clientOrgTree, clientSnapshot, driverById } from './client';
+import { sessionPrincipal } from './session';
 
-export const optimizerDataset = getOptimizerDataset();
-export const stationsById = new Map<string, Station>(optimizerDataset.stations.map((station) => [station.id, station]));
+/** Longest window the optimizer offers, in closed days. */
+export const OPTIMIZER_MAX_DAYS = 30;
+
+export const stationsById = new Map<string, Station>(stations().map((station) => [station.id, station]));
 export const optimizerOrgView = optimizerOrg(clientOrgTree);
 
-const allLoads: Load[] = withOrgDivision(optimizerDataset.loads, optimizerOrgView);
-const zoneIds: ZoneId[] = ZONES.map((zone) => zone.id);
+/** Loads of the account for the last closed days, unscoped. Rebuilt only when the business date changes. */
+let accountLoads: { key: string; loads: Load[] } | null = null;
 
-/** Loads of the zones inside the session scope (ADR-TCP-001). */
-export let optimizerLoads: Load[] = allLoads;
+function loadsOfAccount(at = businessNow()): Load[] {
+  const key = new Date(at).toDateString();
+  if (accountLoads?.key !== key) {
+    const closed = clientSnapshot(OPTIMIZER_MAX_DAYS, at).accounts[0].period.filter((point) => !point.partial);
+    accountLoads = { key, loads: loadsFromEvents(clientAccount, closed.flatMap((point) => point.events)) };
+  }
+  return accountLoads.loads;
+}
 
-onSessionChange(() => {
-  optimizerLoads = loadsInScope(allLoads, sessionPrincipal().scopeNodeId, clientOrgTree, zoneIds);
-});
+/**
+ * Loads inside the session scope (ADR-TCP-001), by org path, down to area level.
+ *
+ * Computed on first use and not at import: the optimizer is one page, and building its loads (a recommendation per
+ * dispatch) should not delay the first render of the portal.
+ */
+export function scopedOptimizerLoads(at = businessNow()): Load[] {
+  return loadsInScope(loadsOfAccount(at), sessionPrincipal().scopeNodeId);
+}
 
 // ── Period ──────────────────────────────────────────────────────────────
 
@@ -37,53 +55,19 @@ export interface OptimizerWindowOption {
   toDay: number;
 }
 
-/** The dataset is September 2026, the last closed month on the business date. */
-export const OPTIMIZER_WINDOWS: OptimizerWindowOption[] = [
-  { id: 'mes', label: 'Septiembre 2026 completo', fromDay: 1, toDay: DATASET_DAYS },
-  { id: 'quincena', label: 'Segunda quincena de septiembre', fromDay: 16, toDay: DATASET_DAYS },
-  { id: 'semana', label: 'Última semana de septiembre', fromDay: DATASET_DAYS - 6, toDay: DATASET_DAYS },
-];
-
-// ── Cards and padrón units ──────────────────────────────────────────────
-
-/**
- * Each synthetic card of the dataset is assigned, deterministically, to a TicketCar+ unit of the department its
- * zone belongs to. That is what lets "Aplicar en Límites" open the unit and "Enviar al conductor" name a driver.
- */
-const cardUnits = (() => {
-  const firstZone = new Map<string, ZoneId>();
-  for (const load of allLoads) if (!firstZone.has(load.cardId)) firstZone.set(load.cardId, load.zone);
-
-  const unitsByZone = new Map<ZoneId, FleetUnit[]>(
-    zoneIds.map((zone) => [
-      zone,
-      operatingUnits
-        .filter((unit) => unit.product === 'ticketcar_plus' && orgPathOf(unit.id).includes(departmentNodeIdOf(zone)))
-        .sort((a, b) => a.id.localeCompare(b.id)),
-    ]),
-  );
-
-  const assigned = new Map<string, FleetUnit>();
-  const seen = new Map<ZoneId, number>();
-  for (const cardId of [...firstZone.keys()].sort()) {
-    const zone = firstZone.get(cardId)!;
-    const units = unitsByZone.get(zone) ?? [];
-    if (units.length === 0) continue;
-    const index = seen.get(zone) ?? 0;
-    assigned.set(cardId, units[index % units.length]);
-    seen.set(zone, index + 1);
-  }
-  return assigned;
-})();
-
-export interface CardHolder {
-  unit: FleetUnit;
-  driverName: string;
+/** Last closed days before the business date: the same windows the Resumen uses. */
+export function optimizerWindows(at = businessNow()): OptimizerWindowOption[] {
+  const today = dayIndexOf(at);
+  return [30, 15, 7].map((days) => ({ id: String(days), label: `Últimos ${days} días`, fromDay: today - days, toDay: today - 1 }));
 }
 
-export function cardHolder(cardId: string): CardHolder | null {
-  const unit = cardUnits.get(cardId);
-  return unit ? { unit, driverName: assignedDriverName(unit) } : null;
+// ── Drivers ─────────────────────────────────────────────────────────────
+
+export const NO_DRIVER_NAME = 'Sin conductor registrado';
+
+/** Driver of the load's day, from the padrón. */
+export function driverNameOf(driverId: string | null): string {
+  return driverId === null ? NO_DRIVER_NAME : (driverById(driverId)?.name ?? driverId);
 }
 
 // ── View by region (kept from the previous Ticket Car optimizer) ────────
@@ -101,12 +85,12 @@ export interface RegionSummary {
   priceGap: number | null;
 }
 
+/** One card per division (level 1 of the org path) that has loads in the cut. */
 export function regionSummaries(loads: Load[], assumptions: Assumptions, mode: SavingMode): RegionSummary[] {
-  return optimizerOrgView.divisions
+  return [...new Set(loads.map((load) => load.division))]
     .map((divisionId) => {
       const own = loads.filter((load) => load.division === divisionId);
       const redirectable = own.filter(isRedirectable);
-      const liters = redirectable.reduce((sum, load) => sum + load.liters, 0);
       const paid = redirectable.reduce((sum, load) => sum + load.pricePaid * load.liters, 0);
       const recommended = redirectable.reduce((sum, load) => sum + (load.priceRecommended ?? load.pricePaid) * load.liters, 0);
       return {
@@ -114,13 +98,12 @@ export function regionSummaries(loads: Load[], assumptions: Assumptions, mode: S
         name: optimizerOrgView.divisionLabel(divisionId),
         zones: [...new Set(own.map((load) => optimizerOrgView.zoneLabel(load.zone)))],
         saving: own.reduce((sum, load) => sum + savingIn(load, mode, assumptions), 0),
-        loads: own.length,
+        loads: own.filter((load) => !load.refund).length,
         redirectable: redirectable.length,
         stations: new Set(own.map((load) => load.stationId)).size,
         cards: new Set(own.map((load) => load.cardId)).size,
-        priceGap: liters > 0 && paid > 0 ? (recommended - paid) / paid : null,
+        priceGap: paid > 0 ? (recommended - paid) / paid : null,
       };
     })
-    .filter((region) => region.loads > 0)
     .sort((a, b) => b.saving - a.saving);
 }

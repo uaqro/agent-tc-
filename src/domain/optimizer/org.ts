@@ -25,18 +25,10 @@ import { ACCOUNTS } from '../data/accounts'
 import { fleetUnitsOf } from '../datasource/active'
 import { baseOrgTreeOf } from '../org/structure'
 import { findNode, pathOf, unassignedNodeId, type OrgTree } from '../org/types'
-import { OPTIMIZER_ACCOUNT_ID, ZONES } from './dataset'
+import { STATION_ACCOUNT_ID as OPTIMIZER_ACCOUNT_ID, ZONES, ZONE_DEPARTMENT } from '../stations/directory'
 import type { Load, ZoneId } from './types'
 
 /** Departamento de fábrica de cada plaza del dataset. */
-const ZONE_DEPARTMENT: Record<ZoneId, string> = {
-  monterrey: 'departamento-monterrey',
-  saltillo: 'departamento-saltillo',
-  hermosillo: 'departamento-hermosillo',
-  culiacan: 'departamento-culiacan',
-  guadalajara: 'departamento-guadalajara',
-}
-
 export function departmentNodeIdOf(zone: ZoneId): string {
   return `org:${OPTIMIZER_ACCOUNT_ID}:${ZONE_DEPARTMENT[zone]}`
 }

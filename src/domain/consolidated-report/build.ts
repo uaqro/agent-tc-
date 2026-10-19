@@ -230,7 +230,12 @@ export const MONTH_PERIODS: PeriodSpec[] = Array.from({ length: 12 }, (_, i) => 
 
 export const QUARTER_PERIODS: PeriodSpec[] = [quarterSpec(2026, 3), quarterSpec(2026, 2), quarterSpec(2026, 1), quarterSpec(2025, 4)]
 
-export const YEAR_PERIOD: PeriodSpec = { id: '12-meses', label: 'Últimos 12 meses', from: COVERAGE.from, to: COVERAGE.to }
+/** Los doce meses que acaban el último día con datos (Ticket Car+: la víspera de la fecha de demo). */
+export const YEAR_PERIOD: PeriodSpec = (() => {
+  const [y, m, d] = COVERAGE.to.split('-').map(Number)
+  const start = new Date(y! - 1, m! - 1, d! + 1)
+  return { id: '12-meses', label: 'Últimos 12 meses', from: `${start.getFullYear()}-${pad2(start.getMonth() + 1)}-${pad2(start.getDate())}`, to: COVERAGE.to }
+})()
 
 export const PERIODS: PeriodSpec[] = [...MONTH_PERIODS, ...QUARTER_PERIODS, YEAR_PERIOD]
 
@@ -243,7 +248,8 @@ export function defaultPeriodRange(now: number): PeriodRange {
   const month = monthSpec(date.getFullYear(), date.getMonth() + 1)
   if (month.to < COVERAGE.from) return { from: MONTH_PERIODS[MONTH_PERIODS.length - 1]!.from, to: MONTH_PERIODS[MONTH_PERIODS.length - 1]!.to }
   if (month.from > COVERAGE.to) return { from: MONTH_PERIODS[0]!.from, to: MONTH_PERIODS[0]!.to }
-  return { from: month.from, to: month.to }
+  // El mes en curso, hasta el último día cerrado: lo que va de mes.
+  return { from: month.from, to: month.to < COVERAGE.to ? month.to : COVERAGE.to }
 }
 
 export type ResolvedPeriod = { from: number; to: number; fromIso: string; toIso: string; days: number; label: string }

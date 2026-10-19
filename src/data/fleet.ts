@@ -15,6 +15,7 @@ import {
   stableFraction,
   unitById,
 } from './client';
+import { cardLast4Of } from '../domain/data/cards';
 import { allServiceOrders } from './maintenance';
 import { onSessionChange, sessionPrincipal, unitInScope } from './session';
 
@@ -237,7 +238,8 @@ const SCENARIO_MEDIA: Record<string, Partial<PaymentMedium>> = {
 };
 
 function cardNumber(type: PaymentMediumType, unitId: string): string {
-  const digits = String(Math.floor(stableFraction(`${unitId}:tarjeta`) * 10_000)).padStart(4, '0');
+  // Same four digits the optimizer shows for the unit's card (`domain/data/cards`).
+  const digits = cardLast4Of(unitId);
   if (type === 'tag') return `TAG-03-${digits}`;
   if (type === 'virtual') return `APP •••• ${digits}`;
   return `5062 •••• •••• ${digits}`;

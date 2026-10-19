@@ -8,43 +8,18 @@ import { COST_CENTER_IDS } from '../../data/fleet-activity'
 import { baseOrgTreeOf } from '../../org/structure'
 import { renameNode } from '../../org/operations'
 import { unassignedNodeId, type OrgTree } from '../../org/types'
-import { OPTIMIZER_ACCOUNT_ID, getOptimizerDataset } from '../dataset'
+import { STATION_ACCOUNT_ID as OPTIMIZER_ACCOUNT_ID } from '../../stations/directory'
+import { loads as padronLoads } from './fixture'
 import { DEFAULT_OPTIMIZER_FILTERS, facetCounts } from '../filters'
 import { optimizerUniverse, optimizerValueLabel } from '../labels'
-import { departmentNodeIdOf, optimizerOrg, withOrgDivision } from '../org'
-import { optimizerWindow, periodDaysToCoverDataset } from '../period'
+import { departmentNodeIdOf, optimizerOrg } from '../org'
 
-const at = (y: number, m: number, d: number, h = 12) => new Date(y, m - 1, d, h).getTime()
-const OCT_15 = at(2026, 10, 15)
+// El periodo ya no se cruza con un mes de dataset: las cargas son los días
+// cerrados del padrón, la misma ventana que el Resumen (`data/optimizer`).
 
 function baseTree(): OrgTree {
   return baseOrgTreeOf(ACCOUNTS.find((a) => a.id === OPTIMIZER_ACCOUNT_ID)!)
 }
-
-describe('US-111 · periodo = periodo global de US-010', () => {
-  it('30 días cerrados el 15 de octubre alcanzan del 15 al 30 de septiembre', () => {
-    expect(optimizerWindow(30, OCT_15)).toEqual({ fromDay: 15, toDay: 30 })
-  })
-
-  it('«Día» el 15 de octubre mira el 14: fuera del dataset', () => {
-    expect(optimizerWindow(1, OCT_15)).toBeNull()
-    expect(optimizerWindow(7, OCT_15)).toBeNull()
-  })
-
-  it('44 días cubren septiembre entero, y es lo que se ofrece para ampliar', () => {
-    expect(periodDaysToCoverDataset(OCT_15)).toBe(44)
-    expect(optimizerWindow(44, OCT_15)).toEqual({ fromDay: 1, toDay: 30 })
-  })
-
-  it('con el reloj dentro de septiembre la ventana termina ayer', () => {
-    expect(optimizerWindow(7, at(2026, 9, 10))).toEqual({ fromDay: 3, toDay: 9 })
-    expect(periodDaysToCoverDataset(at(2026, 9, 10))).toBeNull()
-  })
-
-  it('antes de septiembre no hay solape', () => {
-    expect(optimizerWindow(30, at(2026, 8, 20))).toBeNull()
-  })
-})
 
 describe('US-111 · zona, división y centro de costo del organigrama (US-013)', () => {
   it('las divisiones son los nodos de nivel 1 del árbol, la vacía incluida', () => {
@@ -90,9 +65,9 @@ describe('US-111 · zona, división y centro de costo del organigrama (US-013)',
     expect(optimizerUniverse('costCenter', org)).toEqual(org.costCenters)
   })
 
-  it('las cargas llevan la división del árbol y los conteos facetados siguen igual', () => {
+  it('las cargas llevan la división de su unidad y los conteos facetados la siguen', () => {
     const org = optimizerOrg(baseTree())
-    const loads = withOrgDivision(getOptimizerDataset().loads, org)
+    const loads = padronLoads.filter((load) => org.divisions.includes(load.division))
     const counts = facetCounts(loads, DEFAULT_OPTIMIZER_FILTERS, 'division', optimizerUniverse('division', org))
     const total = counts.reduce((sum, facet) => sum + facet.count, 0)
     expect(total).toBe(loads.length)

@@ -21,8 +21,19 @@ const principalFor = (_role: string, account: { activeAccountId?: string; homeAc
 })
 import { baseOrgTreeOf, withUnassigned } from '../../org/structure'
 import { childrenOf, rootNodeId, unitPathOf, type OrgTree } from '../../org/types'
-import { buildConsolidatedReport, resolvePeriod, scopeOptions, type ConsolidatedReport, type ReportRequest } from '../build'
-import { MIN_GAP_DAYS } from '../coverage'
+import { COST_CENTER_IDS, eventsBetween } from '../../datasource/active'
+import {
+  YEAR_PERIOD,
+  buildConsolidatedReport,
+  computeReport,
+  prepareReport,
+  resolvePeriod,
+  scopeOptions,
+  type ConsolidatedReport,
+  type ReportRequest,
+} from '../build'
+import { MIN_GAP_DAYS, isoOfTime } from '../coverage'
+import { normalizeSources } from '../normalize'
 import { renderReportHtml } from '../document'
 import { fileBaseName, reportToCsv } from '../export'
 import { PDF_SECTIONS, pdfText, renderPdf, reportToPdf } from '../pdf'
@@ -50,30 +61,21 @@ function ok(result: ConsolidatedReport | { error: string }): ConsolidatedReport 
   return result
 }
 
-const fnv = (text: string) => {
-  let h = 2166136261
-  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619)
-  return (h >>> 0).toString(16)
-}
-
-describe('US-024 b · doce meses de Autoconsumo y TicketCar+', () => {
-  it('julio–septiembre de 2026 no cambia: mismos registros, byte a byte', () => {
-    // Huella tomada ANTES de añadir el histórico (rama main, 15-oct-2026).
-    const before: Record<string, [number, number, string, string]> = {
-      acc_transportes_bajio: [4085, 6248, '3b2672f1', 'af50a543'],
-      acc_logistica_peninsular: [2301, 3400, 'a6eb76b9', '4010b13a'],
-      acc_grupo_alimentario: [6235, 9270, 'ee2b30b2', 'a5a0ebd4'],
-      acc_distribuidora_centro: [1142, 1803, 'c5e0d804', 'bdfc7d6a'],
-    }
-    for (const [id, [acN, tcN, acHash, tcHash]] of Object.entries(before)) {
-      const s = sourcesOf(account(id))
-      const ac = s.autoconsumo.filter((r) => /\/(07|08|09)\/2026$/.test(r.fecha))
-      const tc = s.ticketcar.filter((t) => /^2026-(07|08|09)-/.test(t.timestamp))
-      expect([ac.length, tc.length, fnv(JSON.stringify(ac)), fnv(JSON.stringify(tc))]).toEqual([acN, tcN, acHash, tcHash])
-    }
+describe('US-024 b · doce meses de Autoconsumo y TicketCar+, de los despachos del padrón', () => {
+  it('cada despacho del padrón es una línea de su fuente, con el mismo importe (Ticket Car+)', () => {
+    const s = sourcesOf(account(GAN))
+    const from = new Date(2026, 8, 1).getTime()
+    const to = new Date(2026, 8, 30).getTime()
+    const events = eventsBetween(account(GAN), from, to, new Date(2026, 9, 16, 12).getTime())
+    const ac = s.autoconsumo.filter((r) => r.fecha.endsWith('/09/2026'))
+    const tc = s.ticketcar.filter((t) => t.timestamp.startsWith('2026-09-'))
+    expect(ac.length).toBe(events.filter((e) => e.product === 'autoconsumo').length)
+    expect(tc.length).toBe(events.filter((e) => e.product === 'ticketcar_plus').length)
+    const sources = normalizeSources({ autoconsumo: ac, ticketcar: tc }, COST_CENTER_IDS).reduce((sum, d) => sum + d.amountMxn, 0)
+    expect(sources).toBeCloseTo(events.reduce((sum, e) => sum + e.amountMxn, 0), 2)
   })
 
-  it('cada uno de los doce meses trae datos de las dos fuentes, salvo el hueco de TicketCar+ en febrero', () => {
+  it('cada uno de los doce meses trae datos de las dos fuentes, sin huecos simulados', () => {
     const s = sourcesOf(account(GAN))
     for (let i = 0; i < 12; i++) {
       const date = new Date(2025, 9 + i, 1)
@@ -82,28 +84,42 @@ describe('US-024 b · doce meses de Autoconsumo y TicketCar+', () => {
       const ac = s.autoconsumo.filter((r) => r.fecha.endsWith(`/${mm}/${yyyy}`)).length
       const tc = s.ticketcar.filter((t) => t.timestamp.startsWith(`${yyyy}-${mm}-`)).length
       expect(ac, `Autoconsumo ${mm}/${yyyy}`).toBeGreaterThan(0)
-      if (yyyy === 2026 && mm === '02') expect(tc).toBe(0)
-      else expect(tc, `TicketCar+ ${mm}/${yyyy}`).toBeGreaterThan(0)
+      expect(tc, `TicketCar+ ${mm}/${yyyy}`).toBeGreaterThan(0)
     }
-    expect(SOURCE_GAPS).toEqual([{ source: 'ticketcar_plus', from: '2026-02-01', to: '2026-02-28' }])
+    expect(SOURCE_GAPS).toEqual([])
   })
 
-  it('estacionalidad: diciembre carga más que enero, los dos de 31 días', () => {
-    const dec = ok(build('dic-2025')).kpis.bySource.autoconsumo.dispatches
-    const jan = ok(build('ene-2026')).kpis.bySource.autoconsumo.dispatches
-    expect(dec).toBeGreaterThan(jan * 1.15)
+  it('el fin de semana se carga menos que entre semana', () => {
+    const s = sourcesOf(account(GAN))
+    const byWeekday = Array.from({ length: 7 }, () => 0)
+    for (const t of s.ticketcar) byWeekday[new Date(t.timestamp.slice(0, 10) + 'T12:00:00').getDay()]! += 1
+    expect(byWeekday[0]).toBeLessThan(byWeekday[3]! / 2)
   })
 
-  it('los folios del histórico no chocan con los del tramo original', () => {
+  it('los folios no se repiten', () => {
     const s = sourcesOf(account(GAN))
     expect(new Set(s.autoconsumo.map((r) => r.folio)).size).toBe(s.autoconsumo.length)
     expect(new Set(s.ticketcar.map((t) => t.txnId)).size).toBe(s.ticketcar.length)
   })
 })
 
+/**
+ * El aviso de hueco se sigue detectando en los datos. Como los datos unificados
+ * no tienen huecos, aquí se provoca uno: TicketCar+ no entrega febrero de 2026.
+ */
+const allDispatches = normalizeSources(sourcesOf(account(GAN)), COST_CENTER_IDS)
+const febGap = allDispatches.filter(
+  (d) => !(d.source === 'ticketcar_plus' && isoOfTime(d.at) >= '2026-02-01' && isoOfTime(d.at) <= '2026-02-28'),
+)
+function buildWithGap(period: ReportRequest['period']): ConsolidatedReport {
+  const prepared = prepareReport({ type: 'operativo', period, scope: { accountId: GAN, kind: 'cuenta', value: null } }, admin)
+  if ('error' in prepared) throw new Error(prepared.error)
+  return computeReport(prepared, febGap, admin, NOW)
+}
+
 describe('US-024 b · el reporte señala el hueco de una fuente', () => {
   it('febrero de 2026: aviso de TicketCar+ con las fechas, detectado en los datos', () => {
-    const r = ok(build('feb-2026'))
+    const r = buildWithGap('feb-2026')
     expect(r.kpis.bySource.ticketcar_plus.dispatches).toBe(0)
     expect(r.coverage).toHaveLength(1)
     expect(r.coverage[0]).toMatchObject({ kind: 'hueco_de_fuente', source: 'ticketcar_plus', from: '2026-02-01', to: '2026-02-28' })
@@ -111,7 +127,7 @@ describe('US-024 b · el reporte señala el hueco de una fuente', () => {
   })
 
   it('el aviso viaja en el documento, en el CSV y en el PDF', () => {
-    const r = ok(build('t1-2026'))
+    const r = buildWithGap('t1-2026')
     expect(renderReportHtml(r)).toContain('Datos incompletos en el periodo')
     expect(reportToCsv(r)).toContain('Datos incompletos')
     expect(renderPdf(r, jsPDF, { compress: false }).output()).toContain('Datos incompletos en el periodo')
@@ -119,11 +135,11 @@ describe('US-024 b · el reporte señala el hueco de una fuente', () => {
 
   it('un periodo completo no lleva avisos', () => {
     expect(ok(build('sep-2026')).coverage).toEqual([])
-    expect(ok(build('t4-2025')).coverage).toEqual([])
+    expect(ok(build('feb-2026')).coverage).toEqual([])
   })
 
   it(`un rango que solo roza el hueco lo recorta a sus días (umbral: ${MIN_GAP_DAYS} días seguidos)`, () => {
-    const r = ok(build({ from: '2026-02-25', to: '2026-03-10' }))
+    const r = buildWithGap({ from: '2026-02-25', to: '2026-03-10' })
     expect(r.coverage.map((w) => [w.from, w.to])).toEqual([['2026-02-25', '2026-02-28']])
   })
 })
@@ -140,11 +156,11 @@ describe('US-024 a · periodo libre con atajos', () => {
 
   it('el rango que coincide con un atajo se llama como el atajo', () => {
     expect(ok(build({ from: '2026-07-01', to: '2026-09-30' })).periodLabel).toBe('Tercer trimestre 2026')
-    expect(ok(build({ from: '2025-10-01', to: '2026-09-30' })).periodLabel).toBe('Últimos 12 meses')
+    expect(ok(build({ from: YEAR_PERIOD.from, to: YEAR_PERIOD.to })).periodLabel).toBe('Últimos 12 meses')
   })
 
-  it('los doce meses suman lo mismo que sus cuatro trimestres', () => {
-    const year = ok(build('12-meses')).kpis.dispatches
+  it('octubre de 2025 a septiembre de 2026 suma lo mismo que sus cuatro trimestres', () => {
+    const year = ok(build({ from: '2025-10-01', to: '2026-09-30' })).kpis.dispatches
     const quarters = ['t4-2025', 't1-2026', 't2-2026', 't3-2026'].map((q) => ok(build(q)).kpis.dispatches)
     expect(quarters.reduce((a, b) => a + b, 0)).toBe(year)
   })
@@ -156,9 +172,9 @@ describe('US-024 a · periodo libre con atajos', () => {
   })
 
   it('un rango que se sale de los datos avisa de la parte sin cubrir', () => {
-    const r = ok(build({ from: '2026-09-20', to: '2026-10-05' }))
+    const r = ok(build({ from: '2026-10-10', to: '2026-10-25' }))
     expect(r.coverage).toEqual([
-      expect.objectContaining({ kind: 'fuera_de_cobertura', from: '2026-10-01', to: '2026-10-05' }),
+      expect.objectContaining({ kind: 'fuera_de_cobertura', from: '2026-10-16', to: '2026-10-25' }),
     ])
   })
 })

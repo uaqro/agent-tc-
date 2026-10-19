@@ -22,7 +22,6 @@
  * valores sin cargas van al final y se pintan atenuados: siguen siendo
  * elegibles, porque otro filtro puede cambiar.
  */
-import { DATASET_DAYS } from './dataset'
 import type { Load } from './types'
 
 export type OptimizerDimension =
@@ -60,8 +59,9 @@ export type OptimizerFilters = {
 } & Record<OptimizerDimension, string[]>
 
 export const DEFAULT_OPTIMIZER_FILTERS: OptimizerFilters = {
-  fromDay: 1,
-  toDay: DATASET_DAYS,
+  // Días absolutos (`stations/directory.dayIndexOf`): sin recorte, todos.
+  fromDay: 0,
+  toDay: Number.MAX_SAFE_INTEGER,
   fuel: [],
   vehicleType: [],
   zone: [],
@@ -188,8 +188,8 @@ export function clearOptimizerDimensions(filters: OptimizerFilters): OptimizerFi
 }
 
 export function clampDay(day: number): number {
-  if (!Number.isFinite(day)) return 1
-  return Math.min(DATASET_DAYS, Math.max(1, Math.round(day)))
+  if (!Number.isFinite(day)) return 0
+  return Math.max(0, Math.round(day))
 }
 
 /** Valida lo leído del almacén. `null` si no es reconocible. */

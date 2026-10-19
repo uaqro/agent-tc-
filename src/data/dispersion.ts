@@ -4,6 +4,7 @@ import type { AttentionItem, FundingRule, Receipt, RunSimulation, Vehicle, Vehic
 import {
   assignedDriverName,
   clientAccount,
+  clientUnits,
   clientSnapshot,
   groupId,
   groupLabel,
@@ -170,6 +171,12 @@ export let fleetGroups: VehicleGroup[] = groupsOf(operatingUnits);
 /** Autoconsumo units in scope, for the note in Saldos. */
 export let autoconsumoUnits = 0;
 
+/**
+ * Deregistered units in scope. They stay in the padrón and in Flota · Vehículos (their history is theirs) but have no
+ * card to fund: TicketCar+ + Autoconsumo + deregistered = the whole padrón.
+ */
+export let retiredUnits = 0;
+
 const allAttentionItems: AttentionItem[] = [
   {
     id: 'a-0',
@@ -218,6 +225,7 @@ onSessionChange(() => {
   fleetGroups = groupsOf(inScope);
   vehicleGroups = groupsOf(inScope.filter((unit) => unit.product === 'ticketcar_plus'));
   autoconsumoUnits = inScope.filter((unit) => unit.product === 'autoconsumo').length;
+  retiredUnits = clientUnits.filter((unit) => unitInScope(unit.id)).length - inScope.length;
   attentionItems = allAttentionItems.filter((item) => unitInScope(item.vehicleId));
 });
 

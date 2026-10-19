@@ -1,7 +1,8 @@
 import { useMemo, useState, useSyncExternalStore } from 'react';
-import { cardHolder } from '../../data/optimizer';
+import { unitById } from '../../data/client';
+import { driverNameOf } from '../../data/optimizer';
 import { RECOMMENDATION_DISCLAIMER, recommendationLog, subscribeRecommendations, type RecommendationInput } from '../../data/recommendations';
-import { dayLabel } from '../../domain/optimizer/dataset';
+import { dayLabel } from '../../domain/optimizer/loads';
 import { maskedCardOf, stationName } from '../../domain/optimizer/labels';
 import { isRedirectable, notRedirectableReason, REASON_LABELS, savingIn } from '../../domain/optimizer/rules';
 import type { Assumptions, Load, SavingMode } from '../../domain/optimizer/types';
@@ -38,14 +39,15 @@ export function LoadDetail({ loads, assumptions, mode, canSend, canApply, onSend
   const sentCards = useMemo(() => new Set(log.map((entry) => entry.cardId)), [log]);
 
   const recommendationOf = (load: Load): RecommendationInput | null => {
-    const holder = cardHolder(load.cardId);
-    if (!holder || load.recommendedStationId === null) return null;
+    const unit = unitById(load.unitId);
+    if (!unit || load.recommendedStationId === null) return null;
     return {
       cardId: load.cardId,
       maskedCard: maskedCardOf(load.cardId),
-      unitId: holder.unit.id,
-      plate: holder.unit.plate,
-      driverName: holder.driverName,
+      unitId: unit.id,
+      plate: unit.plate,
+      // The driver of that load's day, straight from the padrón.
+      driverName: driverNameOf(load.driverId),
       fromStation: stationName(load.stationId),
       toStation: stationName(load.recommendedStationId),
     };
@@ -92,7 +94,7 @@ export function LoadDetail({ loads, assumptions, mode, canSend, canApply, onSend
             </thead>
             <tbody>
               {pagination.pageRows.map((load) => {
-                const holder = cardHolder(load.cardId);
+                const unit = unitById(load.unitId);
                 const recommendation = recommendationOf(load);
                 const redirectable = isRedirectable(load);
                 const reason = notRedirectableReason(load);
@@ -105,7 +107,7 @@ export function LoadDetail({ loads, assumptions, mode, canSend, canApply, onSend
                     <td>
                       <span className="table-page__main">{maskedCardOf(load.cardId)}</span>
                       <span className="table-page__sub">
-                        {holder ? `${holder.unit.plate} · ${holder.driverName}` : 'Sin unidad en el padrón'}
+                        {unit ? `${unit.plate} · ${driverNameOf(load.driverId)}` : load.unitId}
                       </span>
                     </td>
                     <td>
@@ -129,13 +131,13 @@ export function LoadDetail({ loads, assumptions, mode, canSend, canApply, onSend
                               {sentCards.has(load.cardId) ? 'Reenviar al conductor' : 'Enviar al conductor'}
                             </button>
                           )}
-                          {canApply && holder && (
+                          {canApply && unit && (
                             <button
                               type="button"
                               className="btn btn--ghost btn--sm"
                               onClick={() =>
                                 onApplyInLimits({
-                                  vehicleId: holder.unit.id,
+                                  vehicleId: unit.id,
                                   cardLabel: `tarjeta ${recommendation.maskedCard}`,
                                   fromStation: recommendation.fromStation,
                                   toStation: recommendation.toStation,

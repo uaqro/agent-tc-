@@ -12,6 +12,7 @@ import {
   account,
   attentionItems as seedAttention,
   autoconsumoUnits,
+  retiredUnits,
   buildSimulation,
   fundingRules as seedRules,
   pastReceipts,
@@ -219,12 +220,11 @@ export function DispersionPage({ onNotice }: DispersionPageProps) {
         onViewScheduled={() => setActivityTab('scheduled')}
       />
 
-      {autoconsumoUnits > 0 && (
-        <p className="dispersion__note" role="note">
-          {formatCount(autoconsumoUnits)} {autoconsumoUnits === 1 ? 'unidad' : 'unidades'} de Autoconsumo no usan saldo prepagado. Su
-          consumo aparece en Resumen y Reportes.
-        </p>
-      )}
+      <p className="dispersion__note" role="note">
+        Saldos muestra las {formatCount(vehicles.length)} unidades TicketCar+ de alta. Del padrón de{' '}
+        {formatCount(vehicles.length + autoconsumoUnits + retiredUnits)}, {formatCount(autoconsumoUnits)} son de Autoconsumo y no usan
+        saldo prepagado (su consumo aparece en Resumen y Reportes) y {formatCount(retiredUnits)} están dadas de baja.
+      </p>
 
       <ActivitySection
         receipts={sortedReceipts}

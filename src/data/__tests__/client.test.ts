@@ -14,7 +14,7 @@ import {
   operatingUnits,
   unitById,
 } from '../client';
-import { attentionItems, autoconsumoUnits, fleetGroups, fleetVehicles, fundingRules, vehicleGroups, vehicles } from '../dispersion';
+import { attentionItems, autoconsumoUnits, fleetGroups, fleetVehicles, fundingRules, retiredUnits, vehicleGroups, vehicles } from '../dispersion';
 import { drivers, paymentMedia, vehicleDetails, vehicleMedia } from '../fleet';
 import { unitAssignments } from '../limits';
 import { serviceOrders, upcomingServices } from '../maintenance';
@@ -147,5 +147,25 @@ describe('Saldos and Autoconsumo', () => {
 
   it('Límites leaves Autoconsumo out for now', () => {
     expect(unitAssignments.every((assignment) => unitById(assignment.vehicleId)!.product === 'ticketcar_plus')).toBe(true);
+  });
+});
+
+describe('the 512 units of the padrón add up', () => {
+  it('TicketCar+ + Autoconsumo + deregistered = the whole padrón', () => {
+    expect(vehicles.length).toBe(292);
+    expect(autoconsumoUnits).toBe(206);
+    expect(retiredUnits).toBe(14);
+    expect(vehicles.length + autoconsumoUnits + retiredUnits).toBe(clientUnits.length);
+    expect(vehicleDetails.filter((detail) => detail.status === 'inactive')).toHaveLength(retiredUnits);
+  });
+
+  it('a deregistered unit stops fuelling from the day it is deregistered', () => {
+    const retired = clientUnits.filter((unit) => registryStatusOf(unit) === 'baja');
+    const ids = new Set(retired.map((unit) => unit.id));
+    const snapshot = clientSnapshot(30, new Date(2026, 9, 16, 11, 0).getTime());
+    for (const point of snapshot.accounts[0].period) {
+      expect(point.events.some((event) => ids.has(event.unitId))).toBe(false);
+      expect(point.rows.filter((row) => ids.has(row.unitId)).every((row) => !row.active && row.liters === 0)).toBe(true);
+    }
   });
 });

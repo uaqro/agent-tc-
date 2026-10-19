@@ -1,14 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { computeOptimizerKpis } from '../../domain/optimizer/metrics';
-import { departmentNodeIdOf } from '../../domain/optimizer/org';
 import { DEFAULT_ASSUMPTIONS } from '../../domain/optimizer/rules';
 import { canSession } from '../../domain/rbac/portal-roles';
 import { portalPrincipals } from '../access';
 import { apiCapabilities } from '../apiCoverage';
-import { CLIENT_ACCOUNT_ID, orgPathOf } from '../client';
+import { CLIENT_ACCOUNT_ID, unitById } from '../client';
 import { paymentMedia } from '../fleet';
 import { unitAssignments } from '../limits';
-import { cardHolder, optimizerLoads, regionSummaries } from '../optimizer';
+import { driverNameOf, scopedOptimizerLoads, regionSummaries } from '../optimizer';
+
+/** Loads the optimizer page reads for the current session. */
+const loadsOfSession = () => scopedOptimizerLoads(new Date(2026, 9, 16, 11, 0).getTime());
 import * as recommendations from '../recommendations';
 import { DEFAULT_PRINCIPAL, setSessionPrincipal } from '../session';
 
@@ -21,37 +23,37 @@ afterEach(() => {
 
 describe('optimizer data in the portal', () => {
   it('a user limited to División Noreste only sees Monterrey and Saltillo', () => {
-    const all = optimizerLoads.length;
+    const all = loadsOfSession().length;
     setSessionPrincipal(principal('u-2'));
-    expect(new Set(optimizerLoads.map((load) => load.zone))).toEqual(new Set(['monterrey', 'saltillo']));
-    expect(optimizerLoads.length).toBeLessThan(all);
+    expect(new Set(loadsOfSession().map((load) => load.zone))).toEqual(new Set(['monterrey', 'saltillo']));
+    expect(loadsOfSession().length).toBeLessThan(all);
   });
 
   it('a user limited to a department sees only that zone', () => {
     setSessionPrincipal(principal('u-7'));
-    expect(new Set(optimizerLoads.map((load) => load.zone))).toEqual(new Set(['guadalajara']));
+    expect(new Set(loadsOfSession().map((load) => load.zone))).toEqual(new Set(['guadalajara']));
   });
 
-  it('a user limited below department level sees no loads: the dataset does not go below zones', () => {
-    setSessionPrincipal({ ...principal('u-7'), scopeNodeId: `org:${CLIENT_ACCOUNT_ID}:area-zapopan` });
-    expect(optimizerLoads).toEqual([]);
+  it('a user limited to an area sees the loads of that area, and only those', () => {
+    const area = `org:${CLIENT_ACCOUNT_ID}:area-zapopan`;
+    setSessionPrincipal({ ...principal('u-7'), scopeNodeId: area });
+    expect(loadsOfSession().length).toBeGreaterThan(0);
+    expect(loadsOfSession().every((load) => load.orgPath.includes(area))).toBe(true);
   });
 
-  it('every card belongs to a TicketCar+ unit of the department of its zone', () => {
-    const checked = new Set<string>();
-    for (const load of optimizerLoads.slice(0, 2000)) {
-      if (checked.has(load.cardId)) continue;
-      checked.add(load.cardId);
-      const holder = cardHolder(load.cardId)!;
-      expect(holder.unit.product).toBe('ticketcar_plus');
-      expect(orgPathOf(holder.unit.id)).toContain(departmentNodeIdOf(load.zone));
+  it('card, unit and driver come from the data: the card is the unit\'s, the driver is the one of that day', () => {
+    for (const load of loadsOfSession().slice(0, 2000)) {
+      const unit = unitById(load.unitId)!;
+      expect(load.cardId).toBe(`TAR-${unit.id}`);
+      expect(load.product).toBe(unit.product);
+      expect(load.vehicleType).toBe(unit.vehicleClass);
     }
-    expect(checked.size).toBeGreaterThan(50);
+    expect(loadsOfSession().some((load) => load.driverId !== null && driverNameOf(load.driverId) !== load.driverId)).toBe(true);
   });
 
   it('the view by region adds up to the optimizer total', () => {
-    const regions = regionSummaries(optimizerLoads, DEFAULT_ASSUMPTIONS, 'bruto');
-    const kpis = computeOptimizerKpis(optimizerLoads, DEFAULT_ASSUMPTIONS, 'bruto', 30);
+    const regions = regionSummaries(loadsOfSession(), DEFAULT_ASSUMPTIONS, 'bruto');
+    const kpis = computeOptimizerKpis(loadsOfSession(), DEFAULT_ASSUMPTIONS, 'bruto', 30);
     expect(regions.reduce((sum, region) => sum + region.saving, 0)).toBeCloseTo(kpis.saving, 2);
     expect(regions.map((region) => region.name)).toContain('División Noreste');
   });
@@ -60,20 +62,20 @@ describe('optimizer data in the portal', () => {
 describe('Enviar al conductor', () => {
   it('logs who sent it, to which driver and when', () => {
     setSessionPrincipal(principal('u-2'));
-    const load = optimizerLoads.find((candidate) => candidate.recommendedStationId !== null)!;
-    const holder = cardHolder(load.cardId)!;
+    const load = loadsOfSession().find((candidate) => candidate.recommendedStationId !== null)!;
+    const unit = unitById(load.unitId)!;
     const entry = recommendations.sendStationRecommendation({
       cardId: load.cardId,
       maskedCard: '•••• 0000',
-      unitId: holder.unit.id,
-      plate: holder.unit.plate,
-      driverName: holder.driverName,
+      unitId: unit.id,
+      plate: unit.plate,
+      driverName: driverNameOf(load.driverId),
       fromStation: 'Origen',
       toStation: 'Destino',
     });
     expect(entry.sentBy).toBe('Mariana Treviño');
     expect(entry.sentByRole).toBe('Operador de flota');
-    expect(entry.driverName).toBe(holder.driverName);
+    expect(entry.driverName).toBe(driverNameOf(load.driverId));
     expect(entry.at).toBeGreaterThan(0);
     expect(recommendations.recommendationLog()).toEqual([entry]);
   });
@@ -89,14 +91,14 @@ describe('Enviar al conductor', () => {
     );
     const mediaBefore = JSON.stringify(paymentMedia);
     const limitsBefore = JSON.stringify(unitAssignments);
-    const load = optimizerLoads.find((candidate) => candidate.recommendedStationId !== null)!;
-    const holder = cardHolder(load.cardId)!;
+    const load = loadsOfSession().find((candidate) => candidate.recommendedStationId !== null)!;
+    const unit = unitById(load.unitId)!;
     recommendations.sendStationRecommendation({
       cardId: load.cardId,
       maskedCard: '•••• 0000',
-      unitId: holder.unit.id,
-      plate: holder.unit.plate,
-      driverName: holder.driverName,
+      unitId: unit.id,
+      plate: unit.plate,
+      driverName: driverNameOf(load.driverId),
       fromStation: 'Origen',
       toStation: 'Destino',
     });
