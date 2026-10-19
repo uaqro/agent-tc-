@@ -18,7 +18,7 @@ import { cardIdOf, cardLast4Of } from '../data/cards'
 import { fleetUnitsOf } from '../data/fleet-activity'
 import type { FleetUnit, FuelEvent } from '../dashboard/types'
 import { unassignedNodeId } from '../org/types'
-import { cheaperNeighbor, contractPriceAt, dayIndexOf, dayStartOf, stations } from '../stations/directory'
+import { cheaperNeighbor, contractPriceAt, dayIndexOf, dayStartOf, hashFraction, stations } from '../stations/directory'
 import type { Load, ZoneId } from './types'
 
 const zoneOfStation = (() => {
@@ -28,6 +28,28 @@ const zoneOfStation = (() => {
     return index.get(stationId)
   }
 })()
+
+/**
+ * Modelo de desvío — Ticket Car+.
+ * ═════════════════════════════
+ * El motor recomienda la estación más barata a ≤ 5 km de la habitual, sin mirar
+ * la ruta. Lo que cuesta ir no es esa distancia, sino lo que la unidad se
+ * aparta de su recorrido de la jornada:
+ *   · EN RUTA (56 % de las cargas): la recomendada queda de camino y no añade
+ *     kilómetros;
+ *   · FUERA DE RUTA (44 %): la estación barata queda lejos y hay que ir y
+ *     volver a la ruta, entre 1,1 y 1,5 veces la distancia entre estaciones.
+ * Por eso las recomendaciones que no compensan son las de estación lejana.
+ */
+export const OFF_ROUTE_SHARE = 0.44
+const OFF_ROUTE_FACTOR = { min: 1.1, max: 1.5 } as const
+
+function detourOf(unitId: string, at: number, distanceM: number): { detourM: number; offRoute: boolean } {
+  const offRoute = hashFraction(`${unitId}:${at}:ruta`) < OFF_ROUTE_SHARE
+  if (!offRoute) return { detourM: 0, offRoute }
+  const factor = OFF_ROUTE_FACTOR.min + (OFF_ROUTE_FACTOR.max - OFF_ROUTE_FACTOR.min) * hashFraction(`${unitId}:${at}:lejos`)
+  return { detourM: Math.round(distanceM * factor), offRoute }
+}
 
 /** Cargas de los despachos de una cuenta. Los despachos sin estación (cuentas sin directorio) no entran. */
 export function loadsFromEvents(account: Account, events: readonly FuelEvent[]): Load[] {
@@ -44,6 +66,7 @@ export function loadsFromEvents(account: Account, events: readonly FuelEvent[]):
     // Precio pagado: el de la estación ese día. El importe ya viene redondeado del generador.
     const pricePaid = contractPriceAt(event.stationId, event.fuel, day)
     const best = event.refund || unit.product === 'autoconsumo' ? null : cheaperNeighbor(event.stationId, event.fuel, day)
+    const detour = best === null ? { detourM: 0, offRoute: false } : detourOf(event.unitId, event.at, best.distanceM)
 
     loads.push({
       id: `CRG-${event.unitId}-${event.at}${event.refund ? '-abono' : ''}`,
@@ -68,7 +91,8 @@ export function loadsFromEvents(account: Account, events: readonly FuelEvent[]):
       pricePaid,
       recommendedStationId: best?.stationId ?? null,
       priceRecommended: best?.price ?? null,
-      detourM: best?.distanceM ?? 0,
+      detourM: detour.detourM,
+      offRoute: detour.offRoute,
       savingCents: best === null ? 0 : Math.round((pricePaid - best.price) * event.liters * 100),
       // Óptima: no hay otra más barata cerca. Las plantas propias y los abonos no se redirigen.
       optimal: best === null,

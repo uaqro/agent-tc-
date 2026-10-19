@@ -15,7 +15,7 @@ import {
   tripsOf,
 } from '../rules'
 import { maskCard } from '../masking'
-import { SEARCH_RADIUS_M, STATION_ACCOUNT_ID } from '../../stations/directory'
+import { SEARCH_RADIUS_M, STATION_ACCOUNT_ID, roadDistanceM } from '../../stations/directory'
 import { DAYS, loads as padronLoads, stationsById as padronStations } from './fixture'
 import {
   DEFAULT_OPTIMIZER_FILTERS,
@@ -64,6 +64,7 @@ function load(overrides: Partial<Load> = {}): Load {
     recommendedStationId: 'B',
     priceRecommended: 23.5,
     detourM: 3000,
+    offRoute: true,
     savingCents: 5000,
     optimal: false,
     ...overrides,
@@ -285,7 +286,11 @@ describe('cargas del padrón: los casos que la demo tiene que poder enseñar', (
   it('el motor no propone destinos fuera de 5 km, ni a la misma estación, ni plantas propias', () => {
     for (const l of loads) {
       if (l.recommendedStationId === null) continue
-      expect(l.detourM).toBeLessThanOrEqual(SEARCH_RADIUS_M)
+      // El radio es entre estaciones; el desvío (`detourM`) es lo que la unidad se aparta de su ruta.
+      const from = stationsById.get(l.stationId)!
+      const to = stationsById.get(l.recommendedStationId)!
+      expect(roadDistanceM(from, to)).toBeLessThanOrEqual(SEARCH_RADIUS_M)
+      if (!l.offRoute) expect(l.detourM).toBe(0)
       expect(l.recommendedStationId).not.toBe(l.stationId)
       expect(l.priceRecommended!).toBeLessThan(l.pricePaid)
       expect(stationsById.get(l.recommendedStationId)!.own).not.toBe(true)

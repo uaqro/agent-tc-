@@ -91,8 +91,13 @@ export type Load = {
   recommendedStationId: string | null
   /** $/L en la estación recomendada. */
   priceRecommended: number | null
-  /** Desvío hasta la recomendada, en metros (solo ida). */
+  /**
+   * Desvío EXTRA hasta la recomendada, en metros (solo ida), respecto de la ruta
+   * de la jornada. Cero si la recomendada queda en ruta (`offRoute` falso).
+   */
   detourM: number
+  /** La estación barata queda fuera de la ruta: hay que ir a por ella y volver. */
+  offRoute: boolean
   /** Ahorro BRUTO en centavos: (pagado − recomendado) × litros. */
   savingCents: number
   /** El motor la marca como la mejor opción de su zona. */

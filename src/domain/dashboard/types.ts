@@ -390,6 +390,17 @@ export type DayUnitRow = {
 }
 
 /** Día del periodo. El último punto es el día en curso y va incompleto. */
+/** Un flujo de despachos que no llegó — Ticket Car+ (`FEED_GAPS` en `fleet-activity`). */
+export type FeedGap = {
+  product: FuelProduct
+  from: string
+  to: string
+  /** Estaciones (plantas) cuyos despachos faltan. `null` = todo el producto. */
+  stations: readonly string[] | null
+  /** Para los textos: qué parte de la fuente falta. */
+  label: string
+}
+
 export type DayPoint = {
   at: number
   /** Etiqueta corta para el eje: «12 ago». */
@@ -399,11 +410,11 @@ export type DayPoint = {
   /** Una fila por unidad del padrón de ese día. */
   rows: DayUnitRow[]
   /**
-   * Productos cuyo flujo de despachos NO llegó ese día — Ticket Car+ (`FEED_GAPS`).
-   * Sus unidades salen sin cargas, pero eso es un hueco de datos, no un consumo
-   * cero: las gráficas lo pintan como hueco y no interpolan.
+   * Flujos de despachos que NO llegaron ese día — Ticket Car+ (`FEED_GAPS`).
+   * Sus cargas faltan, pero eso es un hueco de datos, no un consumo cero: las
+   * gráficas lo pintan como hueco y no interpolan.
    */
-  missingFeeds: FuelProduct[]
+  missingFeeds: FeedGap[]
   /**
    * Los despachos de ese día, con su hora — EP-03 · US-016, criterio 2.
    *

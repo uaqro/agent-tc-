@@ -21,8 +21,9 @@
  * abonos van como líneas negativas, igual que en el Resumen.
  *
  * El hueco de febrero de 2026 vuelve, pero ya no lo pone el reporte: lo trae el
- * generador (`FEED_GAPS`), así que el Resumen y el optimizador ven el mismo
- * hueco. El reporte no lee la constante: lo detecta en los datos y avisa.
+ * generador (`FEED_GAPS`), así que el Resumen ve el mismo hueco. Es de la fuente
+ * externa, Autoconsumo, y solo de dos plantas: el lote del ERP lleva la planta de
+ * cada despacho y el reporte detecta el hueco planta a planta, sin leer la constante.
  */
 import { eventsBetween } from '../datasource/active'
 import { FEED_GAPS } from '../data/fleet-activity'
@@ -46,6 +47,8 @@ export type AutoconsumoRow = {
   importe: string
   /** Código corto: «CC-01». */
   centroCosto: string
+  /** Planta (tanque) del despacho: «AUTO-MTY». Vacía si el ERP no la trae. */
+  planta: string
 }
 
 export type TicketCarTxn = {
@@ -73,11 +76,9 @@ export const COVERAGE = (() => {
 })()
 
 /** Entregas que faltan, para la documentación y las pruebas: las del generador. El reporte NO lee esto. */
-export const SOURCE_GAPS: { source: FuelProduct; from: string; to: string }[] = FEED_GAPS.map((gap) => ({
-  source: gap.product,
-  from: gap.from,
-  to: gap.to,
-}))
+export const SOURCE_GAPS: { source: FuelProduct; from: string; to: string; plants: readonly string[] | null }[] = FEED_GAPS.map(
+  (gap) => ({ source: gap.product, from: gap.from, to: gap.to, plants: gap.stations }),
+)
 
 const PRODUCT_CODE: Record<FuelType, AutoconsumoRow['producto']> = { diesel: 'DIESEL', magna: 'MAGNA', premium: 'PREMIUM' }
 const FUEL_CODE: Record<FuelType, TicketCarTxn['fuelCode']> = { diesel: 'D', magna: 'M', premium: 'P' }
@@ -118,6 +119,7 @@ export function sourcesOf(account: Account): AccountSources {
         litros: commaDecimal(event.liters),
         importe: commaDecimal(event.amountMxn),
         centroCosto: event.costCenter.split(' ')[0]!,
+        planta: event.stationId ?? '',
       })
     } else {
       sources.ticketcar.push({

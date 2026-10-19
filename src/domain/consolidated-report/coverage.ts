@@ -20,13 +20,22 @@
 import { FUEL_PRODUCT_LABELS, type FuelProduct } from '../dashboard/types'
 import type { Dispatch } from './normalize'
 import { COVERAGE } from './sources'
+import { stationNameOf } from '../stations/directory'
 
 /** Días seguidos sin registros a partir de los cuales se avisa. */
 export const MIN_GAP_DAYS = 3
 
 export type CoverageWarning =
   | { kind: 'fuera_de_cobertura'; from: string; to: string; message: string }
-  | { kind: 'hueco_de_fuente'; source: FuelProduct; from: string; to: string; message: string }
+  | {
+      kind: 'hueco_de_fuente'
+      source: FuelProduct
+      /** Planta que no entregó; `null` si falta la fuente entera. */
+      plant: string | null
+      from: string
+      to: string
+      message: string
+    }
 
 const pad = (n: number) => String(n).padStart(2, '0')
 export const isoOfTime = (time: number) => {
@@ -85,17 +94,29 @@ export function coverageWarnings(accountDispatches: readonly Dispatch[], from: s
   const end = to < COVERAGE.to ? to : COVERAGE.to
   if (start > end) return warnings
 
-  const daysBySource = new Map<FuelProduct, Set<string>>()
+  // Días con datos de cada fuente y de cada planta. Una planta es una entrega más:
+  // si falta, faltan sus cargas aunque la fuente siga llegando de las demás.
+  const daysBy = new Map<string, { source: FuelProduct; plant: string | null; days: Set<string> }>()
+  const mark = (source: FuelProduct, plant: string | null, day: string) => {
+    const key = `${source}|${plant ?? ''}`
+    const entry = daysBy.get(key) ?? { source, plant, days: new Set<string>() }
+    entry.days.add(day)
+    daysBy.set(key, entry)
+  }
   for (const d of accountDispatches) {
-    const days = daysBySource.get(d.source) ?? new Set<string>()
-    days.add(isoOfTime(d.at))
-    daysBySource.set(d.source, days)
+    const day = isoOfTime(d.at)
+    mark(d.source, null, day)
+    if (d.plant !== null) mark(d.source, d.plant, day)
   }
 
-  for (const source of Object.keys(FUEL_PRODUCT_LABELS) as FuelProduct[]) {
-    const days = daysBySource.get(source)
+  const sources = Object.keys(FUEL_PRODUCT_LABELS) as FuelProduct[]
+  const feeds = [...daysBy.values()].sort(
+    (a, b) => sources.indexOf(a.source) - sources.indexOf(b.source) || (a.plant ?? '').localeCompare(b.plant ?? ''),
+  )
+  for (const { source, plant, days } of feeds) {
     // Una fuente que la cuenta no usa no tiene huecos: no tiene datos.
-    if (days === undefined || days.size === 0) continue
+    if (days.size === 0) continue
+    const what = plant === null ? '' : ` de la ${plantLabel(plant)}`
 
     let runStart: string | null = null
     let runLength = 0
@@ -104,9 +125,10 @@ export function coverageWarnings(accountDispatches: readonly Dispatch[], from: s
         warnings.push({
           kind: 'hueco_de_fuente',
           source,
+          plant,
           from: runStart,
           to: last,
-          message: `${FUEL_PRODUCT_LABELS[source]} no entregó datos ${rangeText(runStart, last)}: esas cargas no están en el reporte.`,
+          message: `${FUEL_PRODUCT_LABELS[source]} no entregó datos${what} ${rangeText(runStart, last)}: esas cargas no están en el reporte.`,
         })
       }
       runStart = null
@@ -124,4 +146,12 @@ export function coverageWarnings(accountDispatches: readonly Dispatch[], from: s
   }
 
   return warnings
+}
+
+/** «AUTO-HMO» → «planta de Hermosillo». */
+function plantLabel(plant: string): string {
+  const name = stationNameOf(plant)
+  const place = name.includes('Planta ') ? name.slice(name.indexOf('Planta ') + 'Planta '.length) : plant
+  return `planta de ${place}`
+
 }

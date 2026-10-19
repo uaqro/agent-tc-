@@ -51,12 +51,12 @@ ${body || '<tr><td colspan="6">Sin despachos en el alcance.</td></tr>'}
 
 /** Litros por mes y fuente. Un mes sin datos de una fuente dice «Sin datos»: ni cero ni interpolado. */
 function monthTable(report: ConsolidatedReport): string {
-  const cell = (value: { liters: number | null; incomplete: boolean }) =>
+  const cell = (source: 'autoconsumo' | 'ticketcar_plus', value: { liters: number | null; incomplete: boolean }) =>
     value.liters === null
-      ? '<td class="n gap">Sin datos</td>'
+      ? `<td class="n gap">Sin datos de ${SOURCE_LABEL[source]} para este periodo</td>`
       : `<td class="n">${number.format(value.liters)}${value.incomplete ? ' <span class="note">(incompleto)</span>' : ''}</td>`
   const body = report.byMonth
-    .map((row) => `<tr><td>${row.label}</td>${cell(row.bySource.autoconsumo)}${cell(row.bySource.ticketcar_plus)}</tr>`)
+    .map((row) => `<tr><td>${row.label}</td>${cell('autoconsumo', row.bySource.autoconsumo)}${cell('ticketcar_plus', row.bySource.ticketcar_plus)}</tr>`)
     .join('\n')
   return `<table>
 <thead><tr><th>Mes</th><th class="n">${SOURCE_LABEL.autoconsumo} (L)</th><th class="n">${SOURCE_LABEL.ticketcar_plus} (L)</th></tr></thead>
@@ -64,7 +64,7 @@ function monthTable(report: ConsolidatedReport): string {
 ${body}
 </tbody>
 </table>
-<p class="note">Litros de todo el alcance. «Sin datos» es un mes que la fuente no entregó: no se cuenta como cero ni se interpola.</p>`
+<p class="note">Litros de todo el alcance. «Sin datos» es un mes que la fuente, o una de sus plantas dentro del alcance, no entregó: no se cuenta como cero ni se interpola.</p>`
 }
 
 /** Lo que falta en el periodo, en la portada: quien lee el reporte lo ve antes que las cifras. */

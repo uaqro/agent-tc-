@@ -21,6 +21,8 @@ export type Dispatch = {
   liters: number
   amountMxn: number
   costCenter: string
+  /** Planta de Autoconsumo del despacho; `null` en TicketCar+ o si la fuente no la trae. */
+  plant: string | null
 }
 
 const FROM_PRODUCT: Record<AutoconsumoRow['producto'], FuelType> = { DIESEL: 'diesel', MAGNA: 'magna', PREMIUM: 'premium' }
@@ -52,6 +54,7 @@ export function fromAutoconsumo(row: AutoconsumoRow, costCenters: readonly strin
     liters: parseCommaDecimal(row.litros),
     amountMxn: parseCommaDecimal(row.importe),
     costCenter: expandCostCenter(row.centroCosto, costCenters),
+    plant: row.planta === '' || row.planta === undefined ? null : row.planta,
   }
 }
 
@@ -72,6 +75,7 @@ export function fromTicketCar(txn: TicketCarTxn): Dispatch {
     liters: txn.volumeMl / 1000,
     amountMxn: txn.amountCents / 100,
     costCenter: txn.costCenter,
+    plant: null,
   }
 }
 

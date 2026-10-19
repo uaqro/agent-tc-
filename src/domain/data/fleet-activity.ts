@@ -39,9 +39,11 @@
  *      (`data/__tests__/dataProperties.test.ts`):
  *        · ESTACIONALIDAD mensual (`MONTH_FACTOR`): más actividad en
  *          noviembre–diciembre, menos en enero–febrero y en Semana Santa;
- *        · un HUECO DE DATOS (`FEED_GAPS`): el flujo de TicketCar+ de febrero
- *          de 2026 no llegó, como en el reporte de eOne. Es un hueco, no un
- *          consumo cero, y el día lo declara en `DayPoint.missingFeeds`;
+ *        · un HUECO DE DATOS (`FEED_GAPS`): el ERP de Autoconsumo no entregó
+ *          febrero de 2026 de las plantas de la División Noroeste. Es un
+ *          hueco, no un consumo cero, y el día lo declara en
+ *          `DayPoint.missingFeeds`. TicketCar+ es el transaccional propio del
+ *          portal y no tiene huecos;
  *        · ANOMALÍAS de consumo para Insights: cargas por encima del tanque,
  *          cargas fuera de horario y unidades con rendimiento atípico.
  */
@@ -51,6 +53,7 @@ import type {
   DayPoint,
   DayUnitRow,
   DrivingBehavior,
+  FeedGap,
   FleetDriver,
   FleetUnit,
   FuelEvent,
@@ -290,21 +293,41 @@ function monthFactor(at: number): number {
 /**
  * Huecos de datos — el febrero de eOne, ahora dentro del generador único.
  * ══════════════════════════════════════════════════════════════════════
- * El switch de TicketCar+ no entregó el flujo de febrero de 2026: las cargas
- * existieron, pero no llegaron. Las unidades de TicketCar+ (algo más de la
- * mitad de la flota) se quedan esos días sin despachos y las de Autoconsumo
- * siguen. El reporte lo detecta en los datos y avisa; las gráficas lo pintan
- * como hueco gracias a `DayPoint.missingFeeds`. Nadie interpola.
+ * En el portal de Ticket Car+, TicketCar+ es el sistema transaccional propio:
+ * sus transacciones no tienen huecos. El hueco está en la fuente EXTERNA
+ * integrada, el ERP de Autoconsumo, y solo en parte de ella: las plantas
+ * propias de la División Noroeste (Hermosillo y Culiacán, 45 de las 206
+ * unidades de Autoconsumo) no entregaron febrero de 2026. Las cargas
+ * existieron, pero no llegaron; las demás plantas siguen.
+ *
+ * El reporte lo detecta en los datos, planta a planta, y avisa; el Resumen lo
+ * pinta como hueco gracias a `DayPoint.missingFeeds`. Nadie interpola.
  */
-export const FEED_GAPS: readonly { product: FuelProduct; from: string; to: string }[] = [
-  { product: 'ticketcar_plus', from: '2026-02-01', to: '2026-02-28' },
+export type { FeedGap }
+
+export const FEED_GAPS: readonly FeedGap[] = [
+  {
+    product: 'autoconsumo',
+    from: '2026-02-01',
+    to: '2026-02-28',
+    stations: ['AUTO-HMO', 'AUTO-CUL'],
+    label: 'plantas de Hermosillo y Culiacán, División Noroeste',
+  },
 ]
 
-/** Productos cuyo flujo falta el día que empieza en `dayStart`. */
-export function missingFeedsOn(dayStart: number): FuelProduct[] {
+/** Huecos activos el día que empieza en `dayStart`. */
+export function feedGapsOn(dayStart: number): FeedGap[] {
   const date = new Date(dayStart)
   const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-  return FEED_GAPS.filter((gap) => iso >= gap.from && iso <= gap.to).map((gap) => gap.product)
+  return FEED_GAPS.filter((gap) => iso >= gap.from && iso <= gap.to)
+}
+
+/** `true` si el despacho cae en un hueco: existió, pero su fuente no lo entregó. */
+export function isUndelivered(event: Pick<FuelEvent, 'product' | 'stationId'>, gaps: readonly FeedGap[]): boolean {
+  return gaps.some(
+    (gap) =>
+      gap.product === event.product && (gap.stations === null || (event.stationId !== null && gap.stations.includes(event.stationId))),
+  )
 }
 
 // ── Anomalías de consumo (para Insights, Fase 2) ─────────────────────────
@@ -665,7 +688,7 @@ function dayPlan(
   const daysAgo = Math.max(0, Math.round((todayStart - dayStart) / DAY))
   const price = priceOfDay(daysAgo)
   const intensity = weekdayFactor(dayStart) * monthFactor(dayStart)
-  const missingFeeds = missingFeedsOn(dayStart)
+  const missingFeeds = feedGapsOn(dayStart)
 
   const plans: UnitPlan[] = []
 
@@ -753,8 +776,6 @@ function dayPlan(
      * para no mover el sorteo de las demás unidades.
      */
     const retired = unit.deregisteredAt !== null && unit.deregisteredAt <= dayStart
-    // Flujo no entregado (`FEED_GAPS`): la unidad operó, pero sus despachos no llegaron.
-    const undelivered = missingFeeds.includes(unit.product)
 
     plans.push({
       unit,
@@ -766,7 +787,8 @@ function dayPlan(
       shiftStart,
       shiftEnd,
       kmTotal: retired ? 0 : kmTotal,
-      events: retired || undelivered ? [] : events,
+      // Flujo no entregado (`FEED_GAPS`): la unidad operó, pero esos despachos no llegaron.
+      events: retired ? [] : events.filter((event) => !isUndelivered(event, missingFeeds)),
     })
   }
 
@@ -780,7 +802,7 @@ function dayPlan(
    * nadie a saber pintar un negativo.
    */
   const abonada = plans.find(
-    (plan) => plan.status === 'activa' && plan.events.length === 0 && !missingFeeds.includes(plan.unit.product),
+    (plan) => plan.status === 'activa' && plan.events.length === 0 && !missingFeeds.some((gap) => gap.product === plan.unit.product),
   )
   if (abonada) {
     const profile = COST_CENTERS.find((c) => c.id === abonada.unit.costCenter) ?? COST_CENTERS[0]!
@@ -987,7 +1009,7 @@ function dayPoint(
     label: dayLabel.format(new Date(dayStart)),
     partial: dayStart === todayStart,
     rows: unitRows(plans, until),
-    missingFeeds: missingFeedsOn(dayStart),
+    missingFeeds: feedGapsOn(dayStart),
     // Los despachos con su hora — US-016. Se recortan por `until` igual que las
     // filas, para que el día en curso no adelante repostajes que aún no han
     // ocurrido.
@@ -1144,7 +1166,7 @@ export function buildAccountActivity(
     label: dayLabel.format(new Date(todayStart)),
     partial: true,
     rows: unitRows(today, now),
-    missingFeeds: missingFeedsOn(todayStart),
+    missingFeeds: feedGapsOn(todayStart),
     events: eventsUpTo(today, now),
   })
 

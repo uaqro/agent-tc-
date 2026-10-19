@@ -3,13 +3,15 @@
  * charts and the four indicators above them always describe the same slice.
  */
 import { FUEL_PRODUCT_LABELS, type DayPoint, type FuelEvent, type FuelProduct } from '../domain/dashboard/types';
-import { eventsBetween, missingFeedsOn } from '../domain/data/fleet-activity';
+import { FEED_GAPS, eventsBetween, feedGapsOn, type FeedGap } from '../domain/data/fleet-activity';
+import type { FleetUnit } from '../domain/dashboard/types';
+import { stationForDispatch } from '../domain/stations/directory';
 import { businessNow } from '../domain/demo/clock';
 import { inOrgScope } from '../domain/rbac/scope';
 import { matches, ANY, type GlobalFilters } from '../domain/filters/types';
 import { childrenOf, findNode, rootOf } from '../domain/org/types';
 import type { ChartSeries, GapSeries } from '../types';
-import { clientAccount, clientOrgTree, orgPathOf, unitById } from './client';
+import { clientAccount, clientOrgTree, clientUnits, orgPathOf, unitById } from './client';
 import { expectedKmPerLiter } from './fleet';
 import { scopedSnapshot, sessionPrincipal } from './session';
 
@@ -47,6 +49,33 @@ function eventsOfYear(at: number): { months: Date[]; events: FuelEvent[] } {
   return { months, events: yearEvents.events };
 }
 
+/**
+ * Whether a unit belongs to the slice the chart shows: session scope plus the global filters that describe the unit
+ * itself. Day-level filters (route, behaviour, driver) cannot rule a unit out, so they count as a match.
+ */
+function unitInSlice(unit: FleetUnit, filters: GlobalFilters): boolean {
+  const path = orgPathOf(unit.id);
+  return (
+    inOrgScope(sessionPrincipal(), path) &&
+    (filters.fuel === ANY || filters.fuel === unit.fuel) &&
+    (filters.product === ANY || filters.product === unit.product) &&
+    (filters.costCenter === ANY || filters.costCenter === unit.costCenter) &&
+    (filters.group === ANY || filters.group === unit.group) &&
+    (filters.unitId === ANY || filters.unitId === unit.id) &&
+    (filters.orgNodeId === ANY || path.includes(filters.orgNodeId))
+  );
+}
+
+/** A gap touches the slice when one of the slice's units fuels where the feed did not arrive. */
+function gapTouches(gap: FeedGap, filters: GlobalFilters): boolean {
+  return clientUnits.some(
+    (unit) =>
+      unit.product === gap.product &&
+      unitInSlice(unit, filters) &&
+      (gap.stations === null || gap.stations.includes(stationForDispatch(clientAccount, unit.id, unit.product, 0, 0) ?? '')),
+  );
+}
+
 export interface MonthlyChartData {
   labels: string[];
   series: GapSeries[];
@@ -73,21 +102,29 @@ export function monthlyConsumption(filters: GlobalFilters, at = businessNow()): 
   }
 
   const gaps: string[] = [];
+  const touches = new Map(FEED_GAPS.map((gap) => [gap, gapTouches(gap, filters)]));
   const series = products.map((product) => ({
     name: FUEL_PRODUCT_LABELS[product],
     color: PRODUCT_COLOR[product],
+    gapLabel: `Sin datos de ${FUEL_PRODUCT_LABELS[product]} para este periodo`,
     values: months.map((month) => {
       const days = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
       let missing = 0;
+      const parts = new Set<string>();
       for (let day = 1; day <= days; day++) {
-        if (missingFeedsOn(new Date(month.getFullYear(), month.getMonth(), day).getTime()).includes(product)) missing += 1;
+        const open = feedGapsOn(new Date(month.getFullYear(), month.getMonth(), day).getTime()).filter(
+          (gap) => gap.product === product && touches.get(gap),
+        );
+        if (open.length > 0) missing += 1;
+        for (const gap of open) parts.add(gap.label);
       }
       const label = `${MONTH_SHORT[month.getMonth()]} ${month.getFullYear()}`;
+      const which = [...parts].join('; ');
       if (missing === days) {
-        gaps.push(`${FUEL_PRODUCT_LABELS[product]} no entregó datos de ${label}.`);
+        gaps.push(`${label}: Sin datos de ${FUEL_PRODUCT_LABELS[product]} para este periodo (${which}).`);
         return null;
       }
-      if (missing > 0) gaps.push(`${FUEL_PRODUCT_LABELS[product]} no entregó ${missing} días de ${label}: el mes está incompleto.`);
+      if (missing > 0) gaps.push(`${label}: faltan ${missing} días de ${FUEL_PRODUCT_LABELS[product]} (${which}); el mes está incompleto.`);
       return Math.round(liters.get(`${month.getFullYear()}-${month.getMonth()}|${product}`) ?? 0);
     }),
   }));

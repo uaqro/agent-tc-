@@ -164,7 +164,7 @@ export function LineChart({
             rows={series.map((item) => ({
               color: item.color,
               label: item.name,
-              value: item.values[activeIndex] === null ? 'Sin datos' : `${item.values[activeIndex]}${valueSuffix}`,
+              value: item.values[activeIndex] === null ? (item.gapLabel ?? 'Sin datos') : `${item.values[activeIndex]}${valueSuffix}`,
             }))}
           />
         )}

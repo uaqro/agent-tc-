@@ -26,6 +26,8 @@ export interface GapSeries {
   name: string;
   color: string;
   values: (number | null)[];
+  /** Tooltip text for a gap. Defaults to «Sin datos». */
+  gapLabel?: string;
 }
 
 export type AppRoute =

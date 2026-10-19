@@ -122,8 +122,9 @@ export function LoadDetail({
         </header>
         <p className="optimizer-detail__disclaimer">
           {RECOMMENDATION_DISCLAIMER}. «Enviar al conductor» es manual y por tarjeta; «Aplicar en Límites» abre Límites con la
-          unidad y la estación precargadas, y nada cambia hasta que lo confirmas allí. Una recomendación «No compensa» cuando el
-          desvío cuesta más de lo que ahorra con los supuestos de arriba: se puede descartar y deja de sumar ahorro.
+          unidad y la estación precargadas, y nada cambia hasta que lo confirmas allí. Una recomendación «No compensa» cuando la
+          estación barata queda lejos de la ruta y el desvío cuesta más de lo que ahorra con los supuestos de arriba: se puede
+          descartar y deja de sumar ahorro.
         </p>
 
         <div className="table-page__scroll">
@@ -170,12 +171,15 @@ export function LoadDetail({
                     <td className="table-page__nowrap">
                       {price(load.pricePaid)} → {price(load.priceRecommended)}
                     </td>
-                    <td className="table-page__nowrap">{redirectable ? `${(load.detourM / 1000).toFixed(1)} km` : '—'}</td>
+                    <td className="table-page__nowrap">
+                      {!redirectable ? '—' : load.offRoute ? `${(load.detourM / 1000).toFixed(1)} km` : 'En ruta'}
+                      {redirectable && load.offRoute && <span className="table-page__sub">Fuera de ruta</span>}
+                    </td>
                     <td className="table-page__nowrap">
                       {redirectable ? formatMoney(savingIn(load, mode, assumptions), true) : <span className="table-page__sub">{reason ? REASON_LABELS[reason] : '—'}</span>}
                       {loses && (
-                        <span className="chip chip--danger table-page__gap" title="El desvío cuesta más de lo que ahorra en el litro">
-                          No compensa · neto {formatMoney(netSaving(load, assumptions), true)}
+                        <span className="chip chip--danger table-page__gap" title="La estación barata queda lejos de la ruta: el desvío cuesta más de lo que ahorra en el litro">
+                          No compensa · la estación barata queda lejos · neto {formatMoney(netSaving(load, assumptions), true)}
                         </span>
                       )}
                       {isDiscarded && <span className="chip chip--paused table-page__gap">Descartada</span>}

@@ -58,6 +58,7 @@ describe('las diferencias de formato se resuelven en la capa de datos', () => {
         litros: '123,40',
         importe: '3.120,50',
         centroCosto: 'CC-01',
+        planta: 'AUTO-MTY',
       },
       COST_CENTER_IDS,
     )

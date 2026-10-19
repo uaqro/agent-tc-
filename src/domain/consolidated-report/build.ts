@@ -341,8 +341,9 @@ export type ConsolidatedReport = {
   byDriver: BreakdownRow[]
   /**
    * Litros por mes y fuente — Ticket Car+. Muestra la estacionalidad y los
-   * huecos: un mes que una fuente no entregó es `null` («Sin datos»), nunca
-   * cero ni un valor interpolado. Si solo faltan unos días, lleva `incomplete`.
+   * huecos: un mes que una fuente (o una planta del alcance) no entregó es
+   * `null` («Sin datos de … para este periodo»), nunca cero ni un valor
+   * interpolado. Si solo faltan unos días, lleva `incomplete`.
    */
   byMonth: MonthRow[]
 }
@@ -364,11 +365,21 @@ function nextIsoDay(iso: string): string {
 }
 
 /** Meses del periodo con los litros de cada fuente; los días sin datos de una fuente salen de los avisos de cobertura. */
-function monthRows(dispatches: readonly Dispatch[], fromIso: string, toIso: string, coverage: readonly CoverageWarning[]): MonthRow[] {
+function monthRows(
+  dispatches: readonly Dispatch[],
+  fromIso: string,
+  toIso: string,
+  coverage: readonly CoverageWarning[],
+  /** Plantas que tienen unidades dentro del alcance: el hueco de una planta ajena no vacía el mes. */
+  scopePlants: ReadonlySet<string>,
+): MonthRow[] {
   const sources = Object.keys(FUEL_PRODUCT_LABELS) as FuelProduct[]
   const missing = (source: FuelProduct, day: string) =>
     coverage.some(
-      (w) => (w.kind === 'fuera_de_cobertura' || w.source === source) && day >= w.from && day <= w.to,
+      (w) =>
+        (w.kind === 'fuera_de_cobertura' || (w.source === source && (w.plant === null || scopePlants.has(w.plant)))) &&
+        day >= w.from &&
+        day <= w.to,
     )
   const months = new Map<string, { days: number; missing: Record<FuelProduct, number>; liters: Record<FuelProduct, number> }>()
   for (let day = fromIso; day <= toIso; day = nextIsoDay(day)) {
@@ -549,7 +560,13 @@ export function computeReport(
     periodLabel: period.label,
     periodRange: { from: period.fromIso, to: period.toIso },
     coverage,
-    byMonth: monthRows(dispatches, period.fromIso, period.toIso, coverage),
+    byMonth: monthRows(
+      dispatches,
+      period.fromIso,
+      period.toIso,
+      coverage,
+      new Set(accountDispatches.filter((d) => d.plant !== null && prepared.inScope(d)).map((d) => d.plant!)),
+    ),
     generatedAt: now,
     generatedBy: principal.name,
     kpis: {

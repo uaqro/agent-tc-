@@ -96,8 +96,9 @@ export function notRedirectableReason(
 /**
  * Redirigible pero con ahorro NETO negativo: el desvío cuesta más de lo que se
  * ahorra en el litro — Ticket Car+. El motor recomienda la estación más barata
- * a ≤ 5 km sin mirar la distancia, así que una parte de sus recomendaciones
- * pierde dinero en cuanto se cuenta el viaje. Se marcan y se pueden descartar.
+ * a ≤ 5 km sin mirar la ruta; cuando esa estación queda fuera de ella
+ * (`Load.offRoute`), una parte de las recomendaciones pierde dinero en cuanto
+ * se cuenta el viaje. Se marcan y se pueden descartar.
  */
 export function losesMoney(
   load: Pick<Load, 'optimal' | 'savingCents' | 'detourM' | 'pricePaid'>,
