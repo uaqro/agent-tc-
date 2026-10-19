@@ -194,60 +194,6 @@ export const optimizationInsights: OptimizationInsight[] = [
   },
 ];
 
-/* ── Optimizador de gasolineras ─────────────────────────────────── */
-
-export interface RegionOpportunity {
-  id: string;
-  name: string;
-  states: string;
-  color: string;
-  savingsMXN: number;
-  stations: number;
-  cards: number;
-  gapPct: number;
-}
-
-export interface StationSwap {
-  plate: string;
-  driver: string;
-  group: string;
-  fromStation: string;
-  fromPrice: number;
-  toStation: string;
-  toPrice: number;
-  detourKm: number;
-  monthlyLiters: number;
-}
-
-export const optimizerSummary = {
-  updated: 'hoy, 06:00 h',
-  activeCards: 26,
-  currentPrice: 24.8,
-  recommendedPrice: 23.66,
-  alternativeStations: 179,
-  optimizableCards: 12,
-};
-
-export const regionOpportunities: RegionOpportunity[] = [
-  { id: 'r-cdmx', name: 'CDMX / Valle de México', states: 'CDMX, Edomex, Mor', color: '#ca0e00', savingsMXN: 84_600, stations: 53, cards: 48, gapPct: 10.7 },
-  { id: 'r-centro', name: 'Centro / Bajío', states: 'Jal, Gto, Qro, Ags', color: '#0060df', savingsMXN: 62_800, stations: 41, cards: 35, gapPct: 9.3 },
-  { id: 'r-noroeste', name: 'Noroeste', states: 'BC, Son, Sin, Nay', color: '#0a7a7a', savingsMXN: 48_200, stations: 34, cards: 28, gapPct: 8.1 },
-  { id: 'r-noreste', name: 'Noreste', states: 'NL, Tamps, Coah', color: '#bf410f', savingsMXN: 31_400, stations: 29, cards: 22, gapPct: 6.4 },
-  { id: 'r-sur', name: 'Sur / Sureste', states: 'Oax, Chis, Ver, Tab', color: '#6b4dc7', savingsMXN: 24_100, stations: 22, cards: 18, gapPct: 5.9 },
-];
-
-export const stationSwaps: StationSwap[] = [
-  { plate: 'EFG-44-35', driver: 'Rodrigo Estrada Sarmiento', group: 'Zona Metropolitana', fromStation: 'PEMEX Autopista km 142', fromPrice: 25.34, toStation: 'G500 Cuautitlán Norte', toPrice: 23.46, detourKm: 2.4, monthlyLiters: 820 },
-  { plate: 'CDE-42-33', driver: 'Efraín Íñiguez Estrada', group: 'Zona Metropolitana', fromStation: 'BP Vallejo', fromPrice: 25.7, toStation: 'PEMEX Vallejo 2', toPrice: 24.3, detourKm: 0.8, monthlyLiters: 740 },
-  { plate: 'CDE-33-16', driver: 'Aristeo Sarmiento Nájera', group: 'Sureste', fromStation: 'PEMEX Toluca Centro', fromPrice: 25.0, toStation: 'Orsan Metepec', toPrice: 23.68, detourKm: 3.1, monthlyLiters: 680 },
-  { plate: 'DEF-13-04', driver: 'Lucía Rentería Madrigal', group: 'Corredor Norte', fromStation: 'Gulf Monterrey Sur', fromPrice: 24.6, toStation: 'Hidrosina Apodaca', toPrice: 23.56, detourKm: 4.2, monthlyLiters: 900 },
-  { plate: 'CDE-84-59', driver: 'Marisol Tirado Escalante', group: 'Corredor Norte', fromStation: 'PEMEX Gdl Oriente', fromPrice: 25.18, toStation: 'Fuelgas Tlaquepaque', toPrice: 24.22, detourKm: 1.9, monthlyLiters: 760 },
-  { plate: 'EFG-46-21', driver: 'Norma Ceballos Alcántara', group: 'Corredor Norte', fromStation: 'Shell San Nicolás', fromPrice: 24.92, toStation: 'PEMEX Universidad', toPrice: 24.05, detourKm: 1.2, monthlyLiters: 640 },
-  { plate: 'LMN-91-66', driver: 'Norma Escalante Bermúdez', group: 'Reserva y sustitución', fromStation: 'Mobil Santa Fe', fromPrice: 26.1, toStation: 'G500 Vasco de Quiroga', toPrice: 24.88, detourKm: 1.6, monthlyLiters: 310 },
-];
-
-export const swapSavings = (swap: StationSwap) => (swap.fromPrice - swap.toPrice) * swap.monthlyLiters;
-
 /* ── TED ─────────────────────────────────────────────────────────── */
 
 export interface TedAnswer {

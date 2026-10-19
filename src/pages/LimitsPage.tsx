@@ -3,6 +3,8 @@ import { AssignmentsTable } from '../components/limits/AssignmentsTable';
 import { OverrideDialog } from '../components/limits/OverrideDialog';
 import { PoliciesSection } from '../components/limits/PoliciesSection';
 import { PolicyDialog } from '../components/limits/PolicyDialog';
+import { StationExceptionDialog } from '../components/limits/StationExceptionDialog';
+import { unitById } from '../data/client';
 import { DevNote } from '../components/dev/DevNote';
 import { autoconsumoUnits, vehicles } from '../data/dispersion';
 import {
@@ -13,16 +15,19 @@ import {
   policyForGroup,
   unitAssignments as seedAssignments,
 } from '../data/limits';
-import type { LimitOverride, LimitPolicy, UnitAssignment } from '../types/limits';
-import { formatCount } from '../utils/format';
+import type { LimitOverride, LimitPolicy, StationException, StationRecommendationRequest, UnitAssignment } from '../types/limits';
+import { formatCount, formatDateLong } from '../utils/format';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import './LimitsPage.css';
 
 interface LimitsPageProps {
   onNotice: (message: string) => void;
+  /** A recommendation the optimizer handed over with "Aplicar en Límites". Applied only after confirmation. */
+  stationRequest?: StationRecommendationRequest | null;
+  onStationRequestHandled?: () => void;
 }
 
-export function LimitsPage({ onNotice }: LimitsPageProps) {
+export function LimitsPage({ onNotice, stationRequest = null, onStationRequestHandled }: LimitsPageProps) {
   const [policies, setPolicies] = useState<LimitPolicy[]>(seedPolicies);
   const [assignments, setAssignments] = useState<UnitAssignment[]>(seedAssignments);
   const [editor, setEditor] = useState<{ policy: LimitPolicy | null } | null>(null);
@@ -122,6 +127,31 @@ export function LimitsPage({ onNotice }: LimitsPageProps) {
     }
   };
 
+  const requestVehicle = stationRequest ? vehicleOf(stationRequest.vehicleId) : undefined;
+
+  const applyStationException = (vehicleId: string, exception: StationException) => {
+    const existing = assignmentOf(vehicleId);
+    if (existing) {
+      patchAssignment(vehicleId, { stationException: exception });
+    } else {
+      // The unit had no row yet: it gets one with its group policy, as any unit of the group would.
+      setAssignments((current) => [
+        ...current,
+        {
+          vehicleId,
+          policyId: groupPolicyOf(vehicleId)?.id ?? null,
+          individual: false,
+          tankLiters: unitById(vehicleId)?.tankLiters ?? 0,
+          usedLiters: 0,
+          rejections7d: 0,
+          stationException: exception,
+        },
+      ]);
+    }
+    onStationRequestHandled?.();
+    onNotice(`${vehicleOf(vehicleId)?.plate} puede cargar en ${exception.station} hasta el ${formatDateLong(exception.until)}.`);
+  };
+
   const overrideVehicle = overrideFor ? vehicleOf(overrideFor) : undefined;
   const overrideAssignment = overrideFor ? assignmentOf(overrideFor) : undefined;
   const overridePolicy = overrideFor ? policyOf(overrideFor) : null;
@@ -179,6 +209,19 @@ export function LimitsPage({ onNotice }: LimitsPageProps) {
 
       {editor && (
         <PolicyDialog policy={editor.policy} policies={policies} onClose={() => setEditor(null)} onSave={savePolicy} />
+      )}
+
+      {stationRequest && requestVehicle && (
+        <StationExceptionDialog
+          request={stationRequest}
+          vehicle={requestVehicle}
+          policy={policyOf(requestVehicle.id) ?? groupPolicyOf(requestVehicle.id)}
+          onClose={() => {
+            onStationRequestHandled?.();
+            onNotice('Recomendación descartada: Límites no cambió.');
+          }}
+          onConfirm={(exception) => applyStationException(requestVehicle.id, exception)}
+        />
       )}
 
       {overrideVehicle && overrideAssignment && overridePolicy && (

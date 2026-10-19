@@ -30,6 +30,7 @@ import { ParametersPage } from './pages/company/ParametersPage';
 import { UsersPage } from './pages/company/UsersPage';
 import { ApiImprovementsPage } from './pages/dev/ApiImprovementsPage';
 import type { AppRoute } from './types';
+import type { StationRecommendationRequest } from './types/limits';
 import { DevModeMenu, useDevMode } from './components/dev/DevMode';
 import './App.css';
 
@@ -161,6 +162,8 @@ export default function App() {
   const [route, setRoute] = useState<AppRoute>('dashboard');
   const [activeItemId, setActiveItemId] = useState<string | null>(ROUTES.dashboard.menuItem);
   const [notice, setNotice] = useState<string | null>(null);
+  // "Aplicar en Límites" from the optimizer: Límites opens with it and applies nothing until confirmed.
+  const [stationRequest, setStationRequest] = useState<StationRecommendationRequest | null>(null);
   const { devMode } = useDevMode();
   const { principal, impersonating, signInAs } = useSession();
   const allowed = useCallback((target: AppRoute) => canAccessRoute(principal.role, target), [principal.role]);
@@ -283,7 +286,9 @@ export default function App() {
           <FuelDashboardPage onCardOption={(chart, option) => setNotice(`${chart}: ${option}.`)} />
         )}
         {route === 'dispersion' && <DispersionPage onNotice={setNotice} />}
-        {route === 'limits' && <LimitsPage onNotice={setNotice} />}
+        {route === 'limits' && (
+          <LimitsPage onNotice={setNotice} stationRequest={stationRequest} onStationRequestHandled={() => setStationRequest(null)} />
+        )}
         {route === 'payment-media' && <PaymentMediaPage onNotice={setNotice} />}
         {route === 'toll-balances' && <TollBalancesPage onNotice={setNotice} />}
         {route === 'toll-rules' && <TollRulesPage onNotice={setNotice} />}
@@ -291,7 +296,15 @@ export default function App() {
         {route === 'maintenance' && <MaintenancePage onNotice={setNotice} />}
         {route === 'reports' && <ReportsPage />}
         {route === 'insights' && <InsightsPage onNotice={setNotice} onNavigate={navigate} />}
-        {route === 'optimizer' && <GasOptimizerPage onNotice={setNotice} />}
+        {route === 'optimizer' && (
+          <GasOptimizerPage
+            onNotice={setNotice}
+            onApplyInLimits={(request) => {
+              setStationRequest(request);
+              navigate('limits');
+            }}
+          />
+        )}
         {route === 'ted' && <TedPage />}
         {route === 'vehicles' && <VehiclesPage onNotice={setNotice} />}
         {route === 'drivers' && <DriversPage onNotice={setNotice} />}
