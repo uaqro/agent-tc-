@@ -12,6 +12,7 @@ import {
   tollTags as seedTags,
 } from '../../data/toll';
 import type { TollAutoTopUp, TollMovement, TollTag } from '../../types/toll';
+import { businessNow } from '../../domain/demo/clock';
 import { formatDateTime, formatMoney } from '../../utils/format';
 import { ReadOnlyNotice } from '../../components/ui/ReadOnlyNotice';
 import '../TablePage.css';
@@ -60,7 +61,7 @@ export function TollBalancesPage({ onNotice, readOnly = false }: TollBalancesPag
         id: `tm-${++movementSequence}`,
         kind: mode === 'top-up' ? 'top-up' : 'cut',
         tagId: tag.id,
-        at: new Date().toISOString(),
+        at: new Date(businessNow()).toISOString(),
         amountMXN: delta,
         detail: mode === 'top-up' ? 'Recarga puntual desde la bolsa de peaje' : 'Recorte a la bolsa de peaje',
       },

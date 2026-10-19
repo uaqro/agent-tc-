@@ -19,6 +19,7 @@ import {
   vehicles as seedVehicles,
 } from '../data/dispersion';
 import type { AttentionItem, BulkRow, FundingRule, Receipt, RunSimulation, Vehicle } from '../types/dispersion';
+import { businessNow } from '../domain/demo/clock';
 import { formatCount, formatMoney, parseDate } from '../utils/format';
 import { ApiCoverageBanner } from '../components/api/ApiCoverage';
 import './DispersionPage.css';
@@ -105,7 +106,7 @@ export function DispersionPage({ onNotice }: DispersionPageProps) {
     const receipt: Receipt = {
       folio: nextFolio(),
       kind: 'rule',
-      issuedAt: new Date().toISOString(),
+      issuedAt: new Date(businessNow()).toISOString(),
       user: account.user,
       sourceLabel: data.rule.name,
       scopeLabel: `${data.rule.scopeLabel} · ${data.unitsAffected} unidades`,
@@ -135,7 +136,7 @@ export function DispersionPage({ onNotice }: DispersionPageProps) {
     const receipt: Receipt = {
       folio: nextFolio(),
       kind: isCut ? 'cut' : 'one-off',
-      issuedAt: new Date().toISOString(),
+      issuedAt: new Date(businessNow()).toISOString(),
       user: account.user,
       sourceLabel: isCut ? 'Recorte de saldo' : 'Dispersión puntual · excepción',
       scopeLabel: `${vehicle.plate} · ${vehicle.driver}`,
@@ -159,7 +160,7 @@ export function DispersionPage({ onNotice }: DispersionPageProps) {
     const receipt: Receipt = {
       folio: nextFolio(),
       kind: 'one-off',
-      issuedAt: new Date().toISOString(),
+      issuedAt: new Date(businessNow()).toISOString(),
       user: account.user,
       sourceLabel: 'Dispersión puntual',
       scopeLabel: `${vehicle.plate} · ${vehicle.driver}`,
@@ -194,7 +195,7 @@ export function DispersionPage({ onNotice }: DispersionPageProps) {
     const receipt: Receipt = {
       folio: nextFolio(),
       kind: 'bulk',
-      issuedAt: new Date().toISOString(),
+      issuedAt: new Date(businessNow()).toISOString(),
       user: account.user,
       sourceLabel: 'Carga masiva desde archivo',
       scopeLabel: `${fileName} · ${rows.length} unidades`,

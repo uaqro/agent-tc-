@@ -13,6 +13,7 @@ import {
   type OrderStatus,
   type ServiceOrder,
 } from '../data/maintenance';
+import { today } from '../domain/demo/clock';
 import { daysUntil, formatCount, formatDateLong, formatMoney } from '../utils/format';
 import './intelligence/intelligence.css';
 import './MaintenancePage.css';
@@ -42,7 +43,8 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
   const [dialog, setDialog] = useState<{ vehicleId?: string } | null>(null);
 
   const needle = query.trim().toLowerCase();
-  const currentMonth = new Date().toISOString().slice(0, 7);
+  const now = today();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
   const openOrders = orders.filter((order) => OPEN_STATUSES.includes(order.status));
   const inShop = new Set(

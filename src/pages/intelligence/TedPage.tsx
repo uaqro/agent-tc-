@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type FormEvent } from 'react';
 import { SendIcon, SparklesIcon } from '../../components/icons/Icons';
 import { tedAnswers, tedFallback, tedSuggestions } from '../../data/intelligence';
+import { businessNow } from '../../domain/demo/clock';
 import './intelligence.css';
 import './TedPage.css';
 
@@ -14,7 +15,7 @@ interface Message {
 const GREETING =
   '¡Hola! Soy **TED**, tu asistente de inteligencia para Ticket Car.\n\nPuedo analizar tus consumos, detectar cargas anómalas, revisar saldos y límites de tus tarjetas, y encontrar dónde conviene cargar.\n\n¿Qué quieres saber hoy?';
 
-const clock = () => new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+const clock = () => new Date(businessNow()).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 
 let messageSequence = 0;
 const message = (from: Message['from'], text: string): Message => ({ id: ++messageSequence, from, text, time: clock() });

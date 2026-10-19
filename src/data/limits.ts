@@ -8,6 +8,7 @@ import type {
   StationSubnet,
   UnitAssignment,
 } from '../types/limits';
+import { today as businessToday } from '../domain/demo/clock';
 import { formatCount, formatLiters, formatMoney } from '../utils/format';
 import { fleetGroups, toLiters, toMoney, vehicleGroups } from './dispersion';
 import { onSessionChange, unitInScope } from './session';
@@ -232,8 +233,12 @@ export function validationLabel(policy: LimitPolicy): string {
 const toIso = (date: Date): string =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-/** Last day of the running period. Weeks close on Sunday, fortnights on the 15th and month end. */
-export function periodEnd(period: LimitPeriod, today = new Date()): string {
+/**
+ * Last day of the running period. Weeks close on Sunday, fortnights on the 15th and month end.
+ * "Today" is the business date (the demo date by default), never the computer's: an exception's validity has to
+ * match the data it is set against.
+ */
+export function periodEnd(period: LimitPeriod, today = businessToday()): string {
   const end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   if (period === 'week') end.setDate(end.getDate() + ((7 - end.getDay()) % 7));
   if (period === 'fortnight' && end.getDate() <= 15) end.setDate(15);
@@ -241,7 +246,7 @@ export function periodEnd(period: LimitPeriod, today = new Date()): string {
   return toIso(end);
 }
 
-export function overrideUntil(duration: OverrideDuration, period: LimitPeriod, today = new Date()): string {
+export function overrideUntil(duration: OverrideDuration, period: LimitPeriod, today = businessToday()): string {
   if (duration === 'period') return periodEnd(period, today);
   const until = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (duration === '24h' ? 1 : 7));
   return toIso(until);
