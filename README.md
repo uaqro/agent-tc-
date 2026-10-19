@@ -10,7 +10,22 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build
 npm run typecheck
+npm test           # Vitest, one pass
+npm run test:watch
 ```
+
+## Data shared with eOne
+
+Fleet data comes from the eOne Fleet Management prototype, ported into `src/domain/` (phase 0 of the eOne integration). The client account is **Grupo Alimentario Norte** (512 units, 563 drivers, five-level org chart). Vehicles, drivers and payment media are derived from its padrón, so every page talks about the same units. The hand-written Ticket Car scenarios in `src/data/` (attention items, limit assignments, service orders, toll tags, insights) point at padrón ids such as `ECO-3004`, and `src/data/__tests__/client.test.ts` checks that they exist.
+
+- `src/domain/` keeps eOne's code style (no semicolons) and its folder names, so later phases can bring more eOne modules without rewriting their imports. Its tests come from eOne without the RBAC cases, which have no counterpart here yet.
+- Business date: `src/domain/demo/clock.ts` pins "today" to 16 Oct 2026, so the demo shows the same data every day. The mocks are dated mid-October 2026.
+- Roles and scope: ADR-TCP-001 (`docs/decisions/ADR-TCP-001_roles_portal_TC.md`, PROPOSED) maps the portal roles admin, flota, finanzas and consulta onto the client roles of eOne's ADR-001 (`src/domain/rbac/`). The menu comes from that matrix. A page the role can read but not change shows without its actions and with a «Solo lectura» notice (Peaje for flota, finanzas and consulta); adding and editing vehicles is admin only, drivers can be added, edited and deregistered by admin and flota (`tc.conductores`), and the VIN shows to admin and flota. Each user is limited to an org chart node, and the data modules apply that scope through live `let` bindings that `src/data/session.ts` recomputes. Dev mode can show the portal as another user, including Edenred's internal roles, always on the active account.
+- Global filters (period, org chart, product, group, cost center, route, fuel, driving behaviour, unit, driver) live in `components/filters/` and persist in `sessionStorage`. They drive the Resumen indicators and its three consumption charts (`src/data/dashboardCharts.ts`). Recargas y recortes comes from Saldos and stays static.
+- Reportes · Reporte consolidado is eOne's US-024 (`src/domain/consolidated-report/`): Autoconsumo and TicketCar+ in one document, CSV/XLSX/PDF export for roles with `consumos.export`, always within the session scope. Its two sources (Autoconsumo ERP rows and TicketCar+ JSON) are written from the padrón dispatches, from 1 Oct 2025 to the day before the business date.
+- One fuelling dataset: the padrón generator gives every dispatch a station of its unit's city and charges that station's price (`src/domain/stations/directory.ts`). The Resumen, the consolidated report and the optimizer all read those dispatches, so for the same period and scope they show the same spend (`src/data/__tests__/consistency.test.ts`). The card of a load is its unit's card (`src/domain/data/cards.ts`) and the driver is the one of that day. Deregistered units stop fuelling from their deregistration date: 292 TicketCar+ + 206 Autoconsumo + 14 deregistered = 512.
+- The generator keeps uncomfortable cases on purpose, pinned by `src/data/__tests__/dataProperties.test.ts`: monthly seasonality (peak in December, trough in January); a data gap in the external source (the Autoconsumo plants of Hermosillo and Culiacán, 45 of 206 Autoconsumo units, did not deliver February 2026; TicketCar+, the portal's own transactional system, has no gaps), shown as «Sin datos de Autoconsumo para este periodo» in the Resumen 12-month chart and in the report, never interpolated; incomplete records (no VIN, no driver, no org node, no odometer) flagged in Vehículos; optimizer recommendations whose net saving is negative because the cheap station is off the route (about 22 %), marked «No compensa» and discardable; and consumption anomalies for Insights (`src/domain/insights/anomalies.ts`: loads over the tank, loads in the small hours, atypical km/L against peers).
+- Inteligencia · Optimizador is eOne's load optimizer (`src/domain/optimizer/`, Leaflet map loaded on demand) plus the view by region of the previous Ticket Car screen. It is analytical only. «Aplicar en Límites» opens Límites with the unit and station preloaded and changes nothing until the user confirms. «Enviar al conductor» is manual and per card, logged (`src/data/recommendations.ts`) and goes through a simulated channel, marked as a mock in the dev-mode API coverage.
 
 ## Structure
 
@@ -33,10 +48,14 @@ npm run typecheck
 | `src/pages/company/` | Empresa: `ParametersPage` (modular catalogs — billing groups, regions, cost centers, branches and custom catalogs whose fields can reference other catalogs; forms render from field definitions in `components/company/ParameterRecordDialog`), `InvoicesPage` (CFDI list with PDF/XML downloads) and `UsersPage` (roles, region scope, invitations) |
 | `src/pages/toll/` | Peaje: `TollBalancesPage` (bolsa, saldo por TAG, recarga automática), `TollRulesPage` (políticas de peaje), `TollMediaPage` (TAGs) |
 | `src/components/toll/` | `TollAmountDialog`, `TollPolicyDialog`, `TollAssignDialog` |
-| `src/components/ui/` | `Modal`, `EmptyState` |
+| `src/components/ui/` | `Modal`, `EmptyState`, `Pagination` (with `usePagination`, 25 rows per page) |
+| `src/components/filters/` | `GlobalFiltersProvider` / `useGlobalFilters` (context over `domain/filters`) and `GlobalFilterBar`, shown in the page header of pages that consume the filters |
+| `src/domain/` | Ported from eOne: fleet and fuelling generator (`data/fleet-activity.ts`), accounts, fleet alerts, metrics (`dashboard/`), org chart (`org/`), global filters (`filters/`), business clock (`demo/`) and browser storage helper |
+| `src/data/client.ts` | Bridge to the domain: client account, padrón, org chart, group labels and the cached activity snapshot |
+| `src/data/summary.ts` | Resumen indicators for the filtered period against the previous one |
 | `src/components/reports/` | `DynamicReportBuilder`: report type, basic and advanced filters, grouper and column picker |
 | `src/components/charts/` | `LineChart`, `BarChart`, `EmptyChart` and SVG geometry helpers |
-| `src/data/` | Mock data for metrics, menu groups (Resumen, then Combustible · Peaje · Mantenimiento · Inteligencia · Flota · Empresa), series, funding rules, vehicles, limit policies, fleet master data and payment media (`fleet.ts`), service orders (`maintenance.ts`), company catalogs, invoices and users (`company.ts`) and intelligence modules |
+| `src/data/` | Mock data for menu groups (Resumen, then Combustible · Peaje · Mantenimiento · Inteligencia · Flota · Empresa), series, funding rules, vehicles, limit policies, fleet master data and payment media (`fleet.ts`), service orders (`maintenance.ts`), company catalogs, invoices and users (`company.ts`) and intelligence modules |
 | `public/` | Edenred webfonts and the Edenred One logo |
 | `docs/` | Functional specifications of the pages |
 

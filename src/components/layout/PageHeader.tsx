@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { ArrowLeftIcon, MenuIcon } from '../icons/Icons';
 import './PageHeader.css';
 
@@ -10,9 +11,11 @@ interface PageHeaderProps {
   menuOpen: boolean;
   onBack?: () => void;
   onToggleMenu: () => void;
+  /** Page-level controls under the subtitle, such as the global filters. */
+  children?: ReactNode;
 }
 
-export function PageHeader({ section, title, crumb, subtitle, menuOpen, onBack, onToggleMenu }: PageHeaderProps) {
+export function PageHeader({ section, title, crumb, subtitle, menuOpen, onBack, onToggleMenu, children }: PageHeaderProps) {
   return (
     <header className="page-header">
       <div className="page-header__bar">
@@ -46,6 +49,7 @@ export function PageHeader({ section, title, crumb, subtitle, menuOpen, onBack, 
 
       <h1 className="page-header__title">{title}</h1>
       <p className="page-header__subtitle">{subtitle}</p>
+      {children}
     </header>
   );
 }

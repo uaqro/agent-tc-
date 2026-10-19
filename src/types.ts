@@ -9,12 +9,25 @@ export interface SummaryMetric {
   previousMonth: number;
   /** A rise in this metric is reported as positive when true. */
   higherIsBetter: boolean;
+  /** Caption of the current value. Defaults to "Mes actual". */
+  currentLabel?: string;
+  /** Caption of the comparison value. Defaults to "Mes anterior". */
+  previousLabel?: string;
 }
 
 export interface ChartSeries {
   name: string;
   color: string;
   values: number[];
+}
+
+/** A line series that can have gaps: `null` is a period without data, drawn as a gap and never interpolated. */
+export interface GapSeries {
+  name: string;
+  color: string;
+  values: (number | null)[];
+  /** Tooltip text for a gap. Defaults to «Sin datos». */
+  gapLabel?: string;
 }
 
 export type AppRoute =

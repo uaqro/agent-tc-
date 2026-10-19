@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { CardIcon, PlusIcon, SearchIcon } from '../../components/icons/Icons';
 import { TollAssignDialog } from '../../components/toll/TollAssignDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { vehicles } from '../../data/dispersion';
+import { fleetVehicles as vehicles } from '../../data/dispersion';
 import {
   TOLL_CATEGORY_LABEL,
   TOLL_TAG_STATUS_LABEL,
@@ -10,14 +10,17 @@ import {
   tollPolicies,
   tollTags as seedTags,
 } from '../../data/toll';
-import { assignableGroups } from '../../data/limits';
+import { fleetAssignableGroups as assignableGroups } from '../../data/limits';
 import type { TollCategory, TollTag, TollTagStatus, TollTagType } from '../../types/toll';
 import { formatDateTime, formatMoney } from '../../utils/format';
+import { ReadOnlyNotice } from '../../components/ui/ReadOnlyNotice';
 import '../TablePage.css';
 import './toll.css';
 
 interface TollMediaPageProps {
   onNotice: (message: string) => void;
+  /** The role sees TAGs, their balance and use, but can't request, block or reassign them (ADR-TCP-001). */
+  readOnly?: boolean;
 }
 
 const STATUS_CHIP: Record<TollTagStatus, string> = {
@@ -27,7 +30,7 @@ const STATUS_CHIP: Record<TollTagStatus, string> = {
   replacement: 'chip--review',
 };
 
-export function TollMediaPage({ onNotice }: TollMediaPageProps) {
+export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps) {
   const [tags, setTags] = useState<TollTag[]>(seedTags);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<TollTagStatus | ''>('');
@@ -78,6 +81,7 @@ export function TollMediaPage({ onNotice }: TollMediaPageProps) {
 
   return (
     <div className="table-page">
+      {readOnly && <ReadOnlyNotice what="los TAGs de telepeaje" />}
       <dl className="table-page__summary">
         <div>
           <dt>TAGs activos</dt>
@@ -135,14 +139,16 @@ export function TollMediaPage({ onNotice }: TollMediaPageProps) {
                 ))}
               </select>
             </label>
-            <button
-              type="button"
-              className="btn btn--primary btn--sm"
-              onClick={() => onNotice('Solicitud de nuevos TAGs de telepeaje abierta.')}
-            >
-              <PlusIcon width={14} height={14} />
-              Solicitar TAGs
-            </button>
+            {!readOnly && (
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                onClick={() => onNotice('Solicitud de nuevos TAGs de telepeaje abierta.')}
+              >
+                <PlusIcon width={14} height={14} />
+                Solicitar TAGs
+              </button>
+            )}
           </div>
         </header>
 
@@ -219,7 +225,7 @@ export function TollMediaPage({ onNotice }: TollMediaPageProps) {
                         )}
                       </td>
                       <td className="table-page__action">
-                        {tag.status === 'active' && (
+                        {!readOnly && tag.status === 'active' && (
                           <>
                             <button type="button" className="btn btn--ghost btn--sm" onClick={() => setTagStatus(tag, 'blocked')}>
                               Bloquear
@@ -233,12 +239,12 @@ export function TollMediaPage({ onNotice }: TollMediaPageProps) {
                             </button>
                           </>
                         )}
-                        {tag.status === 'blocked' && (
+                        {!readOnly && tag.status === 'blocked' && (
                           <button type="button" className="btn btn--secondary btn--sm" onClick={() => setTagStatus(tag, 'active')}>
                             Desbloquear
                           </button>
                         )}
-                        {tag.status === 'unassigned' && (
+                        {!readOnly && tag.status === 'unassigned' && (
                           <button type="button" className="btn btn--secondary btn--sm" onClick={() => setAssigning(tag)}>
                             Asignar
                           </button>

@@ -28,11 +28,13 @@ export function SummaryCard({ metric }: { metric: SummaryMetric }) {
         {numberFormat.format(metric.currentMonth)}
         <span className="summary-card__unit">{metric.unit}</span>
       </p>
-      <p className="summary-card__caption">{hasCurrent ? 'Mes actual' : 'Sin registros este mes'}</p>
+      <p className="summary-card__caption">
+        {hasCurrent ? (metric.currentLabel ?? 'Mes actual') : `Sin registros · ${metric.currentLabel ?? 'este mes'}`}
+      </p>
 
       <footer className="summary-card__footer">
         <span className="summary-card__previous">
-          Mes anterior{' '}
+          {metric.previousLabel ?? 'Mes anterior'}{' '}
           <strong>{hasPrevious ? `${numberFormat.format(metric.previousMonth)} ${metric.unit}` : 'sin registros'}</strong>
         </span>
         {hasPrevious ? (

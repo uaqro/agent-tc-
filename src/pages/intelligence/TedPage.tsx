@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type FormEvent } from 'react';
 import { SendIcon, SparklesIcon } from '../../components/icons/Icons';
 import { tedAnswers, tedFallback, tedSuggestions } from '../../data/intelligence';
+import { businessNow } from '../../domain/demo/clock';
 import './intelligence.css';
 import './TedPage.css';
 
@@ -14,11 +15,18 @@ interface Message {
 const GREETING =
   '¡Hola! Soy **TED**, tu asistente de inteligencia para Ticket Car.\n\nPuedo analizar tus consumos, detectar cargas anómalas, revisar saldos y límites de tus tarjetas, y encontrar dónde conviene cargar.\n\n¿Qué quieres saber hoy?';
 
-const clock = () => new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+const clock = () => new Date(businessNow()).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 
 let messageSequence = 0;
 const message = (from: Message['from'], text: string): Message => ({ id: ++messageSequence, from, text, time: clock() });
 
+/**
+ * TED explains, summarizes and links; it never executes anything (ADR-TCP-001, sección 5): no blocking, no limits, no
+ * top-ups. Its answers carry text only, and any action stays on the screen it points to, under that screen's permission.
+ *
+ * TODO(Fase 2): answer from the session's data, inside the user's scope (`sessionPrincipal().scopeNodeId`) and the
+ * active account only. Today the answers are the fixed texts of `tedAnswers` and do not depend on the session.
+ */
 function answerFor(question: string): string {
   const normalized = question.toLowerCase();
   return tedAnswers.find((answer) => answer.keywords.some((keyword) => normalized.includes(keyword)))?.text ?? tedFallback;

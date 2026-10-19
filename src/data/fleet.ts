@@ -1,18 +1,63 @@
-/** Fleet master data for the Flota and Medios de pago pages. Keys match the vehicles in `data/dispersion`. */
+/**
+ * Fleet master data for the Flota and Medios de pago pages, derived from the common padrón in `data/client`.
+ *
+ * eOne models the unit, its driver and its fuelling activity. What it does not model — expected performance, licence
+ * type, card numbers — is derived here deterministically from the unit, so it never changes between reloads.
+ */
+import { FUEL_LABELS, registryStatusOf, type FleetUnit, type FuelProduct, type UnitClass } from '../domain/dashboard/types';
+import {
+  assignedDriverName,
+  clientDrivers,
+  clientSnapshot,
+  CLIENT_ACCOUNT_ID,
+  clientUnits,
+  groupLabel,
+  orgPathOf,
+  operatingUnits,
+  stableFraction,
+  unitById,
+} from './client';
+import { cardLast4Of } from '../domain/data/cards';
+import { unassignedNodeId } from '../domain/org/types';
+import { allServiceOrders } from './maintenance';
+import { onSessionChange, sessionPrincipal, unitInScope } from './session';
 
 export type FuelType = 'Magna' | 'Premium' | 'Diésel';
+
+/**
+ * What a unit's record is missing. The padrón leaves these on purpose (`fleet-activity`): no VIN from the
+ * manufacturer, no registered driver, no org chart node, no odometer reading. They are data gaps, not errors, and the
+ * Vehículos page shows them as such.
+ */
+export type RegistryGap = 'vin' | 'driver' | 'org' | 'odometer';
+
+export const REGISTRY_GAP_LABEL: Record<RegistryGap, string> = {
+  vin: 'Sin VIN',
+  driver: 'Sin conductor',
+  org: 'Sin nodo de organigrama',
+  odometer: 'Sin odómetro',
+};
 export type VehicleStatus = 'active' | 'maintenance' | 'inactive';
 
 export interface VehicleDetail {
   vehicleId: string;
+  plate: string;
+  group: string;
+  driver: string;
+  product: FuelProduct;
+  /** Empty when the manufacturer has not delivered it yet. */
+  vin: string;
   brand: string;
   model: string;
   year: number;
   fuel: FuelType;
   tankLiters: number;
   expectedKmPerLiter: number;
-  odometerKm: number;
+  /** Null when the unit never reported telemetry and nobody captured a reading. */
+  odometerKm: number | null;
   status: VehicleStatus;
+  /** Missing pieces of the record. Empty when it is complete. */
+  gaps: RegistryGap[];
 }
 
 export interface Driver {
@@ -60,37 +105,254 @@ export const PAYMENT_STATUS_LABEL: Record<PaymentMediumStatus, string> = {
   unassigned: 'Sin asignar',
 };
 
-export const vehicleDetails: VehicleDetail[] = [
-  { vehicleId: 'v-1', brand: 'Freightliner', model: 'Cascadia', year: 2022, fuel: 'Diésel', tankLiters: 400, expectedKmPerLiter: 2.9, odometerKm: 218_400, status: 'active' },
-  { vehicleId: 'v-2', brand: 'Nissan', model: 'NP300', year: 2023, fuel: 'Magna', tankLiters: 80, expectedKmPerLiter: 9.4, odometerKm: 64_120, status: 'active' },
-  { vehicleId: 'v-3', brand: 'Isuzu', model: 'ELF 400', year: 2021, fuel: 'Diésel', tankLiters: 100, expectedKmPerLiter: 7.8, odometerKm: 132_870, status: 'inactive' },
-  { vehicleId: 'v-4', brand: 'Kenworth', model: 'T680', year: 2021, fuel: 'Diésel', tankLiters: 450, expectedKmPerLiter: 2.7, odometerKm: 301_550, status: 'active' },
-  { vehicleId: 'v-5', brand: 'Toyota', model: 'Camry Híbrido', year: 2024, fuel: 'Premium', tankLiters: 50, expectedKmPerLiter: 19.5, odometerKm: 22_310, status: 'active' },
-  { vehicleId: 'v-6', brand: 'Chevrolet', model: 'Tornado Van', year: 2023, fuel: 'Magna', tankLiters: 70, expectedKmPerLiter: 11.2, odometerKm: 58_900, status: 'active' },
-  { vehicleId: 'v-7', brand: 'Freightliner', model: 'M2 106', year: 2020, fuel: 'Diésel', tankLiters: 300, expectedKmPerLiter: 3.6, odometerKm: 245_020, status: 'maintenance' },
-  { vehicleId: 'v-8', brand: 'Volkswagen', model: 'Crafter', year: 2022, fuel: 'Diésel', tankLiters: 75, expectedKmPerLiter: 8.6, odometerKm: 97_640, status: 'active' },
+export const PRODUCT_LABEL: Record<FuelProduct, string> = {
+  ticketcar_plus: 'TicketCar+',
+  autoconsumo: 'Autoconsumo',
+};
+
+/** Manufacturer performance by vehicle class. The class decides it far more than the brand does. */
+const EXPECTED_KM_PER_LITER: Record<UnitClass, number> = {
+  pesado: 2.8,
+  mediano: 6.4,
+  ligero: 8.9,
+  van: 9.6,
+};
+
+/** Manufacturer km/L expected for a vehicle class. */
+export const expectedKmPerLiter = (vehicleClass: UnitClass): number => EXPECTED_KM_PER_LITER[vehicleClass];
+
+/** Licence a driver needs for the class of the unit they are assigned to. */
+const LICENSE_FOR_CLASS: Record<UnitClass, string> = {
+  pesado: 'Federal E',
+  mediano: 'Federal B',
+  ligero: 'Estatal C',
+  van: 'Estatal C',
+};
+
+// ── Activity of the last 30 days ────────────────────────────────────────
+
+interface UnitActivity {
+  lastUse: number | null;
+}
+
+interface DriverActivity {
+  fills: number;
+  /** Units the driver drove in the period: a driver is in a scope when one of them is. */
+  units: Set<string>;
+  km: number;
+  liters: number;
+}
+
+function activityOfLast30Days() {
+  const snapshot = clientSnapshot(30);
+  const account = snapshot.accounts[0];
+  const units = new Map<string, UnitActivity>();
+  const drivers = new Map<string, DriverActivity>();
+
+  for (const point of account.period) {
+    for (const row of point.rows) {
+      if (row.driverId === null) continue;
+      const driver = drivers.get(row.driverId) ?? { fills: 0, km: 0, liters: 0, units: new Set<string>() };
+      driver.km += row.km;
+      driver.liters += row.liters;
+      driver.units.add(row.unitId);
+      drivers.set(row.driverId, driver);
+    }
+    for (const event of point.events) {
+      if (event.refund) continue;
+      const unit = units.get(event.unitId) ?? { lastUse: null };
+      unit.lastUse = Math.max(unit.lastUse ?? 0, event.at);
+      units.set(event.unitId, unit);
+      if (event.driverId !== null) {
+        const driver = drivers.get(event.driverId) ?? { fills: 0, km: 0, liters: 0, units: new Set<string>() };
+        driver.fills += 1;
+        drivers.set(event.driverId, driver);
+      }
+    }
+  }
+
+  return { units, drivers, todayUnits: new Map(account.units.map((unit) => [unit.unitId, unit])) };
+}
+
+const activity = activityOfLast30Days();
+
+// ── Vehicles ────────────────────────────────────────────────────────────
+
+const inShop = new Set(
+  allServiceOrders.filter((order) => order.status === 'in-shop' || order.status === 'waiting-parts').map((order) => order.vehicleId),
+);
+
+function statusOf(unit: FleetUnit): VehicleStatus {
+  if (registryStatusOf(unit) === 'baja') return 'inactive';
+  if (inShop.has(unit.id) || activity.todayUnits.get(unit.id)?.status === 'en_taller') return 'maintenance';
+  return 'active';
+}
+
+const UNASSIGNED_NODE = unassignedNodeId(CLIENT_ACCOUNT_ID);
+
+function registryGapsOf(unit: FleetUnit): RegistryGap[] {
+  const gaps: RegistryGap[] = [];
+  if (unit.vin === '') gaps.push('vin');
+  if (unit.assignedDriverId === '') gaps.push('driver');
+  if (orgPathOf(unit.id).length === 0 || orgPathOf(unit.id).includes(UNASSIGNED_NODE)) gaps.push('org');
+  if (unit.odometerKm === null) gaps.push('odometer');
+  return gaps;
+}
+
+/** Every unit of the padrón, deregistered ones included: their history is still theirs. */
+const allVehicleDetails: VehicleDetail[] = clientUnits.map((unit) => ({
+  vehicleId: unit.id,
+  plate: unit.plate,
+  group: groupLabel(unit.group),
+  driver: assignedDriverName(unit),
+  product: unit.product,
+  vin: unit.vin,
+  brand: unit.brand,
+  model: unit.model,
+  year: unit.year,
+  fuel: FUEL_LABELS[unit.fuel] as FuelType,
+  tankLiters: unit.tankLiters,
+  expectedKmPerLiter: EXPECTED_KM_PER_LITER[unit.vehicleClass],
+  odometerKm: unit.odometerKm,
+  status: statusOf(unit),
+  gaps: registryGapsOf(unit),
+}));
+
+// ── Drivers ─────────────────────────────────────────────────────────────
+
+const unitOfDriver = new Map<string, FleetUnit>();
+for (const unit of operatingUnits) {
+  if (unit.assignedDriverId !== '' && !unitOfDriver.has(unit.assignedDriverId)) unitOfDriver.set(unit.assignedDriverId, unit);
+}
+
+const isoDay = (at: number): string => {
+  const date = new Date(at);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
+
+const isoMinute = (at: number): string => `${isoDay(at)}T${new Date(at).toTimeString().slice(0, 5)}:00`;
+
+/** A driver is active when they drove at least one day of the last 30. */
+const allDrivers: Driver[] = clientDrivers.map((driver) => {
+  const unit = unitOfDriver.get(driver.id) ?? null;
+  const stats = activity.drivers.get(driver.id);
+  return {
+    id: driver.id,
+    name: driver.name,
+    employeeNumber: driver.id,
+    group: groupLabel(driver.group),
+    vehicleId: unit?.id ?? null,
+    licenseType: LICENSE_FOR_CLASS[unit?.vehicleClass ?? 'ligero'],
+    licenseExpires: isoDay(driver.licenseExpiresAt),
+    fillsThisMonth: stats?.fills ?? 0,
+    kmPerLiter: stats && stats.liters > 0 ? Math.round((stats.km / stats.liters) * 10) / 10 : null,
+    active: stats !== undefined && stats.km > 0,
+  };
+});
+
+// ── Payment media ───────────────────────────────────────────────────────
+
+/** Stations each group fuels at, for the "last use" column. */
+const STATIONS_BY_GROUP: Record<string, string[]> = {
+  'Zona Metropolitana': ['BP Vallejo', 'PEMEX Vallejo 2', 'G500 Cuautitlán Norte', 'Mobil Santa Fe'],
+  'Corredor Norte': ['Hidrosina Apodaca', 'Shell San Nicolás', 'Gulf Monterrey Sur', 'PEMEX Universidad'],
+  'Corredor del Golfo': ['PEMEX Veracruz Puerto', 'Oxxo Gas Coatzacoalcos', 'G500 Poza Rica'],
+  Occidente: ['PEMEX Gdl Oriente', 'Fuelgas Tlaquepaque', 'Orsan Zapopan'],
+  Sureste: ['PEMEX Mérida Norte', 'Shell Villahermosa', 'Orsan Campeche'],
+  'Reserva y sustitución': ['PEMEX Toluca Centro', 'Orsan Metepec'],
+};
+
+/** Hand-written situations the other pages refer to: a blocked card and an executive virtual card. */
+const SCENARIO_MEDIA: Record<string, Partial<PaymentMedium>> = {
+  'ECO-3113': { status: 'blocked' },
+  'ECO-3260': { type: 'virtual' },
+};
+
+function cardNumber(type: PaymentMediumType, unitId: string): string {
+  // Same four digits the optimizer shows for the unit's card (`domain/data/cards`).
+  const digits = cardLast4Of(unitId);
+  if (type === 'tag') return `TAG-03-${digits}`;
+  if (type === 'virtual') return `APP •••• ${digits}`;
+  return `5062 •••• •••• ${digits}`;
+}
+
+function expiryOf(key: string): string {
+  const months = Math.floor(stableFraction(`${key}:vigencia`) * 30);
+  const date = new Date(2027, 2 + months, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function mediumOf(unit: FleetUnit, index: number): PaymentMedium {
+  // TicketCar+ units pay with a chip card on the external network; Autoconsumo units are identified at the client's
+  // own stations by a windshield tag.
+  const type: PaymentMediumType = unit.product === 'autoconsumo' ? 'tag' : 'chip-card';
+  const scenario = SCENARIO_MEDIA[unit.id] ?? {};
+  const finalType = scenario.type ?? type;
+  const lastUse = activity.units.get(unit.id)?.lastUse ?? null;
+  const stations = STATIONS_BY_GROUP[groupLabel(unit.group)] ?? ['PEMEX'];
+  return {
+    id: `pm-${index + 1}`,
+    type: finalType,
+    number: cardNumber(finalType, unit.id),
+    vehicleId: unit.id,
+    // A deregistered unit keeps its card blocked until the medium is reassigned.
+    status: scenario.status ?? (registryStatusOf(unit) === 'baja' ? 'blocked' : 'active'),
+    expires: expiryOf(unit.id),
+    lastUse: lastUse === null ? null : isoMinute(lastUse),
+    lastStation: lastUse === null ? null : stations[Math.floor(stableFraction(`${unit.id}:estacion`) * stations.length)],
+  };
+}
+
+/** Spare media in stock, not yet assigned to a unit. */
+const SPARES: PaymentMediumType[] = ['chip-card', 'chip-card', 'chip-card', 'chip-card', 'tag', 'tag'];
+
+const allPaymentMedia: PaymentMedium[] = [
+  ...clientUnits.map(mediumOf),
+  ...SPARES.map((type, index) => {
+    const key = `repuesto-${index}`;
+    return {
+      id: `pm-r${index + 1}`,
+      type,
+      number: cardNumber(type, key),
+      vehicleId: null,
+      status: 'unassigned' as const,
+      expires: expiryOf(key),
+      lastUse: null,
+      lastStation: null,
+    };
+  }),
 ];
 
-export const drivers: Driver[] = [
-  { id: 'd-1', name: 'Rodolfo Aguirre', employeeNumber: 'CND-0441', group: 'Ruta Norte', vehicleId: 'v-1', licenseType: 'Federal E', licenseExpires: '2027-03-18', fillsThisMonth: 9, kmPerLiter: 2.8, active: true },
-  { id: 'd-2', name: 'Marisol Vega', employeeNumber: 'CND-0218', group: 'Ruta Centro', vehicleId: 'v-2', licenseType: 'Estatal C', licenseExpires: '2026-11-02', fillsThisMonth: 14, kmPerLiter: 7.1, active: true },
-  { id: 'd-3', name: 'Luis Beltrán', employeeNumber: 'CND-0377', group: 'Ruta Norte', vehicleId: 'v-4', licenseType: 'Federal E', licenseExpires: '2028-01-09', fillsThisMonth: 8, kmPerLiter: 2.6, active: true },
-  { id: 'd-4', name: 'Ana Sandoval', employeeNumber: 'CND-0509', group: 'Flota ejecutiva', vehicleId: 'v-5', licenseType: 'Estatal A', licenseExpires: '2029-06-30', fillsThisMonth: 3, kmPerLiter: 19.8, active: true },
-  { id: 'd-5', name: 'Javier Ortiz', employeeNumber: 'CND-0162', group: 'Ruta Centro', vehicleId: 'v-6', licenseType: 'Estatal C', licenseExpires: '2026-10-28', fillsThisMonth: 12, kmPerLiter: 10.4, active: true },
-  { id: 'd-6', name: 'Carla Ramos', employeeNumber: 'CND-0290', group: 'Ruta Norte', vehicleId: 'v-7', licenseType: 'Federal B', licenseExpires: '2027-08-14', fillsThisMonth: 6, kmPerLiter: 3.5, active: true },
-  { id: 'd-7', name: 'Miguel Santoyo', employeeNumber: 'CND-0333', group: 'Ruta Sur', vehicleId: 'v-8', licenseType: 'Estatal C', licenseExpires: '2027-02-21', fillsThisMonth: 11, kmPerLiter: 6.9, active: true },
-  { id: 'd-8', name: 'Ernesto Fuentes', employeeNumber: 'CND-0418', group: 'Ruta Sur', vehicleId: null, licenseType: 'Federal E', licenseExpires: '2026-12-05', fillsThisMonth: 0, kmPerLiter: null, active: false },
-];
 
-export const paymentMedia: PaymentMedium[] = [
-  { id: 'pm-1', type: 'chip-card', number: '5062 •••• •••• 0451', vehicleId: 'v-1', status: 'active', expires: '2028-09', lastUse: '2026-10-14T18:22:00', lastStation: 'Hidrosina Apodaca' },
-  { id: 'pm-2', type: 'chip-card', number: '5062 •••• •••• 0917', vehicleId: 'v-2', status: 'active', expires: '2028-03', lastUse: '2026-10-15T11:05:00', lastStation: 'BP Vallejo' },
-  { id: 'pm-3', type: 'tag', number: 'TAG-01-1293', vehicleId: 'v-3', status: 'active', expires: '2029-01', lastUse: '2026-09-24T07:40:00', lastStation: 'PEMEX Toluca Centro' },
-  { id: 'pm-4', type: 'chip-card', number: '5062 •••• •••• 3344', vehicleId: 'v-4', status: 'active', expires: '2027-11', lastUse: '2026-10-13T06:10:00', lastStation: 'Shell San Nicolás' },
-  { id: 'pm-5', type: 'virtual', number: 'APP •••• 7712', vehicleId: 'v-5', status: 'active', expires: '2027-05', lastUse: '2026-10-11T19:45:00', lastStation: 'Mobil Santa Fe' },
-  { id: 'pm-6', type: 'tag', number: 'TAG-01-0855', vehicleId: 'v-6', status: 'active', expires: '2029-04', lastUse: '2026-10-14T21:30:00', lastStation: 'PEMEX Autopista km 142' },
-  { id: 'pm-7', type: 'chip-card', number: '5062 •••• •••• 6234', vehicleId: 'v-7', status: 'active', expires: '2028-07', lastUse: '2026-10-09T08:15:00', lastStation: 'PEMEX Gdl Oriente' },
-  { id: 'pm-8', type: 'chip-card', number: '5062 •••• •••• 2988', vehicleId: 'v-8', status: 'blocked', expires: '2027-12', lastUse: '2026-10-15T04:38:00', lastStation: 'PEMEX Hermosillo Norte' },
-  { id: 'pm-9', type: 'chip-card', number: '5062 •••• •••• 8810', vehicleId: null, status: 'unassigned', expires: '2029-02', lastUse: null, lastStation: null },
-  { id: 'pm-10', type: 'tag', number: 'TAG-01-4471', vehicleId: null, status: 'unassigned', expires: '2029-06', lastUse: null, lastStation: null },
-];
+// ── Session scope (ADR-TCP-001) ─────────────────────────────────────────
+
+const driverInScope = (driver: Driver): boolean =>
+  sessionPrincipal().scopeNodeId === null ||
+  (driver.vehicleId !== null && unitInScope(driver.vehicleId)) ||
+  [...(activity.drivers.get(driver.id)?.units ?? [])].some(unitInScope);
+
+export let vehicleDetails: VehicleDetail[] = allVehicleDetails;
+export let drivers: Driver[] = allDrivers;
+const isTicketCarMedium = (medium: PaymentMedium): boolean =>
+  medium.vehicleId === null || unitById(medium.vehicleId)?.product === 'ticketcar_plus';
+
+/** Media of every unit in scope, both products, for the vehicle catalogue. */
+export let vehicleMedia: PaymentMedium[] = allPaymentMedia;
+
+/**
+ * Media the Medios de pago page manages: TicketCar+ units plus the stock not yet assigned.
+ *
+ * TODO(producto): ¿Autoconsumo tiene límites propios? Hasta decidirlo, Medios de pago y Límites excluyen las unidades
+ * de Autoconsumo (sus tags de estación propia). Lo recuerda `DevNote` en las dos páginas con el modo Dev activo.
+ */
+export let paymentMedia: PaymentMedium[] = allPaymentMedia.filter(isTicketCarMedium);
+
+onSessionChange(() => {
+  vehicleDetails = allVehicleDetails.filter((detail) => unitInScope(detail.vehicleId));
+  drivers = allDrivers.filter(driverInScope);
+  vehicleMedia = allPaymentMedia.filter((medium) => medium.vehicleId === null || unitInScope(medium.vehicleId));
+  paymentMedia = vehicleMedia.filter(isTicketCarMedium);
+});
+
+/** Ids of the drivers the session can see, for the driver selector of the global filters. */
+export const driverIdsInScope = (): Set<string> => new Set(drivers.map((driver) => driver.id));

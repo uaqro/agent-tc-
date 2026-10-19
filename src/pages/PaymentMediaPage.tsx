@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { CardIcon, PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
-import { vehicles } from '../data/dispersion';
+import { Pagination, usePagination } from '../components/ui/Pagination';
+import { DevNote } from '../components/dev/DevNote';
+import { autoconsumoUnits, vehicles } from '../data/dispersion';
 import {
   PAYMENT_STATUS_LABEL,
   PAYMENT_TYPE_LABEL,
@@ -9,8 +11,9 @@ import {
   type PaymentMedium,
   type PaymentMediumStatus,
   type PaymentMediumType,
+  vehicleDetails,
 } from '../data/fleet';
-import { formatDateTime, formatMoney } from '../utils/format';
+import { formatCount, formatDateTime, formatMoney } from '../utils/format';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import './TablePage.css';
 
@@ -30,33 +33,41 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
   const [status, setStatus] = useState<PaymentMediumStatus | ''>('');
   const [type, setType] = useState<PaymentMediumType | ''>('');
 
-  const vehicleOf = (id: string | null) => vehicles.find((vehicle) => vehicle.id === id);
+  const vehicleById = useMemo(() => new Map(vehicles.map((vehicle) => [vehicle.id, vehicle])), []);
+  const detailById = useMemo(() => new Map(vehicleDetails.map((detail) => [detail.vehicleId, detail])), []);
+  const vehicleOf = (id: string | null) => (id ? vehicleById.get(id) : undefined);
+  const detailOf = (id: string | null) => (id ? detailById.get(id) : undefined);
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return media.filter((medium) => {
-      const vehicle = vehicles.find((candidate) => candidate.id === medium.vehicleId);
-      const haystack = `${medium.number} ${vehicle?.plate ?? ''} ${vehicle?.driver ?? ''}`.toLowerCase();
+      const detail = medium.vehicleId ? detailById.get(medium.vehicleId) : undefined;
+      const haystack = `${medium.number} ${detail?.vehicleId ?? ''} ${detail?.plate ?? ''} ${detail?.driver ?? ''}`.toLowerCase();
       return (!status || medium.status === status) && (!type || medium.type === type) && (!needle || haystack.includes(needle));
     });
-  }, [media, query, status, type]);
+  }, [media, query, status, type, detailById]);
+  const pagination = usePagination(rows);
 
   const count = (key: PaymentMediumStatus) => media.filter((medium) => medium.status === key).length;
 
   const setMediumStatus = (medium: PaymentMedium, next: PaymentMediumStatus) => {
     setMedia((current) => current.map((candidate) => (candidate.id === medium.id ? { ...candidate, status: next } : candidate)));
-    const plate = vehicleOf(medium.vehicleId)?.plate;
+    const plate = detailOf(medium.vehicleId)?.plate;
     onNotice(next === 'blocked' ? `Medio ${medium.number} bloqueado${plate ? ` · ${plate}` : ''}.` : `Medio ${medium.number} desbloqueado.`);
   };
 
   return (
     <div className="table-page">
       <ApiCoverageBanner page="payment-media" />
+      <DevNote label="Pregunta de producto">
+        ¿Autoconsumo tiene límites propios? Hasta decidirlo, Medios de pago no muestra los tags de las{' '}
+        {formatCount(autoconsumoUnits)} unidades de Autoconsumo. Siguen visibles en Flota · Vehículos.
+      </DevNote>
 
       <dl className="table-page__summary">
         <div>
           <dt>Medios activos</dt>
-          <dd>{count('active')}</dd>
+          <dd>{formatCount(count('active'))}</dd>
         </div>
         <div>
           <dt>Bloqueados</dt>
@@ -165,8 +176,9 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((medium) => {
+                {pagination.pageRows.map((medium) => {
                   const vehicle = vehicleOf(medium.vehicleId);
+                  const detail = detailOf(medium.vehicleId);
                   return (
                     <tr key={medium.id}>
                       <td>
@@ -174,11 +186,11 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
                         <span className="table-page__sub">{PAYMENT_TYPE_LABEL[medium.type]}</span>
                       </td>
                       <td>
-                        {vehicle ? (
+                        {detail ? (
                           <>
-                            <span className="table-page__main">{vehicle.plate}</span>
+                            <span className="table-page__main">{detail.plate}</span>
                             <span className="table-page__sub">
-                              {vehicle.driver} · {vehicle.group}
+                              {detail.driver} · {detail.group}
                             </span>
                           </>
                         ) : (
@@ -226,6 +238,7 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
             </table>
           </div>
         )}
+        <Pagination {...pagination} noun="medios" onPage={pagination.setPage} />
       </section>
     </div>
   );

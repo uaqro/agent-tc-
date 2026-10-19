@@ -154,6 +154,12 @@
   color: var(--text-strong);
 }
 
+.table-page__gap {
+  display: inline-block;
+  margin-top: 4px;
+  white-space: normal;
+}
+
 .table-page__sub {
   display: block;
   font-size: 12px;

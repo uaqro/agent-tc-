@@ -5,13 +5,13 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import {
   USER_ROLE_LABEL,
   USER_STATUS_LABEL,
-  parameterCatalogs,
   platformUsers,
   type PlatformUser,
   type UserRole,
   type UserStatus,
 } from '../../data/company';
-import { account } from '../../data/dispersion';
+import { scopeLabel } from '../../data/client';
+import { sessionPrincipal } from '../../data/session';
 import { formatDateTime } from '../../utils/format';
 import '../TablePage.css';
 
@@ -24,9 +24,6 @@ const STATUS_CHIP: Record<UserStatus, string> = {
   invited: 'chip--info',
   suspended: 'chip--paused',
 };
-
-const regions =
-  parameterCatalogs.find((catalog) => catalog.id === 'regions')?.records.filter((record) => record.active).map((record) => record.values.name) ?? [];
 
 export function UsersPage({ onNotice }: UsersPageProps) {
   const [users, setUsers] = useState<PlatformUser[]>(platformUsers);
@@ -151,7 +148,7 @@ export function UsersPage({ onNotice }: UsersPageProps) {
               </thead>
               <tbody>
                 {rows.map((user) => {
-                  const isSelf = user.name === account.user;
+                  const isSelf = user.id === sessionPrincipal().userId;
                   return (
                     <tr key={user.id}>
                       <td>
@@ -161,7 +158,7 @@ export function UsersPage({ onNotice }: UsersPageProps) {
                         <span className="table-page__sub">{user.email}</span>
                       </td>
                       <td>{USER_ROLE_LABEL[user.role]}</td>
-                      <td>{user.regions.length === 0 ? 'Todas las regiones' : user.regions.join(', ')}</td>
+                      <td>{scopeLabel(user.scopeNodeId)}</td>
                       <td className="table-page__nowrap">
                         {user.lastAccess ? formatDateTime(new Date(user.lastAccess)) : <span className="table-page__sub">Nunca</span>}
                       </td>
@@ -196,7 +193,6 @@ export function UsersPage({ onNotice }: UsersPageProps) {
 
       {inviteOpen && (
         <InviteUserDialog
-          regions={regions}
           existingEmails={users.map((user) => user.email)}
           onClose={() => setInviteOpen(false)}
           onInvite={(user) => {

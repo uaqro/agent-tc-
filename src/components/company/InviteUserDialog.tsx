@@ -1,11 +1,11 @@
 import { useState } from 'react';
+import { scopeNodeOptions } from '../../data/client';
 import { USER_ROLE_DESCRIPTION, USER_ROLE_LABEL, type PlatformUser, type UserRole } from '../../data/company';
 import { Modal } from '../ui/Modal';
 import '../limits/PolicyDialog.css';
 import './CompanyDialogs.css';
 
 interface InviteUserDialogProps {
-  regions: string[];
   existingEmails: string[];
   onClose: () => void;
   onInvite: (user: PlatformUser) => void;
@@ -13,17 +13,16 @@ interface InviteUserDialogProps {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function InviteUserDialog({ regions, existingEmails, onClose, onInvite }: InviteUserDialogProps) {
+export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUserDialogProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<UserRole>('fleet');
-  const [allRegions, setAllRegions] = useState(true);
-  const [selected, setSelected] = useState<string[]>([]);
+  const [role, setRole] = useState<UserRole>('flota');
+  const [scopeNodeId, setScopeNodeId] = useState<string>('');
 
   const normalizedEmail = email.trim().toLowerCase();
   const emailInvalid = normalizedEmail !== '' && !EMAIL_PATTERN.test(normalizedEmail);
   const emailTaken = existingEmails.includes(normalizedEmail);
-  const valid = name.trim() !== '' && normalizedEmail !== '' && !emailInvalid && !emailTaken && (allRegions || selected.length > 0);
+  const valid = name.trim() !== '' && normalizedEmail !== '' && !emailInvalid && !emailTaken;
 
   return (
     <Modal
@@ -46,7 +45,7 @@ export function InviteUserDialog({ regions, existingEmails, onClose, onInvite }:
                 name: name.trim(),
                 email: normalizedEmail,
                 role,
-                regions: allRegions ? [] : selected,
+                scopeNodeId: scopeNodeId === '' ? null : scopeNodeId,
                 lastAccess: null,
                 status: 'invited',
               })
@@ -85,26 +84,21 @@ export function InviteUserDialog({ regions, existingEmails, onClose, onInvite }:
 
       <fieldset className="policy-form__block company-form__fields">
         <legend>Alcance</legend>
-        <label className="company-form__check">
-          <input type="checkbox" checked={allRegions} onChange={(event) => setAllRegions(event.target.checked)} />
-          Todas las regiones
-        </label>
-        {!allRegions && (
-          <div className="policy-form__checks">
-            {regions.map((region) => (
-              <label key={region}>
-                <input
-                  type="checkbox"
-                  checked={selected.includes(region)}
-                  onChange={(event) =>
-                    setSelected((current) => (event.target.checked ? [...current, region] : current.filter((item) => item !== region)))
-                  }
-                />
-                {region}
-              </label>
+        <label className="policy-form__field">
+          <span>Nodo del organigrama</span>
+          <select value={scopeNodeId} onChange={(event) => setScopeNodeId(event.target.value)}>
+            <option value="">Toda la empresa</option>
+            {scopeNodeOptions.map((node) => (
+              <option key={node.id} value={node.id}>
+                {'  '.repeat(node.level - 1)}
+                {node.name}
+              </option>
             ))}
-          </div>
-        )}
+          </select>
+        </label>
+        <p className="policy-form__preview">
+          El usuario solo verá las unidades, cargas e indicadores de ese nodo y de lo que cuelga de él.
+        </p>
       </fieldset>
 
       {emailInvalid && (

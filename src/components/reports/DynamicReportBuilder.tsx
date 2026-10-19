@@ -12,6 +12,7 @@ import {
   defaultReportColumns,
   reportColumnGroups,
 } from '../../data/reports';
+import { today as businessToday } from '../../domain/demo/clock';
 import { formatDateLong } from '../../utils/format';
 import { CloseIcon, NoDataIcon, PlusIcon, RuleIcon, SearchIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
@@ -35,9 +36,10 @@ interface GeneratedReport {
 const toISODate = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-const today = new Date();
-const DEFAULT_FROM = toISODate(new Date(today.getFullYear(), today.getMonth(), 1));
-const DEFAULT_TO = toISODate(today);
+/** Month to date of the business date (the demo date by default). */
+function defaultRange(today = businessToday()) {
+  return { from: toISODate(new Date(today.getFullYear(), today.getMonth(), 1)), to: toISODate(today) };
+}
 
 let filterSequence = 0;
 
@@ -45,8 +47,8 @@ export function DynamicReportBuilder() {
   const [type, setType] = useState(REPORT_TYPES[0]);
   const [yieldUnit, setYieldUnit] = useState(DEFAULT_YIELD_UNIT);
   const [grouper, setGrouper] = useState(REPORT_GROUPERS[0]);
-  const [from, setFrom] = useState(DEFAULT_FROM);
-  const [to, setTo] = useState(DEFAULT_TO);
+  const [from, setFrom] = useState(() => defaultRange().from);
+  const [to, setTo] = useState(() => defaultRange().to);
   const [evaluateBy, setEvaluateBy] = useState(EVALUATE_BY[0]);
   const [state, setState] = useState(TRANSACTION_STATES[0]);
   const [filters, setFilters] = useState<AdvancedFilter[]>([]);
@@ -80,8 +82,9 @@ export function DynamicReportBuilder() {
     setType(REPORT_TYPES[0]);
     setYieldUnit(DEFAULT_YIELD_UNIT);
     setGrouper(REPORT_GROUPERS[0]);
-    setFrom(DEFAULT_FROM);
-    setTo(DEFAULT_TO);
+    const range = defaultRange();
+    setFrom(range.from);
+    setTo(range.to);
     setEvaluateBy(EVALUATE_BY[0]);
     setState(TRANSACTION_STATES[0]);
     setFilters([]);

@@ -1,0 +1,136 @@
+.consolidated {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+}
+
+.consolidated__notice {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: #fff6e5;
+  font-size: 12.5px;
+  color: #8a5300;
+}
+
+.consolidated__form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.consolidated__form small {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.consolidated__dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.consolidated__actions {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  padding-top: 19px;
+}
+
+.consolidated__actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.consolidated__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.consolidated__steps li {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.consolidated__steps li.is-active {
+  background: var(--brand-red-tint);
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.consolidated__steps li.is-done {
+  color: var(--accent-green);
+}
+
+.consolidated__error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--brand-red);
+}
+
+.consolidated__result {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.consolidated__result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.consolidated__result-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.consolidated__result-meta,
+.consolidated__no-export {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.consolidated__downloads {
+  display: flex;
+  gap: 8px;
+}
+
+.consolidated__downloads .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.consolidated__coverage {
+  margin: 0;
+  padding: 8px 12px 8px 28px;
+  border-radius: var(--radius-sm);
+  background: #fff6e5;
+  font-size: 12.5px;
+  color: #8a5300;
+}
+
+.consolidated__frame {
+  width: 100%;
+  height: 640px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
