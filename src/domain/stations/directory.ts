@@ -157,7 +157,7 @@ function buildStations(): StationModel[] {
       // entorno. Las cinco últimas son caras: las de mucha oportunidad.
       const anchor = index < 2
       const expensive = index >= count - 5
-      const offset = anchor ? between(rnd, -0.2, -0.16) : expensive ? between(rnd, 0.15, 0.34) : between(rnd, -0.1, 0.11)
+      const offset = anchor ? between(rnd, -0.75, -0.55) : expensive ? between(rnd, 0.35, 0.7) : between(rnd, -0.2, 0.22)
       const spread = anchor ? 0.012 : 0.065
       const lat = zone.lat + between(rnd, -spread, spread)
       const lng = zone.lng + between(rnd, -spread, spread) * 1.1

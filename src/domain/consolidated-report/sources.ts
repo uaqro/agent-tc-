@@ -20,12 +20,12 @@
  * el Resumen y el optimizador, escritos en el formato de cada fuente. Los
  * abonos van como líneas negativas, igual que en el Resumen.
  *
- * Desaparece el hueco simulado de febrero de 2026 (`SOURCE_GAPS`): con datos
- * unificados, un hueco en el reporte sería un día en que el Resumen sí tiene
- * consumo y el reporte no. El aviso de cobertura sigue existiendo para los
- * periodos que caen fuera de los datos y para los huecos que traigan los datos.
+ * El hueco de febrero de 2026 vuelve, pero ya no lo pone el reporte: lo trae el
+ * generador (`FEED_GAPS`), así que el Resumen y el optimizador ven el mismo
+ * hueco. El reporte no lee la constante: lo detecta en los datos y avisa.
  */
 import { eventsBetween } from '../datasource/active'
+import { FEED_GAPS } from '../data/fleet-activity'
 import type { Account } from '../data/accounts'
 import type { FuelProduct, FuelType } from '../dashboard/types'
 import { DEFAULT_DEMO_DATE } from '../demo/clock'
@@ -72,8 +72,12 @@ export const COVERAGE = (() => {
   return { from: '2025-10-01', to: isoOf(new Date(y!, m! - 1, d! - 1)) }
 })()
 
-/** Huecos de fuente simulados. Ninguno: los datos están unificados (ver la cabecera). */
-export const SOURCE_GAPS: { source: FuelProduct; from: string; to: string }[] = []
+/** Entregas que faltan, para la documentación y las pruebas: las del generador. El reporte NO lee esto. */
+export const SOURCE_GAPS: { source: FuelProduct; from: string; to: string }[] = FEED_GAPS.map((gap) => ({
+  source: gap.product,
+  from: gap.from,
+  to: gap.to,
+}))
 
 const PRODUCT_CODE: Record<FuelType, AutoconsumoRow['producto']> = { diesel: 'DIESEL', magna: 'MAGNA', premium: 'PREMIUM' }
 const FUEL_CODE: Record<FuelType, TicketCarTxn['fuelCode']> = { diesel: 'D', magna: 'M', premium: 'P' }

@@ -21,6 +21,13 @@ export interface ChartSeries {
   values: number[];
 }
 
+/** A line series that can have gaps: `null` is a period without data, drawn as a gap and never interpolated. */
+export interface GapSeries {
+  name: string;
+  color: string;
+  values: (number | null)[];
+}
+
 export type AppRoute =
   | 'dashboard'
   | 'dispersion'

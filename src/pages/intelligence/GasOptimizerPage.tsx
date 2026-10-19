@@ -37,7 +37,7 @@ import {
   type CvTransition,
   type DailyMetric,
 } from '../../domain/optimizer/metrics';
-import { DEFAULT_ASSUMPTIONS, sanitizeAssumptions } from '../../domain/optimizer/rules';
+import { DEFAULT_ASSUMPTIONS, discardRecommendations, losesMoney, sanitizeAssumptions } from '../../domain/optimizer/rules';
 import { SAVING_MODE_LABELS, type Assumptions, type SavingMode } from '../../domain/optimizer/types';
 import { FUEL_LABELS, FUEL_TYPES, UNIT_CLASS_LABELS, type UnitClass } from '../../domain/dashboard/types';
 import type { StationRecommendationRequest } from '../../types/limits';
@@ -86,6 +86,8 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
   const [dailyMetric, setDailyMetric] = useState<DailyMetric>('ahorro');
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const [sending, setSending] = useState<RecommendationInput | null>(null);
+  // Recommendations discarded in this visit: their loads stay (they are spend), without the recommendation.
+  const [discarded, setDiscarded] = useState<ReadonlySet<string>>(() => new Set());
 
   const range = windows.find((candidate) => candidate.id === windowId) ?? windows[0];
   const filters = useMemo<OptimizerFilters>(
@@ -102,7 +104,9 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
 
   // The page remounts on a session change, so the scoped loads can be read once.
   const optimizerLoads = useMemo(() => scopedOptimizerLoads(), []);
-  const loads = useMemo(() => applyOptimizerFilters(optimizerLoads, filters), [optimizerLoads, filters]);
+  const filteredLoads = useMemo(() => applyOptimizerFilters(optimizerLoads, filters), [optimizerLoads, filters]);
+  const loads = useMemo(() => discardRecommendations(filteredLoads, discarded), [filteredLoads, discarded]);
+  const losing = useMemo(() => loads.filter((load) => losesMoney(load, assumptions)).length, [loads, assumptions]);
   const days = periodDays(filters);
   const kpis = useMemo(() => computeOptimizerKpis(loads, assumptions, mode, days), [loads, assumptions, mode, days]);
   const bands = useMemo(() => distanceBands(loads, assumptions, mode), [loads, assumptions, mode]);
@@ -222,6 +226,11 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
             <p className="intel-kpi__hint">
               {SAVING_MODE_LABELS[otherMode]}: {formatMoney(otherMode === 'bruto' ? kpis.grossSaving : kpis.netSaving)}
             </p>
+            {losing > 0 && (
+              <p className="intel-kpi__hint optimizer__losing">
+                {formatCount(losing)} recomendaciones no compensan el desvío (neto negativo). Revísalas en «Detalle carga por carga».
+              </p>
+            )}
           </div>
         </article>
         <article className="intel-card intel-kpi">
@@ -470,6 +479,10 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
       {tab === 'detalle' && (
         <LoadDetail
           loads={loads}
+          originals={filteredLoads}
+          discarded={discarded}
+          onDiscard={(ids) => setDiscarded((current) => new Set([...current, ...ids]))}
+          onRestore={(ids) => setDiscarded((current) => new Set([...current].filter((id) => !ids.includes(id))))}
           assumptions={assumptions}
           mode={mode}
           canSend={canSend}

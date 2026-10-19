@@ -222,6 +222,10 @@
   gap: 16px;
 }
 
+.optimizer__losing {
+  color: var(--danger, #b42318);
+}
+
 .optimizer-detail__toggle {
   display: inline-flex;
   align-items: center;

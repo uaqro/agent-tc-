@@ -25,14 +25,12 @@ import { COST_CENTER_IDS, eventsBetween } from '../../datasource/active'
 import {
   YEAR_PERIOD,
   buildConsolidatedReport,
-  computeReport,
-  prepareReport,
   resolvePeriod,
   scopeOptions,
   type ConsolidatedReport,
   type ReportRequest,
 } from '../build'
-import { MIN_GAP_DAYS, isoOfTime } from '../coverage'
+import { MIN_GAP_DAYS } from '../coverage'
 import { normalizeSources } from '../normalize'
 import { renderReportHtml } from '../document'
 import { fileBaseName, reportToCsv } from '../export'
@@ -75,7 +73,7 @@ describe('US-024 b · doce meses de Autoconsumo y TicketCar+, de los despachos d
     expect(sources).toBeCloseTo(events.reduce((sum, e) => sum + e.amountMxn, 0), 2)
   })
 
-  it('cada uno de los doce meses trae datos de las dos fuentes, sin huecos simulados', () => {
+  it('cada uno de los doce meses trae datos de las dos fuentes, salvo el hueco de TicketCar+ en febrero (del generador)', () => {
     const s = sourcesOf(account(GAN))
     for (let i = 0; i < 12; i++) {
       const date = new Date(2025, 9 + i, 1)
@@ -84,9 +82,16 @@ describe('US-024 b · doce meses de Autoconsumo y TicketCar+, de los despachos d
       const ac = s.autoconsumo.filter((r) => r.fecha.endsWith(`/${mm}/${yyyy}`)).length
       const tc = s.ticketcar.filter((t) => t.timestamp.startsWith(`${yyyy}-${mm}-`)).length
       expect(ac, `Autoconsumo ${mm}/${yyyy}`).toBeGreaterThan(0)
-      expect(tc, `TicketCar+ ${mm}/${yyyy}`).toBeGreaterThan(0)
+      if (yyyy === 2026 && mm === '02') expect(tc).toBe(0)
+      else expect(tc, `TicketCar+ ${mm}/${yyyy}`).toBeGreaterThan(0)
     }
-    expect(SOURCE_GAPS).toEqual([])
+    expect(SOURCE_GAPS).toEqual([{ source: 'ticketcar_plus', from: '2026-02-01', to: '2026-02-28' }])
+  })
+
+  it('estacionalidad: diciembre carga más que enero, los dos de 31 días', () => {
+    const dec = ok(build('dic-2025')).kpis.liters
+    const jan = ok(build('ene-2026')).kpis.liters
+    expect(dec).toBeGreaterThan(jan * 1.2)
   })
 
   it('el fin de semana se carga menos que entre semana', () => {
@@ -103,19 +108,8 @@ describe('US-024 b · doce meses de Autoconsumo y TicketCar+, de los despachos d
   })
 })
 
-/**
- * El aviso de hueco se sigue detectando en los datos. Como los datos unificados
- * no tienen huecos, aquí se provoca uno: TicketCar+ no entrega febrero de 2026.
- */
-const allDispatches = normalizeSources(sourcesOf(account(GAN)), COST_CENTER_IDS)
-const febGap = allDispatches.filter(
-  (d) => !(d.source === 'ticketcar_plus' && isoOfTime(d.at) >= '2026-02-01' && isoOfTime(d.at) <= '2026-02-28'),
-)
-function buildWithGap(period: ReportRequest['period']): ConsolidatedReport {
-  const prepared = prepareReport({ type: 'operativo', period, scope: { accountId: GAN, kind: 'cuenta', value: null } }, admin)
-  if ('error' in prepared) throw new Error(prepared.error)
-  return computeReport(prepared, febGap, admin, NOW)
-}
+/** El hueco es el del generador (`FEED_GAPS`): el reporte lo detecta en los datos, no en la constante. */
+const buildWithGap = (period: ReportRequest['period']): ConsolidatedReport => ok(build(period))
 
 describe('US-024 b · el reporte señala el hueco de una fuente', () => {
   it('febrero de 2026: aviso de TicketCar+ con las fechas, detectado en los datos', () => {
@@ -135,7 +129,24 @@ describe('US-024 b · el reporte señala el hueco de una fuente', () => {
 
   it('un periodo completo no lleva avisos', () => {
     expect(ok(build('sep-2026')).coverage).toEqual([])
-    expect(ok(build('feb-2026')).coverage).toEqual([])
+    expect(ok(build('ene-2026')).coverage).toEqual([])
+  })
+
+  it('la evolución mensual pinta el hueco como hueco: «Sin datos», ni cero ni interpolado', () => {
+    const r = ok(build('t1-2026'))
+    expect(r.byMonth.map((m) => m.month)).toEqual(['2026-01', '2026-02', '2026-03'])
+    const feb = r.byMonth[1]!
+    expect(feb.bySource.ticketcar_plus).toEqual({ liters: null, incomplete: false })
+    expect(feb.bySource.autoconsumo.liters).toBeGreaterThan(0)
+    expect(r.byMonth[0]!.bySource.ticketcar_plus.liters).toBeGreaterThan(0)
+    expect(renderReportHtml(r)).toContain('<td class="n gap">Sin datos</td>')
+    // Un rango que solo roza el hueco deja el mes incompleto, no vacío.
+    const edge = ok(build({ from: '2026-02-20', to: '2026-03-10' }))
+    expect(edge.byMonth[0]!.bySource.ticketcar_plus).toEqual({ liters: null, incomplete: false })
+    // Un mes con solo parte de sus días sin datos sale con su cifra, marcada como incompleta.
+    const late = ok(build({ from: '2026-10-10', to: '2026-10-25' }))
+    expect(late.byMonth[0]!.bySource.ticketcar_plus.incomplete).toBe(true)
+    expect(late.byMonth[0]!.bySource.ticketcar_plus.liters).toBeGreaterThan(0)
   })
 
   it(`un rango que solo roza el hueco lo recorta a sus días (umbral: ${MIN_GAP_DAYS} días seguidos)`, () => {

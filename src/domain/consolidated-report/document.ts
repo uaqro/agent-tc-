@@ -49,6 +49,24 @@ ${body || '<tr><td colspan="6">Sin despachos en el alcance.</td></tr>'}
 </table>${note}`
 }
 
+/** Litros por mes y fuente. Un mes sin datos de una fuente dice «Sin datos»: ni cero ni interpolado. */
+function monthTable(report: ConsolidatedReport): string {
+  const cell = (value: { liters: number | null; incomplete: boolean }) =>
+    value.liters === null
+      ? '<td class="n gap">Sin datos</td>'
+      : `<td class="n">${number.format(value.liters)}${value.incomplete ? ' <span class="note">(incompleto)</span>' : ''}</td>`
+  const body = report.byMonth
+    .map((row) => `<tr><td>${row.label}</td>${cell(row.bySource.autoconsumo)}${cell(row.bySource.ticketcar_plus)}</tr>`)
+    .join('\n')
+  return `<table>
+<thead><tr><th>Mes</th><th class="n">${SOURCE_LABEL.autoconsumo} (L)</th><th class="n">${SOURCE_LABEL.ticketcar_plus} (L)</th></tr></thead>
+<tbody>
+${body}
+</tbody>
+</table>
+<p class="note">Litros de todo el alcance. «Sin datos» es un mes que la fuente no entregó: no se cuenta como cero ni se interpola.</p>`
+}
+
 /** Lo que falta en el periodo, en la portada: quien lee el reporte lo ve antes que las cifras. */
 function coverageBlock(report: ConsolidatedReport): string {
   if (report.coverage.length === 0) return ''
@@ -88,6 +106,7 @@ export function renderReportHtml(report: ConsolidatedReport): string {
   th { background: #f4f6fa; }
   .n { text-align: right; font-variant-numeric: tabular-nums; }
   .note { font-size: 12px; color: #5b6477; }
+  .gap { color: #8a1c1c; font-style: italic; background: repeating-linear-gradient(45deg, #fdecec, #fdecec 4px, #fff 4px, #fff 8px); }
   section { page-break-before: always; }
   @media print { body { padding: 0 12mm; } .cover { min-height: 90vh; } }
 </style>
@@ -113,6 +132,7 @@ ${coverageBlock(report)}
     <li><a href="#kpis">KPIs ejecutivos</a></li>
     <li><a href="#unidades">Desglose por unidad</a></li>
     <li><a href="#conductores">Desglose por conductor</a></li>
+    <li><a href="#meses">Evolución mensual</a></li>
   </ol>
 </section>
 
@@ -138,6 +158,11 @@ ${coverageBlock(report)}
 <section id="conductores">
   <h2>3. Desglose por conductor</h2>
   ${table(drivers, 'Conductor', report.byDriver.length)}
+</section>
+
+<section id="meses">
+  <h2>4. Evolución mensual</h2>
+  ${monthTable(report)}
 </section>
 </body>
 </html>`

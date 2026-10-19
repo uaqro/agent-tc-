@@ -93,6 +93,34 @@ export function notRedirectableReason(
   return load.optimal ? 'mas_barata' : 'desvio_no_paga'
 }
 
+/**
+ * Redirigible pero con ahorro NETO negativo: el desvío cuesta más de lo que se
+ * ahorra en el litro — Ticket Car+. El motor recomienda la estación más barata
+ * a ≤ 5 km sin mirar la distancia, así que una parte de sus recomendaciones
+ * pierde dinero en cuanto se cuenta el viaje. Se marcan y se pueden descartar.
+ */
+export function losesMoney(
+  load: Pick<Load, 'optimal' | 'savingCents' | 'detourM' | 'pricePaid'>,
+  assumptions: Assumptions,
+): boolean {
+  return isRedirectable(load) && netSaving(load, assumptions) < 0
+}
+
+/**
+ * Descarta las recomendaciones de las cargas indicadas. La carga se queda —es
+ * gasto, y el gasto tiene que cuadrar con el Resumen— pero sin recomendación:
+ * deja de ser redirigible, no suma ahorro y su motivo pasa a ser «el desvío no
+ * se paga solo». Las demás cargas se devuelven tal cual.
+ */
+export function discardRecommendations(loads: readonly Load[], ids: ReadonlySet<string>): Load[] {
+  if (ids.size === 0) return [...loads]
+  return loads.map((load) =>
+    ids.has(load.id) && isRedirectable(load)
+      ? { ...load, recommendedStationId: null, priceRecommended: null, detourM: 0, savingCents: 0, discarded: true }
+      : load,
+  )
+}
+
 /** Normaliza los supuestos que llegan de un campo de texto. */
 export function sanitizeAssumptions(raw: Partial<Assumptions>): Assumptions {
   const km = Number(raw.kmPerLiter)

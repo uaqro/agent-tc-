@@ -34,6 +34,16 @@
  *          aparecen al filtrar por «Sin conductor asignado» (US-010);
  *        · conductores con la licencia vencida, que siguen en el padrón
  *          porque el histórico es suyo (US-010).
+ *
+ *      Y desde la unificación de datos de Ticket Car+, con tests que los fijan
+ *      (`data/__tests__/dataProperties.test.ts`):
+ *        · ESTACIONALIDAD mensual (`MONTH_FACTOR`): más actividad en
+ *          noviembre–diciembre, menos en enero–febrero y en Semana Santa;
+ *        · un HUECO DE DATOS (`FEED_GAPS`): el flujo de TicketCar+ de febrero
+ *          de 2026 no llegó, como en el reporte de eOne. Es un hueco, no un
+ *          consumo cero, y el día lo declara en `DayPoint.missingFeeds`;
+ *        · ANOMALÍAS de consumo para Insights: cargas por encima del tanque,
+ *          cargas fuera de horario y unidades con rendimiento atípico.
  */
 import { createRandom, pick, randomInt, type Random } from '../engine/prng'
 import type {
@@ -55,7 +65,7 @@ import type {
 import type { Account } from './accounts'
 import { ACCOUNTS } from './accounts'
 import { CONTRACT_DISCOUNT, LIST_PRICE } from './prices'
-import { contractPriceAt, dayIndexOf, stationForDispatch } from '../stations/directory'
+import { contractPriceAt, dayIndexOf, hashFraction, stationForDispatch } from '../stations/directory'
 
 const HOUR = 60 * 60_000
 const DAY = 24 * HOUR
@@ -261,6 +271,70 @@ function weekdayFactor(at: number): number {
   if (day === 5) return 1.08
   return 1
 }
+
+/**
+ * Estacionalidad mensual — Ticket Car+ (la de eOne vivía en el reporte).
+ * ═══════════════════════════════════════════════════════════════════
+ * Multiplica la actividad del día, como `weekdayFactor`: kilómetros y
+ * probabilidad de repostar. Noviembre–diciembre suben por el cierre de año y
+ * el reparto navideño; enero–febrero y abril (Semana Santa) bajan. Septiembre
+ * y octubre quedan en 1: la ventana de 30 días de la demo no cambia de escala.
+ * Clave = `Date#getMonth()`.
+ */
+export const MONTH_FACTOR: readonly number[] = [0.84, 0.9, 0.98, 0.92, 1.02, 1.0, 0.95, 0.97, 1.0, 1.0, 1.06, 1.14]
+
+function monthFactor(at: number): number {
+  return MONTH_FACTOR[new Date(at).getMonth()] ?? 1
+}
+
+/**
+ * Huecos de datos — el febrero de eOne, ahora dentro del generador único.
+ * ══════════════════════════════════════════════════════════════════════
+ * El switch de TicketCar+ no entregó el flujo de febrero de 2026: las cargas
+ * existieron, pero no llegaron. Las unidades de TicketCar+ (algo más de la
+ * mitad de la flota) se quedan esos días sin despachos y las de Autoconsumo
+ * siguen. El reporte lo detecta en los datos y avisa; las gráficas lo pintan
+ * como hueco gracias a `DayPoint.missingFeeds`. Nadie interpola.
+ */
+export const FEED_GAPS: readonly { product: FuelProduct; from: string; to: string }[] = [
+  { product: 'ticketcar_plus', from: '2026-02-01', to: '2026-02-28' },
+]
+
+/** Productos cuyo flujo falta el día que empieza en `dayStart`. */
+export function missingFeedsOn(dayStart: number): FuelProduct[] {
+  const date = new Date(dayStart)
+  const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+  return FEED_GAPS.filter((gap) => iso >= gap.from && iso <= gap.to).map((gap) => gap.product)
+}
+
+// ── Anomalías de consumo (para Insights, Fase 2) ─────────────────────────
+
+/**
+ * Llenado máximo normal: una carga no pasa del 95 % del tanque. Antes los litros
+ * salían solo del centro de coste y la mitad de las cargas desbordaba el tanque
+ * de su unidad (una van de 55 L cargando 200 L), lo que ahogaba la anomalía real.
+ */
+const TANK_FILL_MAX = 0.95
+/** Cargas que superan la capacidad del tanque: 0,5 % de los despachos. */
+export const OVER_TANK_RATE = 0.005
+/** Cargas fuera de horario (de 01:00 a 04:59, con la unidad fuera de turno): 1 % de los despachos. */
+export const OFF_HOURS_RATE = 0.01
+/** Franja fuera de horario, en horas. Los turnos empiezan entre las 05:00 y las 08:59. */
+export const OFF_HOURS = { from: 1, to: 5 } as const
+/** Ordinal reservado al abono de la conciliación: no recibe anomalías. */
+const REFUND_ORDINAL = 2
+
+/**
+ * Unidades con rendimiento atípico: una de cada cincuenta (2 %). Ruedan un 45 %
+ * menos que sus pares y cargan un 40 % más a menudo, como una fuga o un uso
+ * fuera de ruta.
+ * Por índice, como el VIN pendiente: no mueve el sorteo de las demás.
+ */
+export function hasAtypicalEfficiency(index: number): boolean {
+  return index % 50 === 17
+}
+const ATYPICAL_KM_FACTOR = 0.55
+const ATYPICAL_REFUEL_FACTOR = 1.4
 
 /** Precio de lista y de contrato de cada combustible, ese día. */
 function priceOfDay(daysAgo: number): Record<FuelType, { list: number; contract: number }> {
@@ -590,7 +664,8 @@ function dayPlan(
   const rnd = createRandom(SEED + hashText(account.id) + dayIndex * 7919)
   const daysAgo = Math.max(0, Math.round((todayStart - dayStart) / DAY))
   const price = priceOfDay(daysAgo)
-  const intensity = weekdayFactor(dayStart)
+  const intensity = weekdayFactor(dayStart) * monthFactor(dayStart)
+  const missingFeeds = missingFeedsOn(dayStart)
 
   const plans: UnitPlan[] = []
 
@@ -646,10 +721,8 @@ function dayPlan(
 
     const shiftStart = dayStart + randomInt(rnd, 5, 8) * HOUR + randomInt(rnd, 0, 59) * 60_000
     const shiftEnd = shiftStart + randomInt(rnd, 8, 12) * HOUR
-    const kmTotal =
-      status === 'activa'
-        ? Math.round(randomInt(rnd, profile.km[0], profile.km[1]) * intensity * behaviorProfile.km)
-        : 0
+    const kmFactor = intensity * behaviorProfile.km * (hasAtypicalEfficiency(i) ? ATYPICAL_KM_FACTOR : 1)
+    const kmTotal = status === 'activa' ? Math.round(randomInt(rnd, profile.km[0], profile.km[1]) * kmFactor) : 0
 
     const events: FuelEvent[] = []
     // Lo que la ruta y la conducción le hacen a la factura del día. Es lo que
@@ -658,7 +731,8 @@ function dayPlan(
     const context = { routeId, behavior: behaviorProfile.id, consumption }
 
     // Un camión no reposta todos los días: la probabilidad es por perfil.
-    if (status === 'activa' && rnd() < profile.refuelOdds * intensity) {
+    const refuelOdds = profile.refuelOdds * intensity * (hasAtypicalEfficiency(i) ? ATYPICAL_REFUEL_FACTOR : 1)
+    if (status === 'activa' && rnd() < refuelOdds) {
       events.push(
         fuelEvent(rnd, account, unit, driverId, orgPath, context, price, profile.liters, shiftStart, shiftEnd, 0),
       )
@@ -679,6 +753,8 @@ function dayPlan(
      * para no mover el sorteo de las demás unidades.
      */
     const retired = unit.deregisteredAt !== null && unit.deregisteredAt <= dayStart
+    // Flujo no entregado (`FEED_GAPS`): la unidad operó, pero sus despachos no llegaron.
+    const undelivered = missingFeeds.includes(unit.product)
 
     plans.push({
       unit,
@@ -690,7 +766,7 @@ function dayPlan(
       shiftStart,
       shiftEnd,
       kmTotal: retired ? 0 : kmTotal,
-      events: retired ? [] : events,
+      events: retired || undelivered ? [] : events,
     })
   }
 
@@ -703,7 +779,9 @@ function dayPlan(
    * sobre su propia carga del día el neto sería cero, y un cero no obliga a
    * nadie a saber pintar un negativo.
    */
-  const abonada = plans.find((plan) => plan.status === 'activa' && plan.events.length === 0)
+  const abonada = plans.find(
+    (plan) => plan.status === 'activa' && plan.events.length === 0 && !missingFeeds.includes(plan.unit.product),
+  )
   if (abonada) {
     const profile = COST_CENTERS.find((c) => c.id === abonada.unit.costCenter) ?? COST_CENTERS[0]!
     const cargo = fuelEvent(
@@ -717,7 +795,7 @@ function dayPlan(
       profile.liters,
       abonada.shiftStart,
       abonada.shiftEnd,
-      2,
+      REFUND_ORDINAL,
     )
     abonada.events.push({
       ...cargo,
@@ -748,14 +826,26 @@ function fuelEvent(
   /** Orden del despacho en la jornada de la unidad: fija su estación. */
   ordinal: number,
 ): FuelEvent {
-  const liters = round(
-    (randomInt(rnd, litersRange[0], litersRange[1]) + rnd()) * context.consumption,
-    2,
-  )
+  const drawn = (randomInt(rnd, litersRange[0], litersRange[1]) + rnd()) * context.consumption
+  const day = dayIndexOf(shiftStart)
+  const key = `${unit.id}:${day}:${ordinal}`
+  const anomalies = ordinal !== REFUND_ORDINAL
+  // Lo que cabe en el tanque: si el perfil pide más, se llena entre el 60 y el 95 %.
+  const cap = unit.tankLiters * TANK_FILL_MAX
+  let liters = round(drawn <= cap ? drawn : cap * (0.6 + 0.35 * hashFraction(`${key}:llenado`)), 2)
+  // Anomalía: carga por encima del tanque, entre un 15 y un 55 % más de su capacidad.
+  if (anomalies && hashFraction(`${key}:sobre-tanque`) < OVER_TANK_RATE) {
+    liters = round(unit.tankLiters * (1.15 + 0.4 * hashFraction(`${key}:exceso`)), 2)
+  }
+  let at = shiftStart + Math.round(rnd() * (shiftEnd - shiftStart))
+  // Anomalía: carga de madrugada, con la unidad fuera de turno.
+  if (anomalies && hashFraction(`${key}:horario`) < OFF_HOURS_RATE) {
+    const offset = Math.floor(hashFraction(`${key}:hora`) * (OFF_HOURS.to - OFF_HOURS.from) * HOUR)
+    at = startOfDay(shiftStart) + OFF_HOURS.from * HOUR + offset
+  }
   const tariff = price[unit.fuel]
   // Estación y precio de esa estación — Ticket Car+. Sin directorio, el
   // precio de contrato único de eOne.
-  const day = dayIndexOf(shiftStart)
   const stationId = stationForDispatch(account, unit.id, unit.product, day, ordinal)
   const contract = stationId === null ? tariff.contract : contractPriceAt(stationId, unit.fuel, day)
   return {
@@ -770,7 +860,7 @@ function fuelEvent(
     driverId,
     routeId: context.routeId,
     behavior: context.behavior,
-    at: shiftStart + Math.round(rnd() * (shiftEnd - shiftStart)),
+    at,
     liters,
     amountMxn: round(liters * contract, 2),
     listAmountMxn: round(liters * tariff.list, 2),
@@ -897,6 +987,7 @@ function dayPoint(
     label: dayLabel.format(new Date(dayStart)),
     partial: dayStart === todayStart,
     rows: unitRows(plans, until),
+    missingFeeds: missingFeedsOn(dayStart),
     // Los despachos con su hora — US-016. Se recortan por `until` igual que las
     // filas, para que el día en curso no adelante repostajes que aún no han
     // ocurrido.
@@ -1053,6 +1144,7 @@ export function buildAccountActivity(
     label: dayLabel.format(new Date(todayStart)),
     partial: true,
     rows: unitRows(today, now),
+    missingFeeds: missingFeedsOn(todayStart),
     events: eventsUpTo(today, now),
   })
 

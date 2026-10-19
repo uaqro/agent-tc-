@@ -3,7 +3,16 @@ import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
-import { PAYMENT_TYPE_LABEL, VEHICLE_STATUS_LABEL, vehicleMedia, vehicleDetails, type VehicleStatus } from '../data/fleet';
+import {
+  PAYMENT_TYPE_LABEL,
+  REGISTRY_GAP_LABEL,
+  VEHICLE_STATUS_LABEL,
+  vehicleMedia,
+  vehicleDetails,
+  type RegistryGap,
+  type VehicleDetail,
+  type VehicleStatus,
+} from '../data/fleet';
 import { assignableGroups } from '../data/limits';
 import { formatCount } from '../utils/format';
 import './TablePage.css';
@@ -22,18 +31,27 @@ const STATUS_CHIP: Record<VehicleStatus, string> = {
   inactive: 'chip--paused',
 };
 
+/** Record filter: every unit, the incomplete ones, or the ones missing one piece. */
+type RecordFilter = '' | 'incomplete' | RegistryGap;
+
 export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: VehiclesPageProps) {
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('');
   const [status, setStatus] = useState<VehicleStatus | ''>('');
+  const [record, setRecord] = useState<RecordFilter>('');
+  // A role without access to the VIN equivalence does not learn which VINs are missing either (ADR-TCP-001).
+  const gapsOf = (detail: VehicleDetail): RegistryGap[] => detail.gaps.filter((gap) => gap !== 'vin' || showVin);
+  const gapKinds = (Object.keys(REGISTRY_GAP_LABEL) as RegistryGap[]).filter((gap) => gap !== 'vin' || showVin);
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return vehicleDetails.filter((detail) => {
       const haystack = `${detail.vehicleId} ${detail.plate} ${detail.driver} ${detail.brand} ${detail.model}`.toLowerCase();
-      return (!group || detail.group === group) && (!status || detail.status === status) && (!needle || haystack.includes(needle));
+      const gaps = gapsOf(detail);
+      const recordOk = !record || (record === 'incomplete' ? gaps.length > 0 : gaps.includes(record));
+      return (!group || detail.group === group) && (!status || detail.status === status) && recordOk && (!needle || haystack.includes(needle));
     });
-  }, [query, group, status]);
+  }, [query, group, status, record, showVin]);
   const pagination = usePagination(rows);
   const mediumByVehicle = useMemo(() => new Map(vehicleMedia.map((medium) => [medium.vehicleId, medium])), []);
 
@@ -59,6 +77,10 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
         <div>
           <dt>Inactivos</dt>
           <dd>{count('inactive')}</dd>
+        </div>
+        <div>
+          <dt>Ficha incompleta</dt>
+          <dd>{vehicleDetails.filter((detail) => gapsOf(detail).length > 0).length}</dd>
         </div>
       </dl>
 
@@ -96,6 +118,18 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
                 ))}
               </select>
             </label>
+            <label>
+              <span className="visually-hidden">Filtrar por ficha</span>
+              <select value={record} onChange={(event) => setRecord(event.target.value as RecordFilter)}>
+                <option value="">Toda la ficha</option>
+                <option value="incomplete">Ficha incompleta</option>
+                {gapKinds.map((gap) => (
+                  <option key={gap} value={gap}>
+                    {REGISTRY_GAP_LABEL[gap]}
+                  </option>
+                ))}
+              </select>
+            </label>
             {canEdit && (
               <button type="button" className="btn btn--primary btn--sm" onClick={() => onNotice('Alta de vehículo abierta.')}>
                 <PlusIcon width={14} height={14} />
@@ -120,6 +154,7 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
                   setQuery('');
                   setGroup('');
                   setStatus('');
+                  setRecord('');
                 }}
               >
                 Limpiar filtros
@@ -165,6 +200,7 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
               <tbody>
                 {pagination.pageRows.map((detail) => {
                   const medium = mediumByVehicle.get(detail.vehicleId);
+                  const gaps = gapsOf(detail);
                   return (
                     <tr key={detail.vehicleId}>
                       <td>
@@ -175,6 +211,11 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
                         {showVin && (
                           <span className="table-page__sub table-page__nowrap">
                             {detail.vin === '' ? 'VIN pendiente' : `VIN ${detail.vin}`}
+                          </span>
+                        )}
+                        {gaps.length > 0 && (
+                          <span className="chip chip--review table-page__gap" title={`Ficha incompleta: ${gaps.map((gap) => REGISTRY_GAP_LABEL[gap]).join(', ')}`}>
+                            {gaps.map((gap) => REGISTRY_GAP_LABEL[gap]).join(' · ')}
                           </span>
                         )}
                       </td>

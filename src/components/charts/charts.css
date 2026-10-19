@@ -24,6 +24,11 @@
   opacity: 0.6;
 }
 
+.chart__gap {
+  fill: var(--surface-muted, #f4f6fa);
+  opacity: 0.9;
+}
+
 .chart__line {
   fill: none;
   stroke-width: 2.5;

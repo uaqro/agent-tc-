@@ -1,6 +1,6 @@
-import type { ChartSeries } from '../../types';
+import type { GapSeries } from '../../types';
 
-export function ChartLegend({ series }: { series: ChartSeries[] }) {
+export function ChartLegend({ series }: { series: Pick<GapSeries, 'name' | 'color'>[] }) {
   if (series.length === 0) return null;
 
   return (

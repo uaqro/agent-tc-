@@ -399,6 +399,12 @@ export type DayPoint = {
   /** Una fila por unidad del padrón de ese día. */
   rows: DayUnitRow[]
   /**
+   * Productos cuyo flujo de despachos NO llegó ese día — Ticket Car+ (`FEED_GAPS`).
+   * Sus unidades salen sin cargas, pero eso es un hueco de datos, no un consumo
+   * cero: las gráficas lo pintan como hueco y no interpolan.
+   */
+  missingFeeds: FuelProduct[]
+  /**
    * Los despachos de ese día, con su hora — EP-03 · US-016, criterio 2.
    *
    * El histórico se quedaba en el grano unidad-día porque las ocho dimensiones

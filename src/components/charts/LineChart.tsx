@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import type { ChartSeries } from '../../types';
+import type { GapSeries } from '../../types';
 import {
   CHART_HEIGHT,
   CHART_WIDTH,
@@ -16,12 +16,27 @@ import './charts.css';
 
 interface LineChartProps {
   labels: string[];
-  series: ChartSeries[];
+  /** `null` values are gaps: the line breaks there and the tooltip says «Sin datos». */
+  series: GapSeries[];
   yMin: number;
   yMax: number;
   tickCount?: number;
   valueSuffix?: string;
   ariaLabel: string;
+}
+
+/** Runs of consecutive non-null points, one polyline each: a gap is never bridged. */
+function segmentsOf(values: (number | null)[]): { index: number; value: number }[][] {
+  const segments: { index: number; value: number }[][] = [];
+  let current: { index: number; value: number }[] = [];
+  values.forEach((value, index) => {
+    if (value === null) {
+      if (current.length > 0) segments.push(current);
+      current = [];
+    } else current.push({ index, value });
+  });
+  if (current.length > 0) segments.push(current);
+  return segments;
 }
 
 export function LineChart({
@@ -36,6 +51,8 @@ export function LineChart({
   const svgRef = useRef<SVGSVGElement>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const ticks = buildTicks(yMin, yMax, tickCount);
+  const step = (CHART_WIDTH - PADDING.left - PADDING.right) / Math.max(labels.length - 1, 1);
+  const gapIndexes = labels.map((_, index) => index).filter((index) => series.some((item) => item.values[index] === null));
 
   const handlePointer = (event: React.PointerEvent<SVGSVGElement>) => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -90,6 +107,19 @@ export function LineChart({
           </text>
         ))}
 
+        {gapIndexes.map((index) => (
+          <rect
+            key={`gap-${index}`}
+            className="chart__gap"
+            x={Math.max(PADDING.left, scaleX(index, labels.length) - step / 2)}
+            y={PADDING.top}
+            width={Math.min(step, CHART_WIDTH - PADDING.right - Math.max(PADDING.left, scaleX(index, labels.length) - step / 2))}
+            height={PLOT_HEIGHT}
+          >
+            <title>Sin datos</title>
+          </rect>
+        ))}
+
         {activeIndex !== null && (
           <line
             className="chart__guide"
@@ -100,19 +130,20 @@ export function LineChart({
           />
         )}
 
-        {series.map((item) => (
-          <polyline
-            key={item.name}
-            className="chart__line"
-            stroke={item.color}
-            points={item.values
-              .map((value, index) => `${scaleX(index, labels.length)},${scaleY(value, yMin, yMax)}`)
-              .join(' ')}
-          />
-        ))}
+        {series.map((item) =>
+          segmentsOf(item.values).map((segment) => (
+            <polyline
+              key={`${item.name}-${segment[0].index}`}
+              className="chart__line"
+              stroke={item.color}
+              points={segment.map(({ index, value }) => `${scaleX(index, labels.length)},${scaleY(value, yMin, yMax)}`).join(' ')}
+            />
+          )),
+        )}
 
         {series.map((item) =>
-          item.values.map((value, index) => (
+          item.values.map((value, index) =>
+            value === null ? null : (
             <circle
               key={`${item.name}-${index}`}
               className="chart__dot"
@@ -121,7 +152,8 @@ export function LineChart({
               r={activeIndex === index ? 5.5 : 3.5}
               fill={item.color}
             />
-          )),
+            ),
+          ),
         )}
 
         {activeIndex !== null && (
@@ -132,7 +164,7 @@ export function LineChart({
             rows={series.map((item) => ({
               color: item.color,
               label: item.name,
-              value: `${item.values[activeIndex]}${valueSuffix}`,
+              value: item.values[activeIndex] === null ? 'Sin datos' : `${item.values[activeIndex]}${valueSuffix}`,
             }))}
           />
         )}

@@ -4,7 +4,7 @@ import { driverNameOf } from '../../data/optimizer';
 import { RECOMMENDATION_DISCLAIMER, recommendationLog, subscribeRecommendations, type RecommendationInput } from '../../data/recommendations';
 import { dayLabel } from '../../domain/optimizer/loads';
 import { maskedCardOf, stationName } from '../../domain/optimizer/labels';
-import { isRedirectable, notRedirectableReason, REASON_LABELS, savingIn } from '../../domain/optimizer/rules';
+import { isRedirectable, losesMoney, netSaving, notRedirectableReason, REASON_LABELS, savingIn } from '../../domain/optimizer/rules';
 import type { Assumptions, Load, SavingMode } from '../../domain/optimizer/types';
 import type { StationRecommendationRequest } from '../../types/limits';
 import { formatDateTime, formatMoney } from '../../utils/format';
@@ -13,7 +13,13 @@ import { Pagination, usePagination } from '../ui/Pagination';
 import '../../pages/TablePage.css';
 
 interface LoadDetailProps {
+  /** Loads with the discarded recommendations already taken out. */
   loads: Load[];
+  /** The same loads before discarding, to show and restore what was discarded. */
+  originals: Load[];
+  discarded: ReadonlySet<string>;
+  onDiscard: (ids: string[]) => void;
+  onRestore: (ids: string[]) => void;
   assumptions: Assumptions;
   mode: SavingMode;
   canSend: boolean;
@@ -22,18 +28,48 @@ interface LoadDetailProps {
   onApplyInLimits: (request: StationRecommendationRequest) => void;
 }
 
-const price = (value: number | null) => (value === null ? '—' : `$${value.toFixed(2)}`);
+const price = (value: number | null) => (value === null ? '—' : `${value.toFixed(2)}`);
+
+/** Which loads the table lists. */
+type View = 'redirigibles' | 'no_compensan' | 'descartadas' | 'todas';
+
+const VIEW_LABELS: Record<View, string> = {
+  redirigibles: 'Cargas redirigibles',
+  no_compensan: 'No compensan el desvío',
+  descartadas: 'Recomendaciones descartadas',
+  todas: 'Todas las cargas',
+};
 
 /** Load by load, with the two manual actions on redirectable loads and the log of every send. */
-export function LoadDetail({ loads, assumptions, mode, canSend, canApply, onSend, onApplyInLimits }: LoadDetailProps) {
-  const [onlyRedirectable, setOnlyRedirectable] = useState(true);
+export function LoadDetail({
+  loads,
+  originals,
+  discarded,
+  onDiscard,
+  onRestore,
+  assumptions,
+  mode,
+  canSend,
+  canApply,
+  onSend,
+  onApplyInLimits,
+}: LoadDetailProps) {
+  const [view, setView] = useState<View>('redirigibles');
+  const losing = useMemo(() => loads.filter((load) => losesMoney(load, assumptions)), [loads, assumptions]);
   const log = useSyncExternalStore(subscribeRecommendations, recommendationLog);
   const rows = useMemo(
     () =>
-      (onlyRedirectable ? loads.filter(isRedirectable) : loads)
+      (view === 'redirigibles'
+        ? loads.filter(isRedirectable)
+        : view === 'no_compensan'
+          ? losing
+          : view === 'descartadas'
+            ? originals.filter((load) => discarded.has(load.id))
+            : loads
+      )
         .slice()
         .sort((a, b) => b.savingCents - a.savingCents || b.at - a.at),
-    [loads, onlyRedirectable],
+    [loads, originals, discarded, losing, view],
   );
   const pagination = usePagination(rows);
   const sentCards = useMemo(() => new Set(log.map((entry) => entry.cardId)), [log]);
@@ -66,15 +102,28 @@ export function LoadDetail({ loads, assumptions, mode, canSend, canApply, onSend
             Detalle carga por carga
           </h2>
           <div className="table-page__filters">
-            <label className="optimizer-detail__toggle">
-              <input type="checkbox" checked={onlyRedirectable} onChange={(event) => setOnlyRedirectable(event.target.checked)} />
-              Solo cargas redirigibles
+            <label>
+              <span className="visually-hidden">Qué cargas ver</span>
+              <select value={view} onChange={(event) => setView(event.target.value as View)}>
+                {(Object.keys(VIEW_LABELS) as View[]).map((candidate) => (
+                  <option key={candidate} value={candidate}>
+                    {VIEW_LABELS[candidate]}
+                    {candidate === 'no_compensan' ? ` (${losing.length})` : candidate === 'descartadas' ? ` (${discarded.size})` : ''}
+                  </option>
+                ))}
+              </select>
             </label>
+            {losing.length > 0 && (
+              <button type="button" className="btn btn--secondary btn--sm" onClick={() => onDiscard(losing.map((load) => load.id))}>
+                Descartar las que no compensan ({losing.length})
+              </button>
+            )}
           </div>
         </header>
         <p className="optimizer-detail__disclaimer">
           {RECOMMENDATION_DISCLAIMER}. «Enviar al conductor» es manual y por tarjeta; «Aplicar en Límites» abre Límites con la
-          unidad y la estación precargadas, y nada cambia hasta que lo confirmas allí.
+          unidad y la estación precargadas, y nada cambia hasta que lo confirmas allí. Una recomendación «No compensa» cuando el
+          desvío cuesta más de lo que ahorra con los supuestos de arriba: se puede descartar y deja de sumar ahorro.
         </p>
 
         <div className="table-page__scroll">
@@ -98,6 +147,8 @@ export function LoadDetail({ loads, assumptions, mode, canSend, canApply, onSend
                 const recommendation = recommendationOf(load);
                 const redirectable = isRedirectable(load);
                 const reason = notRedirectableReason(load);
+                const isDiscarded = discarded.has(load.id);
+                const loses = !isDiscarded && losesMoney(load, assumptions);
                 return (
                   <tr key={load.id}>
                     <td>
@@ -122,9 +173,25 @@ export function LoadDetail({ loads, assumptions, mode, canSend, canApply, onSend
                     <td className="table-page__nowrap">{redirectable ? `${(load.detourM / 1000).toFixed(1)} km` : '—'}</td>
                     <td className="table-page__nowrap">
                       {redirectable ? formatMoney(savingIn(load, mode, assumptions), true) : <span className="table-page__sub">{reason ? REASON_LABELS[reason] : '—'}</span>}
+                      {loses && (
+                        <span className="chip chip--danger table-page__gap" title="El desvío cuesta más de lo que ahorra en el litro">
+                          No compensa · neto {formatMoney(netSaving(load, assumptions), true)}
+                        </span>
+                      )}
+                      {isDiscarded && <span className="chip chip--paused table-page__gap">Descartada</span>}
                     </td>
                     <td className="table-page__action">
-                      {redirectable && recommendation && (
+                      {loses && (
+                        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onDiscard([load.id])}>
+                          Descartar
+                        </button>
+                      )}
+                      {isDiscarded && (
+                        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onRestore([load.id])}>
+                          Restaurar
+                        </button>
+                      )}
+                      {redirectable && recommendation && !isDiscarded && (
                         <>
                           {canSend && (
                             <button type="button" className="btn btn--ghost btn--sm" onClick={() => onSend(recommendation)}>

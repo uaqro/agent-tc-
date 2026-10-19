@@ -34,7 +34,7 @@ import { COST_CENTER_IDS, fleetDriversOf, fleetUnitsOf } from '../datasource/act
 import { FUEL_PRODUCT_LABELS, type FuelProduct } from '../dashboard/types'
 import type { Account } from '../data/accounts'
 import { findNode, levelName, pathOf, unitPathOf, type OrgTree } from '../org/types'
-import { coverageWarnings, rangeText, type CoverageWarning } from './coverage'
+import { coverageWarnings, isoOfTime, rangeText, type CoverageWarning } from './coverage'
 import { normalizeSources, type Dispatch } from './normalize'
 import { COVERAGE, sourcesOf } from './sources'
 
@@ -339,6 +339,62 @@ export type ConsolidatedReport = {
   /** Todas las filas; el tipo de reporte decide cuántas se publican. */
   byUnit: BreakdownRow[]
   byDriver: BreakdownRow[]
+  /**
+   * Litros por mes y fuente — Ticket Car+. Muestra la estacionalidad y los
+   * huecos: un mes que una fuente no entregó es `null` («Sin datos»), nunca
+   * cero ni un valor interpolado. Si solo faltan unos días, lleva `incomplete`.
+   */
+  byMonth: MonthRow[]
+}
+
+export type MonthRow = {
+  /** `YYYY-MM`. */
+  month: string
+  /** «feb 2026». */
+  label: string
+  bySource: Record<FuelProduct, { liters: number | null; incomplete: boolean }>
+}
+
+const MONTH_LABELS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+
+function nextIsoDay(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const date = new Date(y!, m! - 1, d! + 1)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+/** Meses del periodo con los litros de cada fuente; los días sin datos de una fuente salen de los avisos de cobertura. */
+function monthRows(dispatches: readonly Dispatch[], fromIso: string, toIso: string, coverage: readonly CoverageWarning[]): MonthRow[] {
+  const sources = Object.keys(FUEL_PRODUCT_LABELS) as FuelProduct[]
+  const missing = (source: FuelProduct, day: string) =>
+    coverage.some(
+      (w) => (w.kind === 'fuera_de_cobertura' || w.source === source) && day >= w.from && day <= w.to,
+    )
+  const months = new Map<string, { days: number; missing: Record<FuelProduct, number>; liters: Record<FuelProduct, number> }>()
+  for (let day = fromIso; day <= toIso; day = nextIsoDay(day)) {
+    const key = day.slice(0, 7)
+    const month = months.get(key) ?? { days: 0, missing: { autoconsumo: 0, ticketcar_plus: 0 }, liters: { autoconsumo: 0, ticketcar_plus: 0 } }
+    month.days += 1
+    for (const source of sources) if (missing(source, day)) month.missing[source] += 1
+    months.set(key, month)
+  }
+  for (const d of dispatches) {
+    const month = months.get(isoOfTime(d.at).slice(0, 7))
+    if (month) month.liters[d.source] += d.liters
+  }
+  return [...months].map(([key, month]) => ({
+    month: key,
+    label: `${MONTH_LABELS[Number(key.slice(5, 7)) - 1]} ${key.slice(0, 4)}`,
+    bySource: Object.fromEntries(
+      sources.map((source) => [
+        source,
+        {
+          liters: month.missing[source] === month.days ? null : month.liters[source],
+          incomplete: month.missing[source] > 0 && month.missing[source] < month.days,
+        },
+      ]),
+    ) as MonthRow['bySource'],
+  }))
 }
 
 function breakdown(dispatches: Dispatch[], keyOf: (d: Dispatch) => string, labelOf: (key: string) => string): BreakdownRow[] {
@@ -485,13 +541,15 @@ export function computeReport(
     bySource[d.source].dispatches += 1
   }
 
+  const coverage = coverageWarnings(accountDispatches, period.fromIso, period.toIso)
   return {
     request: prepared.request,
     account,
     scopeLabel: prepared.scopeLabel,
     periodLabel: period.label,
     periodRange: { from: period.fromIso, to: period.toIso },
-    coverage: coverageWarnings(accountDispatches, period.fromIso, period.toIso),
+    coverage,
+    byMonth: monthRows(dispatches, period.fromIso, period.toIso, coverage),
     generatedAt: now,
     generatedBy: principal.name,
     kpis: {

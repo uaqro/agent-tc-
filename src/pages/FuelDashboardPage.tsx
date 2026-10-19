@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BarChart } from '../components/charts/BarChart';
 import { EmptyChart } from '../components/charts/EmptyChart';
 import { LineChart } from '../components/charts/LineChart';
@@ -7,7 +7,7 @@ import { SummaryCard } from '../components/dashboard/SummaryCard';
 import { useGlobalFilters } from '../components/filters/GlobalFilters';
 import { clientAccount } from '../data/client';
 import { refillsAndCuts } from '../data/dashboard';
-import { costPerKilometer, organizationalConsumption, performanceByVehicle } from '../data/dashboardCharts';
+import { costPerKilometer, monthlyConsumption, organizationalConsumption, performanceByVehicle, type MonthlyChartData } from '../data/dashboardCharts';
 import { summaryMetricsFor } from '../data/summary';
 import type { ChartSeries } from '../types';
 import { ApiCoverageBanner, ApiTag, ApiTagRow } from '../components/api/ApiCoverage';
@@ -26,6 +26,12 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
   const costPerKm = useMemo(() => costPerKilometer(filters), [filters]);
   const organization = useMemo(() => organizationalConsumption(filters), [filters]);
   const period = `últimos ${filters.periodDays} ${filters.periodDays === 1 ? 'día' : 'días'}`;
+  // Twelve months of dispatches take a moment to build: after the first paint, so the indicators show at once.
+  const [monthly, setMonthly] = useState<MonthlyChartData | null>(null);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setMonthly(monthlyConsumption(filters)), 0);
+    return () => window.clearTimeout(timer);
+  }, [filters]);
 
   return (
     <div className="dashboard">
@@ -39,6 +45,39 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
       </section>
 
       <section className="dashboard__charts" aria-label="Gráficas de combustible">
+        <div className="dashboard__wide">
+          <ChartCard
+            title="Consumo mensual (12 meses)"
+            subtitle={`${clientAccount.name} · litros por producto`}
+            info="Litros cargados cada mes de los últimos doce meses completos, por producto, con los filtros globales salvo el periodo. Un mes que una fuente no entregó se deja en blanco: no es un consumo cero y no se interpola."
+            onOptionSelect={(option) => onCardOption('Consumo mensual', option)}
+          >
+            {monthly === null ? (
+              <EmptyChart hint="Calculando los últimos 12 meses…" />
+            ) : hasData(monthly.series.map((item) => ({ ...item, values: item.values.map((value) => value ?? 0) }))) ? (
+              <>
+                <LineChart
+                  labels={monthly.labels}
+                  series={monthly.series}
+                  yMin={0}
+                  yMax={monthly.yMax}
+                  valueSuffix=" L"
+                  ariaLabel={`Litros por mes y producto de ${clientAccount.name} en los últimos 12 meses`}
+                />
+                {monthly.gaps.length > 0 && (
+                  <ul className="dashboard__gaps">
+                    {monthly.gaps.map((gap) => (
+                      <li key={gap}>{gap} El hueco no se interpola.</li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            ) : (
+              <EmptyChart hint="No hay cargas en los últimos 12 meses para los filtros elegidos." />
+            )}
+          </ChartCard>
+        </div>
+
         <ChartCard
           title={`Rendimiento por vehículo (${period})`}
           badge={<ApiTag id="dash-performance" />}

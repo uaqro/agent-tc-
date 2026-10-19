@@ -97,6 +97,8 @@ export type Load = {
   savingCents: number
   /** El motor la marca como la mejor opción de su zona. */
   optimal: boolean
+  /** Quien revisa el optimizador descartó su recomendación (`discardRecommendations`). */
+  discarded?: boolean
 }
 
 /** Supuestos del ahorro neto. Editables y visibles en pantalla — US-018. */

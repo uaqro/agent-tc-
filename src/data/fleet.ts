@@ -9,17 +9,34 @@ import {
   assignedDriverName,
   clientDrivers,
   clientSnapshot,
+  CLIENT_ACCOUNT_ID,
   clientUnits,
   groupLabel,
+  orgPathOf,
   operatingUnits,
   stableFraction,
   unitById,
 } from './client';
 import { cardLast4Of } from '../domain/data/cards';
+import { unassignedNodeId } from '../domain/org/types';
 import { allServiceOrders } from './maintenance';
 import { onSessionChange, sessionPrincipal, unitInScope } from './session';
 
 export type FuelType = 'Magna' | 'Premium' | 'Diésel';
+
+/**
+ * What a unit's record is missing. The padrón leaves these on purpose (`fleet-activity`): no VIN from the
+ * manufacturer, no registered driver, no org chart node, no odometer reading. They are data gaps, not errors, and the
+ * Vehículos page shows them as such.
+ */
+export type RegistryGap = 'vin' | 'driver' | 'org' | 'odometer';
+
+export const REGISTRY_GAP_LABEL: Record<RegistryGap, string> = {
+  vin: 'Sin VIN',
+  driver: 'Sin conductor',
+  org: 'Sin nodo de organigrama',
+  odometer: 'Sin odómetro',
+};
 export type VehicleStatus = 'active' | 'maintenance' | 'inactive';
 
 export interface VehicleDetail {
@@ -39,6 +56,8 @@ export interface VehicleDetail {
   /** Null when the unit never reported telemetry and nobody captured a reading. */
   odometerKm: number | null;
   status: VehicleStatus;
+  /** Missing pieces of the record. Empty when it is complete. */
+  gaps: RegistryGap[];
 }
 
 export interface Driver {
@@ -169,6 +188,17 @@ function statusOf(unit: FleetUnit): VehicleStatus {
   return 'active';
 }
 
+const UNASSIGNED_NODE = unassignedNodeId(CLIENT_ACCOUNT_ID);
+
+function registryGapsOf(unit: FleetUnit): RegistryGap[] {
+  const gaps: RegistryGap[] = [];
+  if (unit.vin === '') gaps.push('vin');
+  if (unit.assignedDriverId === '') gaps.push('driver');
+  if (orgPathOf(unit.id).length === 0 || orgPathOf(unit.id).includes(UNASSIGNED_NODE)) gaps.push('org');
+  if (unit.odometerKm === null) gaps.push('odometer');
+  return gaps;
+}
+
 /** Every unit of the padrón, deregistered ones included: their history is still theirs. */
 const allVehicleDetails: VehicleDetail[] = clientUnits.map((unit) => ({
   vehicleId: unit.id,
@@ -185,6 +215,7 @@ const allVehicleDetails: VehicleDetail[] = clientUnits.map((unit) => ({
   expectedKmPerLiter: EXPECTED_KM_PER_LITER[unit.vehicleClass],
   odometerKm: unit.odometerKm,
   status: statusOf(unit),
+  gaps: registryGapsOf(unit),
 }));
 
 // ── Drivers ─────────────────────────────────────────────────────────────
