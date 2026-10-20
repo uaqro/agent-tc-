@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
+import { Button, StatusPill } from '@er-mobility-mx/design-system';
 import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -245,7 +245,7 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
                         )}
                       </td>
                       <td>
-                        <span className={`chip ${STATUS_CHIP[detail.status]}`}>{VEHICLE_STATUS_LABEL[detail.status]}</span>
+                        <StatusPill tone={STATUS_TONE[detail.status]} label={VEHICLE_STATUS_LABEL[detail.status]} />
                       </td>
                     </tr>
                   );

@@ -24,10 +24,12 @@ if (!container) throw new Error('Root container #root not found');
 
 createRoot(container).render(
   <StrictMode>
-    <DevModeProvider>
-      <SessionProvider>
-        <ScopedApp />
-      </SessionProvider>
-    </DevModeProvider>
+    <ToastHost>
+      <DevModeProvider>
+        <SessionProvider>
+          <ScopedApp />
+        </SessionProvider>
+      </DevModeProvider>
+    </ToastHost>
   </StrictMode>,
 );

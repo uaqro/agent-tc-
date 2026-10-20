@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
+import { Button, Input, StatusPill } from '@er-mobility-mx/design-system';
 import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -26,11 +26,6 @@ const licenseDate = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 's
 export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('');
-  const groupOptions = [
-    { value: '', label: 'Todos los grupos' },
-    ...assignableGroups.map((candidate) => ({ value: candidate.label, label: candidate.label })),
-  ];
-
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return drivers.filter(
@@ -191,7 +186,7 @@ export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
                       <td className="table-page__action">
                         <Button variant="ghost" size="sm" onClick={() => onNotice(`Expediente de ${driver.name} abierto.`)}>
                           Ver expediente
-                        </button>
+                        </Button>
                         {canEdit && (
                           <>
                             <button type="button" className="btn btn--ghost btn--sm" onClick={() => onNotice(`Edición de ${driver.name} abierta.`)}>

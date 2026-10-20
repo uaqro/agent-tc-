@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button, Field, Input, Radio } from '@er-mobility-mx/design-system';
 import { scopeNodeOptions } from '../../data/client';
 import { USER_ROLE_DESCRIPTION, USER_ROLE_LABEL, type PlatformUser, type UserRole } from '../../data/company';
 import { Modal } from '../ui/Modal';
@@ -12,6 +13,7 @@ interface InviteUserDialogProps {
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const roleOptions = Object.keys(USER_ROLE_LABEL) as UserRole[];
 
 export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUserDialogProps) {
   const [name, setName] = useState('');
@@ -21,7 +23,12 @@ export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUs
 
   const normalizedEmail = email.trim().toLowerCase();
   const emailInvalid = normalizedEmail !== '' && !EMAIL_PATTERN.test(normalizedEmail);
-  const emailTaken = existingEmails.includes(normalizedEmail);
+  const emailTaken = normalizedEmail !== '' && existingEmails.includes(normalizedEmail);
+  const emailError = emailInvalid
+    ? 'Escribe un correo válido.'
+    : emailTaken
+      ? 'Ese correo ya tiene un usuario en la empresa.'
+      : undefined;
   const valid = name.trim() !== '' && normalizedEmail !== '' && !emailInvalid && !emailTaken;
 
   return (

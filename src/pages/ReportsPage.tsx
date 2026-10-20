@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Tabs } from '@er-mobility-mx/design-system';
 import { ConsolidatedReportPanel } from '../components/reports/ConsolidatedReportPanel';
 import { DynamicReportBuilder } from '../components/reports/DynamicReportBuilder';
 import './ReportsPage.css';
@@ -17,6 +18,8 @@ const VIEWS: { id: ReportView; label: string; hint: string }[] = [
     hint: 'Arma el detalle de transacciones eligiendo columnas, filtros y agrupador.',
   },
 ];
+const REPORT_TABS_ID = 'reports-view-tabs';
+const REPORT_TABS = VIEWS.map(({ id, label }) => ({ value: id, label }));
 
 export function ReportsPage() {
   const [view, setView] = useState<ReportView>('consolidated');

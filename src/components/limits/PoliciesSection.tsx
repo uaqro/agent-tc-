@@ -1,4 +1,5 @@
 import type { LimitPolicy } from '../../types/limits';
+import { Button, Stack, StatusPill } from '@er-mobility-mx/design-system';
 import { useFuelPolicies } from '../../data/FuelPolicyContext';
 import {
   assignableGroups,
@@ -13,6 +14,7 @@ import {
 } from '../../data/limits';
 import { EmptyState } from '../ui/EmptyState';
 import { formatCount } from '../../utils/format';
+
 import { ApiTag } from '../api/ApiCoverage';
 import './PoliciesSection.css';
 
@@ -46,7 +48,7 @@ export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: 
       {policies.length === 0 && (
         <EmptyState
           card
-          icon={<RuleIcon width={22} height={22} />}
+          icon="rule"
           title="Aún no hay políticas de uso"
           description="No hay controles, restricciones de consumo ni configuraciones de uso asignados a la flota."
           actions={

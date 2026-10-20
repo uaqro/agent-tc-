@@ -128,7 +128,7 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
       <div className="intel optimizer">
         <EmptyState
           card
-          icon={<CompassIcon width={24} height={24} />}
+          icon="explore"
           title="No hay cargas dentro de tu alcance"
           description={`${scopeLabel(principal.scopeNodeId)} no tiene cargas en los últimos 30 días.`}
         />

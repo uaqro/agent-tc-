@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useToast } from '@er-mobility-mx/design-system';
 import { GlobalFilterBar, chipText } from './components/filters/GlobalFilterBar';
 import { useGlobalFilters } from './components/filters/GlobalFilters';
 import { FloatingControls } from './components/layout/FloatingControls';
@@ -169,11 +170,11 @@ function AppContent() {
   const [menuPinned, setMenuPinned] = useState(true);
   const [route, setRoute] = useState<AppRoute>('dashboard');
   const [activeItemId, setActiveItemId] = useState<string | null>(ROUTES.dashboard.menuItem);
-  const [notice, setNotice] = useState<string | null>(null);
   // "Aplicar en Límites" from the optimizer: Límites opens with it and applies nothing until confirmed.
   const [stationRequest, setStationRequest] = useState<StationRecommendationRequest | null>(null);
   const { devMode } = useDevMode();
   const { principal, impersonating, signInAs } = useSession();
+  const toast = useToast();
   const allowed = useCallback((target: AppRoute) => canAccessRoute(principal.role, target), [principal.role]);
   // Pages a role can see but not change render without their actions (ADR-TCP-001).
   const writable = (target: AppRoute) => canSession(principal.role, ROUTE_CAPABILITY[target], 'escribir');
@@ -201,7 +202,7 @@ function AppContent() {
       const target = ROUTE_BY_MENU_ITEM[itemId];
 
       if (target && !allowed(target)) {
-        setNotice(`${label}: tu rol no tiene acceso a este módulo.`);
+        notify(`${label}: tu rol no tiene acceso a este módulo.`);
         return;
       }
       setActiveItemId(itemId);
@@ -225,7 +226,7 @@ function AppContent() {
   const navigate = useCallback(
     (target: AppRoute) => {
       if (!allowed(target)) {
-        setNotice(`${ROUTES[target].title}: tu rol no tiene acceso a este módulo.`);
+        notify(`${ROUTES[target].title}: tu rol no tiene acceso a este módulo.`);
         return;
       }
       setRoute(target);
@@ -296,21 +297,21 @@ function AppContent() {
         {route === 'dashboard' && (
           <FuelDashboardPage onCardOption={(chart, option) => notify(`${chart}: ${option}.`)} />
         )}
-        {route === 'dispersion' && <DispersionPage onNotice={setNotice} />}
+        {route === 'dispersion' && <DispersionPage onNotice={notify} />}
         {route === 'limits' && (
-          <LimitsPage onNotice={setNotice} stationRequest={stationRequest} onStationRequestHandled={() => setStationRequest(null)} />
+          <LimitsPage onNotice={notify} stationRequest={stationRequest} onStationRequestHandled={() => setStationRequest(null)} />
         )}
-        {route === 'station-networks' && <StationNetworksPage onNotice={setNotice} />}
-        {route === 'payment-media' && <PaymentMediaPage onNotice={setNotice} />}
-        {route === 'toll-balances' && <TollBalancesPage onNotice={setNotice} readOnly={!writable(route)} />}
-        {route === 'toll-rules' && <TollRulesPage onNotice={setNotice} readOnly={!writable(route)} />}
-        {route === 'toll-media' && <TollMediaPage onNotice={setNotice} readOnly={!writable(route)} />}
-        {route === 'maintenance' && <MaintenancePage onNotice={setNotice} />}
+        {route === 'station-networks' && <StationNetworksPage onNotice={notify} />}
+        {route === 'payment-media' && <PaymentMediaPage onNotice={notify} />}
+        {route === 'toll-balances' && <TollBalancesPage onNotice={notify} readOnly={!writable(route)} />}
+        {route === 'toll-rules' && <TollRulesPage onNotice={notify} readOnly={!writable(route)} />}
+        {route === 'toll-media' && <TollMediaPage onNotice={notify} readOnly={!writable(route)} />}
+        {route === 'maintenance' && <MaintenancePage onNotice={notify} />}
         {route === 'reports' && <ReportsPage />}
-        {route === 'insights' && <InsightsPage onNotice={setNotice} onNavigate={navigate} />}
+        {route === 'insights' && <InsightsPage onNotice={notify} onNavigate={navigate} />}
         {route === 'optimizer' && (
           <GasOptimizerPage
-            onNotice={setNotice}
+            onNotice={notify}
             onApplyInLimits={(request) => {
               setStationRequest(request);
               navigate('limits');
@@ -320,18 +321,18 @@ function AppContent() {
         {route === 'ted' && <TedPage />}
         {route === 'vehicles' && (
           <VehiclesPage
-            onNotice={setNotice}
+            onNotice={notify}
             canEdit={canSession(principal.role, 'inventario.editar', 'escribir')}
             showVin={canSession(principal.role, 'inventario.vin', 'ver')}
           />
         )}
         {route === 'drivers' && (
-          <DriversPage onNotice={setNotice} canEdit={canSession(principal.role, 'tc.conductores', 'escribir')} />
+          <DriversPage onNotice={notify} canEdit={canSession(principal.role, 'tc.conductores', 'escribir')} />
         )}
-        {route === 'company-parameters' && <ParametersPage onNotice={setNotice} />}
-        {route === 'company-invoices' && <InvoicesPage onNotice={setNotice} />}
-        {route === 'company-users' && <UsersPage onNotice={setNotice} />}
-        {route === 'dev-api-improvements' && <ApiImprovementsPage onNotice={setNotice} />}
+        {route === 'company-parameters' && <ParametersPage onNotice={notify} />}
+        {route === 'company-invoices' && <InvoicesPage onNotice={notify} />}
+        {route === 'company-users' && <UsersPage onNotice={notify} />}
+        {route === 'dev-api-improvements' && <ApiImprovementsPage onNotice={notify} />}
       </main>
 
       {route !== 'ted' && (

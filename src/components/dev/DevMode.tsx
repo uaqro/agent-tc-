@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { Switch } from '@er-mobility-mx/design-system';
 import { internalPrincipals, portalPrincipals } from '../../data/access';
 import { scopeLabel } from '../../data/client';
 import { DEFAULT_PRINCIPAL } from '../../data/session';
@@ -176,7 +177,7 @@ export function DevModeMenu({ onOpenImprovements }: { onOpenImprovements: () => 
             }}
           >
             Ver mejoras para API ZERO
-          </Button>
+          </button>
         </div>
       )}
     </div>

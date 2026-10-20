@@ -40,6 +40,14 @@ const toISODate = (date: Date) =>
 function defaultRange(today = businessToday()) {
   return { from: toISODate(new Date(today.getFullYear(), today.getMonth(), 1)), to: toISODate(today) };
 }
+const REPORT_FIELD_IDS = {
+  type: 'dynamic-report-type',
+  yieldUnit: 'dynamic-report-yield-unit',
+  grouper: 'dynamic-report-grouper',
+  period: 'dynamic-report-period',
+  evaluateBy: 'dynamic-report-evaluate-by',
+  state: 'dynamic-report-state',
+};
 
 let filterSequence = 0;
 

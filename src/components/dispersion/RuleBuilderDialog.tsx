@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Checkbox, Field, InputAmount, Select } from '@er-mobility-mx/design-system';
+import { Button, Field, InputAmount, Select } from '@er-mobility-mx/design-system';
 import type { FundingRule, Vehicle } from '../../types/dispersion';
 import { vehicleGroups } from '../../data/dispersion';
 import {

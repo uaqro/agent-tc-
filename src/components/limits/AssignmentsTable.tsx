@@ -190,7 +190,7 @@ export function AssignmentsTable({
                         onClick={() => onOverride(vehicle.id)}
                       >
                         Excepción temporal
-                      </Button>
+                      </button>
                     )}
                   </td>
                 </tr>

@@ -75,7 +75,7 @@ export function TollPolicyDialog({ policy, policies, onClose, onSave }: TollPoli
             required
             value={draft.name}
             placeholder="Ej. Corredor de carga · Corredor Norte"
-            onChange={(event) => patch({ name: event.target.value })}
+            onChange={(name) => patch({ name })}
           />
         </Field>
         <div className="policy-form__checks">

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Badge, Button, Switch } from '@er-mobility-mx/design-system';
+import { Badge, Switch } from '@er-mobility-mx/design-system';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { TollAmountDialog, type TollAmountMode } from '../../components/toll/TollAmountDialog';
 import { fleetVehicles as vehicles } from '../../data/dispersion';
@@ -23,6 +23,13 @@ interface TollBalancesPageProps {
   /** The role reads balances but can't top up, cut or change automatic top-ups (ADR-TCP-001). */
   readOnly?: boolean;
 }
+
+const MOVEMENT_TONE: Record<TollMovement['kind'], 'success' | 'warning' | 'neutral' | 'danger'> = {
+  crossing: 'neutral',
+  'top-up': 'success',
+  cut: 'warning',
+  rejected: 'danger',
+};
 
 let movementSequence = 100;
 
@@ -224,8 +231,8 @@ export function TollBalancesPage({ onNotice, readOnly = false }: TollBalancesPag
                   <Switch
                     checked={config.enabled}
                     disabled={readOnly}
-                    onChange={(event) => {
-                      patchAutoTopUp(config.groupId, { enabled: event.target.checked });
+                    onChange={(enabled) => {
+                      patchAutoTopUp(config.groupId, { enabled });
                       onNotice(
                         enabled
                           ? `Recarga automática activada para ${group?.label}.`

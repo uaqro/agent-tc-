@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { ArrowLeftIcon, MenuIcon } from '../icons/Icons';
+import { Button, Breadcrumb } from '@er-mobility-mx/design-system';
+import { MenuIcon } from '../icons/Icons';
 import './PageHeader.css';
 
 interface PageHeaderProps {
