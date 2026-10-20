@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState, type FormEvent } from 'react';
-import { Button, Input } from '@er-mobility-mx/design-system';
+import { Button, ChatMessage, Input } from '@er-mobility-mx/design-system';
 import { SparklesIcon } from '../../components/icons/Icons';
 import { tedAnswers, tedFallback, tedSuggestions } from '../../data/intelligence';
 import { businessNow } from '../../domain/demo/clock';
@@ -113,12 +113,13 @@ export function TedPage() {
                   <SparklesIcon width={15} height={15} />
                 </span>
               )}
-              <div>
-                <p className="ted__bubble">
-                  <RichText text={item.text} />
-                </p>
-                <span className="ted__time">{item.time}</span>
-              </div>
+              <ChatMessage
+                role={item.from === 'ted' ? 'agent' : 'user'}
+                timestamp={item.time}
+                style={{ flex: 1, minWidth: 0 }}
+              >
+                <RichText text={item.text} />
+              </ChatMessage>
             </div>
           ))}
 
@@ -127,12 +128,7 @@ export function TedPage() {
               <span className="ted__avatar" aria-hidden="true">
                 <SparklesIcon width={15} height={15} />
               </span>
-              <p className="ted__bubble ted__typing">
-                <span />
-                <span />
-                <span />
-                <span className="visually-hidden">TED está escribiendo</span>
-              </p>
+              <ChatMessage role="agent" streaming style={{ flex: 1, minWidth: 0 }} />
             </div>
           )}
         </div>
