@@ -92,6 +92,10 @@ no prescribe una conversión mecánica por nombre.
   intervalo y estaciones. Se conservan inputs nativos para litros y horarios,
   que requieren `min`/`step` o `type="time"`; checkboxes y botones de
   combustible/días permanecen como controles propios.
+- Los diálogos de catálogos de parámetros usan `Input`, `Select` y `Field` Flow
+  para metadatos, campos definidos por catálogo y registros. Se preservan las
+  opciones de referencia activa, la opción opcional «Sin asignar» y las
+  validaciones de campos obligatorios y nombres duplicados.
 
 ## Cómo leer la matriz
 

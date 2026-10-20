@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Field, Input, Select } from '@er-mobility-mx/design-system';
 import type { ParameterCatalog, ParameterField } from '../../data/company';
 import { CloseIcon, PlusIcon } from '../icons/Icons';
 import { Modal } from '../ui/Modal';
@@ -83,14 +84,23 @@ export function ParameterCatalogDialog({ catalogs, onClose, onCreate }: Paramete
       }
     >
       <div className="company-form__grid">
-        <label className="policy-form__field">
-          <span>Nombre del catálogo *</span>
-          <input value={label} placeholder="Ej. Proyectos" onChange={(event) => setLabel(event.target.value)} />
-        </label>
-        <label className="policy-form__field">
-          <span>Descripción</span>
-          <input value={description} placeholder="Para qué se usa" onChange={(event) => setDescription(event.target.value)} />
-        </label>
+        <Field label="Nombre del catálogo" htmlFor="parameter-catalog-name" required>
+          <Input
+            id="parameter-catalog-name"
+            value={label}
+            placeholder="Ej. Proyectos"
+            required
+            onChange={setLabel}
+          />
+        </Field>
+        <Field label="Descripción" htmlFor="parameter-catalog-description">
+          <Input
+            id="parameter-catalog-description"
+            value={description}
+            placeholder="Para qué se usa"
+            onChange={setDescription}
+          />
+        </Field>
       </div>
 
       <fieldset className="policy-form__block company-form__fields">
@@ -98,25 +108,33 @@ export function ParameterCatalogDialog({ catalogs, onClose, onCreate }: Paramete
         <ol className="company-form__field-list">
           {fields.map((field, index) => (
             <li key={index}>
-              <label className="policy-form__field">
-                <span className="visually-hidden">Nombre del campo {index + 1}</span>
-                <input
+              <Field label={`Nombre del campo ${index + 1}`} htmlFor={`parameter-catalog-field-${index}`} required={index === 0}>
+                <Input
+                  id={`parameter-catalog-field-${index}`}
                   value={field.label}
                   placeholder={index === 0 ? 'Campo principal' : 'Nombre del campo'}
-                  onChange={(event) => updateField(index, { label: event.target.value })}
+                  required={index === 0}
+                  onChange={(value) => updateField(index, { label: value })}
                 />
-              </label>
-              <label className="policy-form__field">
-                <span className="visually-hidden">Tipo del campo {index + 1}</span>
-                <select value={field.source} onChange={(event) => updateField(index, { source: event.target.value })}>
-                  <option value="text">Texto libre</option>
-                  {catalogs.map((catalog) => (
-                    <option key={catalog.id} value={catalog.id}>
-                      Referencia a {catalog.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              </Field>
+              <Field label={`Tipo del campo ${index + 1}`} htmlFor={`parameter-catalog-source-${index}`}>
+                <Select
+                  id={`parameter-catalog-source-${index}`}
+                  options={[
+                    { value: 'text', label: 'Texto libre' },
+                    ...catalogs.map((catalog) => ({
+                      value: catalog.id,
+                      label: `Referencia a ${catalog.label}`,
+                    })),
+                  ]}
+                  value={field.source}
+                  onChange={(source) => {
+                    if (source === 'text' || catalogs.some((catalog) => catalog.id === source)) {
+                      updateField(index, { source });
+                    }
+                  }}
+                />
+              </Field>
               <label className="company-form__check">
                 <input
                   type="checkbox"
