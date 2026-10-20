@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Input, Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import type { LimitPolicy, UnitAssignment } from '../../types/limits';
 import { PERIOD_META, assignableGroups, effectiveLimit, formatMeasure, usedInMeasure } from '../../data/limits';
@@ -172,9 +172,9 @@ export function AssignmentsTable({
                   </td>
                   <td className="assignments__action">
                     {assignment.override ? (
-                      <button type="button" className="btn btn--ghost btn--sm" onClick={() => onRemoveOverride(vehicle.id)}>
+                      <Button variant="ghost" size="sm" onClick={() => onRemoveOverride(vehicle.id)}>
                         Quitar excepción
-                      </button>
+                      </Button>
                     ) : (
                       <button
                         type="button"
@@ -183,7 +183,7 @@ export function AssignmentsTable({
                         onClick={() => onOverride(vehicle.id)}
                       >
                         Excepción temporal
-                      </button>
+                      </Button>
                     )}
                   </td>
                 </tr>
@@ -206,16 +206,13 @@ export function AssignmentsTable({
               title="Ninguna unidad coincide con los filtros"
               description="Revisa la placa, el dispositivo o el conductor, o cambia el grupo seleccionado."
               actions={
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--sm"
-                  onClick={() => {
+                <Button variant="secondary" size="sm" onClick={() => {
                     setQuery('');
                     setGroup('');
                   }}
                 >
                   Limpiar filtros
-                </button>
+                </Button>
               }
             />
           ))}
