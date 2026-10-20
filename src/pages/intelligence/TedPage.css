@@ -37,10 +37,6 @@
   background: #0dba69;
 }
 
-.ted__restart {
-  margin-left: auto;
-}
-
 .ted__avatar {
   display: grid;
   place-items: center;
@@ -183,41 +179,9 @@
   padding: 12px 18px 16px;
 }
 
-.ted__composer input {
+.ted__composer > [data-control-shell] {
   flex: 1;
   min-width: 0;
-  height: 44px;
-  padding: 0 14px;
-  border: 1px solid var(--tc-local-border-control);
-  border-radius: var(--tc-local-radius-md);
-  font-size: 14px;
-  color: var(--tc-local-text-strong);
-  outline: none;
-}
-
-.ted__composer input:focus {
-  border-color: var(--tc-local-text-strong);
-}
-
-.ted__send {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--tc-local-radius-md);
-  background: var(--tc-local-brand-red);
-  color: #fff;
-  transition: background 140ms ease;
-}
-
-.ted__send:not(:disabled):hover {
-  background: var(--tc-local-brand-red-hover);
-}
-
-.ted__send:disabled {
-  background: var(--tc-local-surface-sunken);
-  color: var(--tc-local-text-muted);
-  cursor: not-allowed;
 }
 
 @media (max-width: 760px) {

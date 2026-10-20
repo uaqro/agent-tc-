@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Checkbox, Field, Input, Select } from '@er-mobility-mx/design-system';
+import { Button, Checkbox, Field, Input, Select } from '@er-mobility-mx/design-system';
 import type { ParameterCatalog, ParameterField } from '../../data/company';
-import { CloseIcon, PlusIcon } from '../icons/Icons';
+import { PlusIcon } from '../icons/Icons';
 import { Modal } from '../ui/Modal';
 import '../limits/PolicyDialog.css';
 import './CompanyDialogs.css';
@@ -74,12 +74,12 @@ export function ParameterCatalogDialog({ catalogs, onClose, onCreate }: Paramete
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button type="button" className="btn btn--primary" disabled={!valid} onClick={create}>
+          </Button>
+          <Button disabled={!valid} onClick={create}>
             Crear catálogo
-          </button>
+          </Button>
         </>
       }
     >
@@ -143,27 +143,26 @@ export function ParameterCatalogDialog({ catalogs, onClose, onCreate }: Paramete
                   onChange={(required) => updateField(index, { required })}
                 />
               </div>
-              <button
-                type="button"
-                className="company-form__remove"
+              <Button
+                variant="ghost"
+                size="sm"
                 aria-label={`Quitar campo ${index + 1}`}
                 disabled={index === 0}
                 onClick={() => setFields((current) => current.filter((_, position) => position !== index))}
-              >
-                <CloseIcon width={14} height={14} />
-              </button>
+                icon="close"
+              />
             </li>
           ))}
         </ol>
-        <button
-          type="button"
-          className="btn btn--secondary btn--sm"
+        <Button
+          variant="secondary"
+          size="sm"
           disabled={fields.length >= 8}
           onClick={() => setFields((current) => [...current, { label: '', source: 'text', required: false }])}
         >
           <PlusIcon width={14} height={14} />
           Agregar campo
-        </button>
+        </Button>
         <p className="company-form__hint">El primer campo es el nombre con el que el registro aparece en listas y referencias.</p>
       </fieldset>
 

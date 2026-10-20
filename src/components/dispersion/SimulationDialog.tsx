@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from '@er-mobility-mx/design-system';
 import type { RunSimulation } from '../../types/dispersion';
 import { Modal } from '../ui/Modal';
 import { AlertIcon, CheckCircleIcon, ChevronDownIcon } from '../icons/Icons';
@@ -30,12 +31,12 @@ export function SimulationDialog({ open, mode, simulation, onClose, onConfirm }:
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button type="button" className="btn btn--primary" onClick={() => onConfirm(simulation)}>
+          </Button>
+          <Button onClick={() => onConfirm(simulation)}>
             {confirmLabel}
-          </button>
+          </Button>
         </>
       }
     >
@@ -104,15 +105,16 @@ export function SimulationDialog({ open, mode, simulation, onClose, onConfirm }:
       </section>
 
       <section className="sim__detail">
-        <button
-          type="button"
-          className="sim__detail-toggle"
+        <Button
+          variant="link"
+          size="sm"
           aria-expanded={detailOpen}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}
           onClick={() => setDetailOpen((value) => !value)}
         >
           <ChevronDownIcon width={16} height={16} className={detailOpen ? 'sim__chevron--open' : undefined} />
           Ver detalle de unidades
-        </button>
+        </Button>
 
         {detailOpen && (
           <table className="sim__table">

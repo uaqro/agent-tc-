@@ -105,7 +105,7 @@
     width: 100%;
   }
 
-  .next-run__actions .btn {
+  .next-run__actions > * {
     flex: 1 1 auto;
   }
 }

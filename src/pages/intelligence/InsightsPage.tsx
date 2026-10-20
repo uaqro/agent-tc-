@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Button } from '@er-mobility-mx/design-system';
 import { AlertIcon, CheckCircleIcon, InfoIcon, SparklesIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import {
@@ -100,9 +101,9 @@ export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
             description="TED revisa las cargas, los saldos y las políticas cada 15 minutos. Las alertas nuevas aparecerán aquí."
             actions={
               severity && (
-                <button type="button" className="btn btn--secondary btn--sm" onClick={() => setSeverity(null)}>
+                <Button variant="secondary" size="sm" onClick={() => setSeverity(null)}>
                   Ver todas las alertas
-                </button>
+                </Button>
               )
             }
           />
@@ -126,19 +127,19 @@ export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
                   <div className="alert-card__side">
                     <span className="alert-card__when">{alert.when}</span>
                     <div className="alert-card__actions">
-                      <button
-                        type="button"
-                        className="btn btn--ghost btn--sm"
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => {
                           setAlerts((current) => current.filter((candidate) => candidate.id !== alert.id));
                           onNotice(`Alerta descartada: ${alert.title}.`);
                         }}
                       >
                         Descartar
-                      </button>
-                      <button type="button" className="alert-card__action btn btn--sm" onClick={() => run(alert.action)}>
+                      </Button>
+                      <Button variant="secondary" size="sm" onClick={() => run(alert.action)}>
                         {alert.action.label}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </li>
@@ -172,9 +173,9 @@ export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
                     {formatMoney(insight.savingsMXN)}
                     <small>ahorro estimado al mes</small>
                   </span>
-                  <button type="button" className="btn btn--primary btn--sm" onClick={() => run(insight.action)}>
+                  <Button size="sm" onClick={() => run(insight.action)}>
                     {insight.action.label}
-                  </button>
+                  </Button>
                 </footer>
               </li>
             ))}

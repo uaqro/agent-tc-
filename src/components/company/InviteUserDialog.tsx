@@ -32,12 +32,10 @@ export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUs
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn--primary"
+          </Button>
+          <Button
             disabled={!valid}
             onClick={() =>
               onInvite({
@@ -52,7 +50,7 @@ export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUs
             }
           >
             Enviar invitación
-          </button>
+          </Button>
         </>
       }
     >
@@ -64,6 +62,7 @@ export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUs
           <Input
             id="invite-user-email"
             type="email"
+            autoComplete="email"
             required
             value={email}
             placeholder="nombre@empresa.mx"

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Field, InputAmount, Select } from '@er-mobility-mx/design-system';
+import { Button, Field, InputAmount, Select } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import type { LimitOverride, LimitPolicy, OverrideDuration, UnitAssignment } from '../../types/limits';
 import {
@@ -41,17 +41,15 @@ export function OverrideDialog({ vehicle, assignment, policy, onClose, onConfirm
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn--primary"
+          </Button>
+          <Button
             disabled={!valid}
             onClick={() => onConfirm({ extra, until, reason })}
           >
             Aplicar excepción
-          </button>
+          </Button>
         </>
       }
     >

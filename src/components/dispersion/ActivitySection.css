@@ -114,6 +114,6 @@
   white-space: nowrap;
 }
 
-.activity__action .btn {
+.activity__action > button {
   margin-left: 4px;
 }

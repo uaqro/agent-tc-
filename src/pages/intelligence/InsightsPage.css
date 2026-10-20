@@ -192,16 +192,6 @@
   gap: 6px;
 }
 
-.alert-card__action {
-  border: 1px solid var(--sev-line);
-  color: var(--sev);
-  background: var(--tc-local-surface);
-}
-
-.alert-card__action:hover {
-  background: var(--sev-bg);
-}
-
 .insights__savings {
   display: flex;
   align-items: center;

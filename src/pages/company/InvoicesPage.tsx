@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select } from '@er-mobility-mx/design-system';
 import { DownloadIcon, SearchIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import {
@@ -103,8 +103,7 @@ export function InvoicesPage({ onNotice }: InvoicesPageProps) {
           <div className="table-page__filters">
             <label className="table-page__search">
               <SearchIcon width={15} height={15} />
-              <span className="visually-hidden">Buscar factura</span>
-              <input type="search" value={query} placeholder="Folio o UUID" onChange={(event) => setQuery(event.target.value)} />
+              <Input type="search" ariaLabel="Buscar factura" value={query} placeholder="Folio o UUID" onChange={setQuery} />
             </label>
             <span id="invoices-group-filter-label" className="visually-hidden">Filtrar por grupo de facturación</span>
             <Select
@@ -135,15 +134,15 @@ export function InvoicesPage({ onNotice }: InvoicesPageProps) {
                 if (selected || value === '') setStatus(selected ?? '');
               }}
             />
-            <button
-              type="button"
-              className="btn btn--secondary btn--sm"
+            <Button
+              variant="secondary"
+              size="sm"
               disabled={rows.length === 0}
               onClick={() => onNotice(`Descargando ${rows.length} facturas (PDF + XML) en un .zip.`)}
             >
               <DownloadIcon width={14} height={14} />
               Descargar ({rows.length})
-            </button>
+            </Button>
           </div>
         </header>
 
@@ -154,9 +153,9 @@ export function InvoicesPage({ onNotice }: InvoicesPageProps) {
             title="Ninguna factura coincide con los filtros"
             description="Revisa el folio o UUID, o cambia el grupo de facturación, el producto y el estado."
             actions={
-              <button type="button" className="btn btn--secondary btn--sm" onClick={clearFilters}>
+              <Button variant="secondary" size="sm" onClick={clearFilters}>
                 Limpiar filtros
-              </button>
+              </Button>
             }
           />
         ) : (
@@ -204,12 +203,12 @@ export function InvoicesPage({ onNotice }: InvoicesPageProps) {
                         <span className={`chip ${STATUS_CHIP[invoice.status]}`}>{INVOICE_STATUS_LABEL[invoice.status]}</span>
                       </td>
                       <td className="table-page__action">
-                        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onNotice(`Descargando PDF de ${invoice.folio}.`)}>
+                        <Button variant="ghost" size="sm" onClick={() => onNotice(`Descargando PDF de ${invoice.folio}.`)}>
                           PDF
-                        </button>
-                        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onNotice(`Descargando XML de ${invoice.folio}.`)}>
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => onNotice(`Descargando XML de ${invoice.folio}.`)}>
                           XML
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   );

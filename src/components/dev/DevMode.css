@@ -75,10 +75,6 @@
   color: var(--tc-local-text-muted);
 }
 
-.dev-menu__link {
-  justify-content: center;
-}
-
 .dev-switch {
   position: relative;
   display: flex;

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Select } from '@er-mobility-mx/design-system';
+import { Button, Select } from '@er-mobility-mx/design-system';
 import { PauseIcon, PlayIcon, PlusIcon, RuleIcon } from '../../components/icons/Icons';
 import { TollPolicyDialog } from '../../components/toll/TollPolicyDialog';
 import { EmptyState } from '../../components/ui/EmptyState';

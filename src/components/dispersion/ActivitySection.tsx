@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from '@er-mobility-mx/design-system';
 import type { FundingRule, Receipt, ReceiptKind } from '../../types/dispersion';
 import { CalendarIcon, ClockIcon, EyeIcon, PlayIcon } from '../icons/Icons';
 import { formatCount, formatDateLong, formatDateTime, formatMoney } from '../../utils/format';
@@ -77,10 +78,10 @@ export function ActivitySection({
             title="Aún no hay dispersiones"
             description="Cada corrida, envío puntual, carga masiva o recorte queda registrado aquí con su comprobante."
             actions={
-              <button type="button" className="btn btn--secondary btn--sm" onClick={() => onTabChange('scheduled')}>
+              <Button variant="secondary" size="sm" onClick={() => onTabChange('scheduled')}>
                 <CalendarIcon width={14} height={14} />
                 Ver pagos programados
-              </button>
+              </Button>
             }
           />
         ) : activeTab === 'scheduled' && scheduled.length === 0 ? (
@@ -126,9 +127,9 @@ export function ActivitySection({
                       {formatMoney(Math.abs(receipt.totalMXN))}
                     </td>
                     <td className="activity__action">
-                      <button type="button" className="btn btn--ghost btn--sm" onClick={() => onOpenReceipt(receipt)}>
+                      <Button variant="ghost" size="sm" onClick={() => onOpenReceipt(receipt)}>
                         Comprobante
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 );
@@ -167,14 +168,14 @@ export function ActivitySection({
                   <td className="activity__amount">{formatMoney(rule.projectedMXN)}</td>
                   <td className="activity__action">
                     {rule.approved && <span className="chip chip--active">Aprobada</span>}
-                    <button type="button" className="btn btn--ghost btn--sm" onClick={() => onReviewPayment(rule)}>
+                    <Button variant="ghost" size="sm" onClick={() => onReviewPayment(rule)}>
                       <EyeIcon width={14} height={14} />
                       Revisar
-                    </button>
-                    <button type="button" className="btn btn--secondary btn--sm" onClick={() => onRunPayment(rule)}>
+                    </Button>
+                    <Button variant="secondary" size="sm" onClick={() => onRunPayment(rule)}>
                       <PlayIcon width={12} height={12} />
                       Ejecutar
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -186,23 +187,23 @@ export function ActivitySection({
       <footer className="activity__foot">
         {activeTab === 'history' ? (
           <>
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
+            <Button
+              variant="ghost"
+              size="sm"
               disabled={receipts.length <= PAGE_SIZE}
               onClick={() => setExpanded((value) => !value)}
             >
               {expanded ? 'Ver menos' : `Ver más dispersiones (${receipts.length})`}
-            </button>
-            <button type="button" className="btn btn--secondary btn--sm" onClick={() => onTabChange('scheduled')}>
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => onTabChange('scheduled')}>
               <CalendarIcon width={14} height={14} />
               Ver pagos programados
-            </button>
+            </Button>
           </>
         ) : (
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => onTabChange('history')}>
+          <Button variant="ghost" size="sm" onClick={() => onTabChange('history')}>
             Ver últimas dispersiones
-          </button>
+          </Button>
         )}
       </footer>
     </section>

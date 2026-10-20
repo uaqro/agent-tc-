@@ -176,7 +176,7 @@ export function DevModeMenu({ onOpenImprovements }: { onOpenImprovements: () => 
             }}
           >
             Ver mejoras para API ZERO
-          </button>
+          </Button>
         </div>
       )}
     </div>

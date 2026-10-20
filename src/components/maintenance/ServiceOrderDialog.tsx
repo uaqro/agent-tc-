@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DatePicker, Field, Select, Textarea } from '@er-mobility-mx/design-system';
+import { Button, DatePicker, Field, Select, Textarea } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import {
   MAINTENANCE_SYSTEMS,
@@ -51,12 +51,10 @@ export function ServiceOrderDialog({ vehicles, initialVehicleId, nextFolio, onCl
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn--primary"
+          </Button>
+          <Button
             disabled={!valid}
             onClick={() =>
               onCreate({
@@ -74,7 +72,7 @@ export function ServiceOrderDialog({ vehicles, initialVehicleId, nextFolio, onCl
             }
           >
             Crear orden
-          </button>
+          </Button>
         </>
       }
     >

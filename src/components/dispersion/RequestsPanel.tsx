@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Button } from '@er-mobility-mx/design-system';
 import type { AttentionItem, Receipt, Vehicle } from '../../types/dispersion';
 import { BellIcon } from '../icons/Icons';
 import { QuickTopUp } from './QuickTopUp';
@@ -49,17 +50,18 @@ export function RequestsPanel({
 
   return (
     <div className="requests" ref={containerRef}>
-      <button
-        type="button"
-        className="requests__bell"
+      <Button
+        variant="secondary"
+        size="sm"
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((value) => !value)}
+        style={{ height: 34, padding: '0 12px' }}
       >
         <BellIcon width={17} height={17} />
         Ver solicitudes
         {requests.length > 0 && <span className="requests__badge">{requests.length}</span>}
-      </button>
+      </Button>
       <ApiTag id="disp-quick" />
 
       {open && (
@@ -97,19 +99,19 @@ export function RequestsPanel({
                       </p>
                       <p className="requests__detail">{item.detail}</p>
                       <div className="requests__actions">
-                        <button type="button" className="btn btn--primary btn--sm" onClick={() => onApprove(item)}>
+                        <Button size="sm" onClick={() => onApprove(item)}>
                           Aprobar {formatMoney(item.amountMXN)}
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn--secondary btn--sm"
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           onClick={() => setPrefill({ vehicle, amountMXN: item.amountMXN })}
                         >
                           Ajustar monto
-                        </button>
-                        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onReject(item)}>
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => onReject(item)}>
                           Rechazar
-                        </button>
+                        </Button>
                       </div>
                     </li>
                   );

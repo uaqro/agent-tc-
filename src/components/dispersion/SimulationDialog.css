@@ -118,15 +118,6 @@
   margin-top: 14px;
 }
 
-.sim__detail-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--tc-local-brand-blue);
-}
-
 .sim__chevron--open {
   transform: rotate(180deg);
 }

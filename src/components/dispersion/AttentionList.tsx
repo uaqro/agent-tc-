@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Button } from '@er-mobility-mx/design-system';
 import type { AttentionItem, AttentionKind, Vehicle } from '../../types/dispersion';
 import { toLiters } from '../../data/dispersion';
 import { AlertIcon, BoltIcon, CheckCircleIcon, RequestIcon, ScissorsIcon } from '../icons/Icons';
@@ -95,12 +96,12 @@ export function AttentionList({ items, vehicles, headerSlot, onResolve, onDismis
 
               <div className="attention__actions">
                 {action.kind === 'cut' && <ApiTag id="disp-cut" />}
-                <button type="button" className="btn btn--primary btn--sm" onClick={() => onResolve(item, action)}>
+                <Button size="sm" onClick={() => onResolve(item, action)}>
                   {action.label}
-                </button>
-                <button type="button" className="btn btn--ghost btn--sm" onClick={() => onDismiss(item)}>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onDismiss(item)}>
                   {item.kind === 'balance-request' ? 'Rechazar' : 'Posponer'}
-                </button>
+                </Button>
               </div>
             </li>
           );

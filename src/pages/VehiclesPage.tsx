@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select } from '@er-mobility-mx/design-system';
 import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -148,9 +148,9 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
             title="Ningún vehículo coincide con los filtros"
             description="Revisa la placa, la marca o el conductor, o cambia el grupo y el estado seleccionados."
             actions={
-              <button
-                type="button"
-                className="btn btn--secondary btn--sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setQuery('');
                   setGroup('');
@@ -159,7 +159,7 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
                 }}
               >
                 Limpiar filtros
-              </button>
+              </Button>
             }
           />
         ) : (

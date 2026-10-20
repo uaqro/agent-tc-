@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { InfoIcon, MoreIcon } from '../icons/Icons';
+import { IconButton } from '@er-mobility-mx/design-system';
 import './ChartCard.css';
 
 interface ChartCardProps {
@@ -58,26 +58,30 @@ export function ChartCard({
 
         <div className="chart-card__tools">
           <span className="chart-card__info">
-            <button type="button" className="chart-card__icon-button" aria-describedby={`${title}-info`}>
-              <InfoIcon width={18} height={18} />
-              <span className="visually-hidden">Más información sobre {title}</span>
-            </button>
+            <IconButton
+              icon="info"
+              ariaLabel={`Más información sobre ${title}`}
+              aria-describedby={`${title}-info`}
+              variant="ghost"
+              size="sm"
+              style={{ width: 30, height: 30 }}
+            />
             <span role="tooltip" id={`${title}-info`} className="chart-card__tooltip">
               {info}
             </span>
           </span>
 
           <div className="chart-card__menu" ref={menuRef}>
-            <button
-              type="button"
-              className="chart-card__icon-button"
+            <IconButton
+              icon="more_vert"
+              ariaLabel={`Más opciones de ${title}`}
               aria-haspopup="menu"
               aria-expanded={menuOpen}
+              variant="ghost"
+              size="sm"
+              style={{ width: 30, height: 30 }}
               onClick={() => setMenuOpen((open) => !open)}
-            >
-              <MoreIcon width={18} height={18} />
-              <span className="visually-hidden">Más opciones de {title}</span>
-            </button>
+            />
 
             {menuOpen && (
               <ul className="chart-card__menu-list" role="menu">

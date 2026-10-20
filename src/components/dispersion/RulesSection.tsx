@@ -1,4 +1,5 @@
 import type { FundingRule, RuleStatus, RuleType } from '../../types/dispersion';
+import { Button } from '@er-mobility-mx/design-system';
 import { toLiters } from '../../data/dispersion';
 import { EyeIcon, PauseIcon, PlayIcon, PlusIcon, RuleIcon, UploadIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
@@ -38,14 +39,14 @@ export function RulesSection({ rules, onSimulate, onToggleStatus, onCreate, onBu
         </h2>
         <div className="rules__actions">
           <ApiTag id="disp-bulk" />
-          <button type="button" className="btn btn--secondary btn--sm" onClick={onBulkUpload}>
+          <Button variant="secondary" size="sm" onClick={onBulkUpload}>
             <UploadIcon width={15} height={15} />
             Carga masiva desde archivo
-          </button>
-          <button type="button" className="btn btn--primary btn--sm" onClick={onCreate}>
+          </Button>
+          <Button size="sm" onClick={onCreate}>
             <PlusIcon width={15} height={15} />
             Nueva automatización
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -57,14 +58,14 @@ export function RulesSection({ rules, onSimulate, onToggleStatus, onCreate, onBu
           description="Crea una regla para que el saldo se disperse solo: por calendario, a tope o cuando una unidad baje de cierto saldo. Si solo necesitas un envío único, carga un archivo."
           actions={
             <>
-              <button type="button" className="btn btn--primary btn--sm" onClick={onCreate}>
+              <Button size="sm" onClick={onCreate}>
                 <PlusIcon width={15} height={15} />
                 Crear primera automatización
-              </button>
-              <button type="button" className="btn btn--secondary btn--sm" onClick={onBulkUpload}>
+              </Button>
+              <Button variant="secondary" size="sm" onClick={onBulkUpload}>
                 <UploadIcon width={15} height={15} />
                 Carga masiva desde archivo
-              </button>
+              </Button>
             </>
           }
         />
@@ -103,17 +104,17 @@ export function RulesSection({ rules, onSimulate, onToggleStatus, onCreate, onBu
                 </span>
 
                 <div className="rule-card__buttons">
-                  <button type="button" className="btn btn--secondary btn--sm" onClick={() => onSimulate(rule)}>
+                  <Button variant="secondary" size="sm" onClick={() => onSimulate(rule)}>
                     <EyeIcon width={15} height={15} />
                     Simular
-                  </button>
-                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => onToggleStatus(rule)}>
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => onToggleStatus(rule)}>
                     {paused ? <PlayIcon width={13} height={13} /> : <PauseIcon width={13} height={13} />}
                     {paused ? 'Activar' : 'Pausar'}
-                  </button>
-                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => onEdit(rule)}>
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => onEdit(rule)}>
                     Editar
-                  </button>
+                  </Button>
                 </div>
               </footer>
             </li>

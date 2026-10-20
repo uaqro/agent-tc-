@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Checkbox, Field, Input, InputAmount, Select, Switch } from '@er-mobility-mx/design-system';
+import { Button, Checkbox, Field, Input, InputAmount, Select, Switch } from '@er-mobility-mx/design-system';
 import type { TollPeriod, TollPolicy } from '../../types/toll';
 import { DAY_LABELS, fleetAssignableGroups as assignableGroups } from '../../data/limits';
 import { TOLL_PERIOD_META, emptyTollPolicy, tollRoads, tollScheduleLabel } from '../../data/toll';
@@ -54,17 +54,15 @@ export function TollPolicyDialog({ policy, policies, onClose, onSave }: TollPoli
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn--primary"
+          </Button>
+          <Button
             disabled={!valid}
             onClick={() => onSave({ ...draft, name: draft.name.trim(), roadIds })}
           >
             {policy ? 'Guardar cambios' : 'Crear política'}
-          </button>
+          </Button>
         </>
       }
     >

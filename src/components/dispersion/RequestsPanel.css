@@ -2,27 +2,6 @@
   position: relative;
 }
 
-.requests__bell {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 34px;
-  padding: 0 12px;
-  border: 1px solid var(--tc-local-border);
-  border-radius: var(--tc-local-radius-sm);
-  background: var(--tc-local-surface);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--tc-local-text-body);
-  transition: border-color 140ms ease, color 140ms ease;
-}
-
-.requests__bell:hover,
-.requests__bell[aria-expanded='true'] {
-  border-color: var(--tc-local-brand-blue);
-  color: var(--tc-local-brand-blue);
-}
-
 .requests__badge {
   display: grid;
   place-items: center;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Field, Select } from '@er-mobility-mx/design-system';
+import { Button, Field, Select } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import type { TollCategory, TollTag } from '../../types/toll';
 import { TOLL_CATEGORY_LABEL, TOLL_TAG_TYPE_LABEL } from '../../data/toll';
@@ -34,12 +34,12 @@ export function TollAssignDialog({ tag, vehicles, onClose, onAssign }: TollAssig
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button type="button" className="btn btn--primary" disabled={!vehicleId} onClick={() => onAssign(vehicleId, category)}>
+          </Button>
+          <Button disabled={!vehicleId} onClick={() => onAssign(vehicleId, category)}>
             Asignar TAG
-          </button>
+          </Button>
         </>
       }
     >

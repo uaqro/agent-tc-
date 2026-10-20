@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { CloseIcon } from '../icons/Icons';
+import { Button } from '@er-mobility-mx/design-system';
 import './Modal.css';
 
 interface ModalProps {
@@ -51,10 +51,14 @@ export function Modal({ open, title, subtitle, size = 'md', onClose, footer, chi
             </h2>
             {subtitle && <p className="modal__subtitle">{subtitle}</p>}
           </div>
-          <button type="button" className="modal__close" onClick={onClose} title="Cerrar">
-            <CloseIcon />
-            <span className="visually-hidden">Cerrar</span>
-          </button>
+          <Button
+            variant="ghost"
+            size="sm"
+            icon="close"
+            ariaLabel="Cerrar"
+            onClick={onClose}
+            style={{ width: 32, height: 32, padding: 0, flexShrink: 0 }}
+          />
         </header>
 
         <div className="modal__body">{children}</div>

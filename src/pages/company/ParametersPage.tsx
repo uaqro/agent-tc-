@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Switch } from '@er-mobility-mx/design-system';
+import { Button, Input, Switch } from '@er-mobility-mx/design-system';
 import { ParameterCatalogDialog } from '../../components/company/ParameterCatalogDialog';
 import { ParameterRecordDialog } from '../../components/company/ParameterRecordDialog';
 import { ApiCoverageBanner, ApiTag } from '../../components/api/ApiCoverage';
@@ -131,10 +131,12 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
               </li>
             ))}
           </ul>
-          <button type="button" className="btn btn--secondary btn--sm parameters__new" onClick={() => setCatalogDialogOpen(true)}>
-            <PlusIcon width={14} height={14} />
-            Nuevo catálogo
-          </button>
+          <div className="parameters__new">
+            <Button variant="secondary" size="sm" fullWidth onClick={() => setCatalogDialogOpen(true)}>
+              <PlusIcon width={14} height={14} />
+              Nuevo catálogo
+            </Button>
+          </div>
           <p className="parameters__api-hint">
             <ApiTag id="par-custom" />
           </p>
@@ -155,15 +157,15 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
             </div>
             <div className="parameters__intro-actions">
               {catalog.custom && (
-                <button type="button" className="btn btn--ghost btn--sm" onClick={deleteCatalog}>
+                <Button variant="ghost" size="sm" onClick={deleteCatalog}>
                   Eliminar catálogo
-                </button>
+                </Button>
               )}
               <ApiTag id="par-write" />
-              <button type="button" className="btn btn--primary btn--sm" onClick={() => setRecordDialog({ mode: 'create' })}>
+              <Button size="sm" onClick={() => setRecordDialog({ mode: 'create' })}>
                 <PlusIcon width={14} height={14} />
                 Agregar registro
-              </button>
+              </Button>
             </div>
           </header>
 
@@ -171,8 +173,13 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
             <div className="table-page__head">
               <label className="table-page__search">
                 <SearchIcon width={15} height={15} />
-                <span className="visually-hidden">Buscar en {catalog.label}</span>
-                <input type="search" value={query} placeholder={`Buscar en ${catalog.label.toLowerCase()}`} onChange={(event) => setQuery(event.target.value)} />
+                <Input
+                  type="search"
+                  ariaLabel={`Buscar en ${catalog.label}`}
+                  value={query}
+                  placeholder={`Buscar en ${catalog.label.toLowerCase()}`}
+                  onChange={setQuery}
+                />
               </label>
               <div className="parameters__toggle">
                 <Switch checked={showInactive} label="Mostrar inactivos" onChange={setShowInactive} />
@@ -186,9 +193,9 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
               title={`${catalog.label} aún no tiene registros`}
               description="Agrega el primero; después podrás usarlo como referencia en otros catálogos."
               actions={
-                <button type="button" className="btn btn--primary btn--sm" onClick={() => setRecordDialog({ mode: 'create' })}>
+                <Button size="sm" onClick={() => setRecordDialog({ mode: 'create' })}>
                   Agregar registro
-                </button>
+                </Button>
               }
             />
           ) : rows.length === 0 ? (
@@ -198,16 +205,16 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
               title="Ningún registro coincide"
               description="Prueba con otro texto o incluye los registros inactivos."
               actions={
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--sm"
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => {
                     setQuery('');
                     setShowInactive(true);
                   }}
                 >
                   Limpiar búsqueda
-                </button>
+                </Button>
               }
             />
           ) : (
@@ -242,12 +249,12 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
                         <span className={`chip ${record.active ? 'chip--active' : 'chip--paused'}`}>{record.active ? 'Activo' : 'Inactivo'}</span>
                       </td>
                       <td className="table-page__action">
-                        <button type="button" className="btn btn--ghost btn--sm" onClick={() => setRecordDialog({ mode: 'edit', record })}>
+                        <Button variant="ghost" size="sm" onClick={() => setRecordDialog({ mode: 'edit', record })}>
                           Editar
-                        </button>
-                        <button type="button" className="btn btn--ghost btn--sm" onClick={() => toggleRecord(record)}>
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => toggleRecord(record)}>
                           {record.active ? 'Desactivar' : 'Activar'}
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   ))}

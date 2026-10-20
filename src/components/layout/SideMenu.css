@@ -28,30 +28,6 @@
 
 .side-menu__search {
   flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 34px;
-  padding: 0 10px;
-  border: 1px solid var(--tc-local-border);
-  border-radius: var(--tc-local-radius-sm);
-  background: var(--tc-local-surface-muted);
-  color: var(--tc-local-text-muted);
-}
-
-.side-menu__search:focus-within {
-  border-color: var(--tc-local-text-strong);
-  background: var(--tc-local-surface);
-}
-
-.side-menu__search input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 13px;
-  color: var(--tc-local-text-strong);
 }
 
 .side-menu__pin {

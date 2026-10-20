@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select } from '@er-mobility-mx/design-system';
 import { CopyIcon, SearchIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { API_STATUS_LABEL, PAGE_LABEL, apiCapabilities, capabilityById, type FuelPage } from '../../data/apiCoverage';
@@ -134,8 +134,7 @@ export function ApiImprovementsPage({ onNotice }: ApiImprovementsPageProps) {
           <div className="table-page__filters">
             <label className="table-page__search">
               <SearchIcon width={15} height={15} />
-              <span className="visually-hidden">Buscar mejora</span>
-              <input type="search" value={query} placeholder="Método, campo o tema" onChange={(event) => setQuery(event.target.value)} />
+              <Input type="search" ariaLabel="Buscar mejora" value={query} placeholder="Método, campo o tema" onChange={setQuery} />
             </label>
             <span id="improvements-priority-filter-label" className="visually-hidden">Filtrar por prioridad</span>
             <Select
@@ -167,10 +166,10 @@ export function ApiImprovementsPage({ onNotice }: ApiImprovementsPageProps) {
                 if (selected || value === '') setPage(selected ?? '');
               }}
             />
-            <button type="button" className="btn btn--secondary btn--sm" disabled={rows.length === 0} onClick={copyBacklog}>
+            <Button variant="secondary" size="sm" disabled={rows.length === 0} onClick={copyBacklog}>
               <CopyIcon width={14} height={14} />
               Copiar como Markdown
-            </button>
+            </Button>
           </div>
         </header>
 
@@ -181,9 +180,9 @@ export function ApiImprovementsPage({ onNotice }: ApiImprovementsPageProps) {
             title="Ninguna mejora coincide con los filtros"
             description="Prueba con otro método o campo, o cambia la prioridad, el tipo y la página."
             actions={
-              <button type="button" className="btn btn--secondary btn--sm" onClick={clearFilters}>
+              <Button variant="secondary" size="sm" onClick={clearFilters}>
                 Limpiar filtros
-              </button>
+              </Button>
             }
           />
         ) : (

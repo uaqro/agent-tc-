@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Field, InputAmount } from '@er-mobility-mx/design-system';
+import { Button, Field, InputAmount } from '@er-mobility-mx/design-system';
 import type { TollTag } from '../../types/toll';
 import { Modal } from '../ui/Modal';
 import { formatMoney } from '../../utils/format';
@@ -36,12 +36,12 @@ export function TollAmountDialog({ tag, mode, plate, availableMXN, onClose, onCo
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button type="button" className="btn btn--primary" disabled={!valid} onClick={() => onConfirm(amount)}>
+          </Button>
+          <Button disabled={!valid} onClick={() => onConfirm(amount)}>
             {isTopUp ? `Recargar ${formatMoney(amount)}` : `Recortar ${formatMoney(amount)}`}
-          </button>
+          </Button>
         </>
       }
     >

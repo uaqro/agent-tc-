@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Field, Input, Select } from '@er-mobility-mx/design-system';
+import { Button, Field, Input, Select } from '@er-mobility-mx/design-system';
 import type { ParameterCatalog, ParameterRecord } from '../../data/company';
 import { Modal } from '../ui/Modal';
 import '../limits/PolicyDialog.css';
@@ -44,17 +44,15 @@ export function ParameterRecordDialog({ catalog, catalogs, record, onClose, onSa
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn--primary"
+          </Button>
+          <Button
             disabled={!valid}
             onClick={() => onSave(Object.fromEntries(Object.entries(values).map(([key, value]) => [key, value.trim()])))}
           >
             {record ? 'Guardar cambios' : 'Agregar'}
-          </button>
+          </Button>
         </>
       }
     >

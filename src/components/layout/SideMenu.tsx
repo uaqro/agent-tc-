@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Input } from '@er-mobility-mx/design-system';
 import type { MenuGroup, MenuIconName } from '../../types';
 import {
   CardIcon,
@@ -12,7 +13,6 @@ import {
   LeafIcon,
   LockIcon,
   PinIcon,
-  SearchIcon,
   SparklesIcon,
   TrendUpIcon,
   TruckIcon,
@@ -74,13 +74,15 @@ export function SideMenu({ open, pinned, groups, activeItemId, onTogglePin, onSe
     <aside id="side-menu" className={`side-menu${open ? ' side-menu--open' : ''}`} aria-label="Menú principal">
       <div className="side-menu__head">
         <div className="side-menu__search">
-          <SearchIcon width={15} height={15} />
-          <input
+          <Input
             type="search"
             value={query}
             placeholder="Buscar en el menú"
-            aria-label="Buscar una opción del menú"
-            onChange={(event) => setQuery(event.target.value)}
+            ariaLabel="Buscar una opción del menú"
+            icon="search"
+            size="sm"
+            style={{ flex: 1, minWidth: 0 }}
+            onChange={setQuery}
           />
         </div>
         <button

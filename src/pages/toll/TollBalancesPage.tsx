@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Switch } from '@er-mobility-mx/design-system';
+import { Button, Switch } from '@er-mobility-mx/design-system';
 import { CardIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { TollAmountDialog, type TollAmountMode } from '../../components/toll/TollAmountDialog';

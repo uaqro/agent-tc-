@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Checkbox, Field, InputAmount, Select } from '@er-mobility-mx/design-system';
+import { Button, Checkbox, Field, InputAmount, Select } from '@er-mobility-mx/design-system';
 import type { FundingRule, Vehicle } from '../../types/dispersion';
 import { vehicleGroups } from '../../data/dispersion';
 import {
@@ -76,12 +76,12 @@ export function RuleBuilderDialog({ open, vehicles, onClose, onCreate }: RuleBui
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button type="button" className="btn btn--primary" disabled={!valid} onClick={submit}>
+          </Button>
+          <Button disabled={!valid} onClick={submit}>
             Crear automatización
-          </button>
+          </Button>
         </>
       }
     >

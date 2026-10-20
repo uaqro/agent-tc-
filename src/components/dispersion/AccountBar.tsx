@@ -1,3 +1,4 @@
+import { Button } from '@er-mobility-mx/design-system';
 import { toLiters } from '../../data/dispersion';
 import { formatLiters, formatMoney } from '../../utils/format';
 import { ApiTag } from '../api/ApiCoverage';
@@ -42,9 +43,9 @@ export function AccountBar({ accountName, availableMXN, committedMXN, onViewSche
         </div>
       </div>
 
-      <button type="button" className="btn btn--secondary btn--sm" onClick={onViewScheduled}>
+      <Button variant="secondary" size="sm" onClick={onViewScheduled}>
         Ver pagos programados
-      </button>
+      </Button>
     </section>
   );
 }

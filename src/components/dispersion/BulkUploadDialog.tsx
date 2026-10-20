@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Button } from '@er-mobility-mx/design-system';
 import type { BulkRow, Vehicle } from '../../types/dispersion';
 import { toLiters } from '../../data/dispersion';
 import { downloadTemplate, parseBulkCsv } from '../../utils/bulkUpload';
@@ -49,16 +50,14 @@ export function BulkUploadDialog({ open, vehicles, availableMXN, onClose, onAppl
       onClose={close}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={() => downloadTemplate(vehicles)}>
+          <Button variant="ghost" onClick={() => downloadTemplate(vehicles)}>
             <DownloadIcon width={16} height={16} />
             Descargar plantilla
-          </button>
-          <button type="button" className="btn btn--secondary" onClick={close}>
+          </Button>
+          <Button variant="secondary" onClick={close}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn--primary"
+          </Button>
+          <Button
             disabled={valid.length === 0 || overBudget}
             onClick={() => {
               onApply(valid, fileName);
@@ -67,7 +66,7 @@ export function BulkUploadDialog({ open, vehicles, availableMXN, onClose, onAppl
             }}
           >
             Dispersar {valid.length > 0 ? formatMoney(total) : ''}
-          </button>
+          </Button>
         </>
       }
     >

@@ -49,21 +49,6 @@
   color: var(--tc-local-text-muted);
 }
 
-.modal__close {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--tc-local-radius-sm);
-  color: var(--tc-local-text-muted);
-  flex-shrink: 0;
-}
-
-.modal__close:hover {
-  background: var(--tc-local-surface-sunken);
-  color: var(--tc-local-text-strong);
-}
-
 .modal__body {
   padding: 18px 20px;
 }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select } from '@er-mobility-mx/design-system';
 import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -76,8 +76,13 @@ export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
           <div className="table-page__filters">
             <label className="table-page__search">
               <SearchIcon width={15} height={15} />
-              <span className="visually-hidden">Buscar conductor</span>
-              <input type="search" value={query} placeholder="Nombre o número de empleado" onChange={(event) => setQuery(event.target.value)} />
+              <Input
+                type="search"
+                ariaLabel="Buscar conductor"
+                value={query}
+                placeholder="Nombre o número de empleado"
+                onChange={setQuery}
+              />
             </label>
             <label>
               <span className="visually-hidden">Filtrar por grupo</span>
@@ -107,16 +112,16 @@ export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
             title="Ningún conductor coincide con los filtros"
             description="Revisa el nombre o el número de empleado, o cambia el grupo seleccionado."
             actions={
-              <button
-                type="button"
-                className="btn btn--secondary btn--sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setQuery('');
                   setGroup('');
                 }}
               >
                 Limpiar filtros
-              </button>
+              </Button>
             }
           />
         ) : (
@@ -184,7 +189,7 @@ export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
                         <span className={`chip ${driver.active ? 'chip--active' : 'chip--paused'}`}>{driver.active ? 'Activo' : 'Inactivo'}</span>
                       </td>
                       <td className="table-page__action">
-                        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onNotice(`Expediente de ${driver.name} abierto.`)}>
+                        <Button variant="ghost" size="sm" onClick={() => onNotice(`Expediente de ${driver.name} abierto.`)}>
                           Ver expediente
                         </button>
                         {canEdit && (

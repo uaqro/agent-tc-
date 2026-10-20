@@ -255,7 +255,7 @@
     flex-basis: 100%;
   }
 
-  .maintenance__toolbar .btn {
+  .maintenance__toolbar > button {
     width: 100%;
   }
 

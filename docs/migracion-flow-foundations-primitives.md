@@ -110,6 +110,29 @@ no prescribe una conversión mecánica por nombre.
   mismos callbacks. `EmptyState` recibe el mismo botón Flow para crear la
   primera política.
 
+## Adopción de Button, Input y DatePicker
+
+Esta pasada amplía la adopción de estos primitives de Flow `3.0.0-beta.9`;
+siguen siendo beta y no se consideran una aprobación para reemplazo mecánico.
+
+- `Button` reemplaza las acciones comunes de producto en dispersión, límites,
+  mantenimiento, peajes, flota, administración, cobertura API, TED, solicitudes
+  y simulación; también el cierre de los diálogos. `IconButton` cubre los
+  controles de información/opciones de las tarjetas del dashboard y las
+  acciones flotantes. Se preservan callbacks, estados y nombres accesibles.
+  Los controles cuya semántica es selección o navegación (tabs, segmentos,
+  opciones de menú y pills), el toggle con `aria-controls` del menú principal
+  y el botón de perfil compuesto conservan su implementación propia.
+- `Input` cubre búsquedas simples de flota, mantenimiento, medios de pago,
+  facturas, usuarios, parámetros, mejoras API, medios de peaje y menú; también
+  búsqueda global, asignaciones, formularios de catálogos/invitación, campos
+  de política y composición de TED. Los inputs nativos permanecen para
+  `min`/`step`, `type="time"`, carga de archivos y el combobox de recarga, que
+  necesita su contrato ARIA de listbox personalizado.
+- `DatePicker` ya está en uso en órdenes de servicio y en el constructor de
+  reportes. No se encontraron inputs nativos `type="date"` pendientes; se
+  conservan los límites de fecha y la validación actuales.
+
 ## Cómo leer la matriz
 
 - **Equivalente semántico**: consumir el rol público de Flow, aunque el valor

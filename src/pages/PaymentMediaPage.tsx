@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select } from '@er-mobility-mx/design-system';
 import { CardIcon, PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
@@ -103,12 +103,12 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
           <div className="table-page__filters">
             <label className="table-page__search">
               <SearchIcon width={15} height={15} />
-              <span className="visually-hidden">Buscar medio de pago</span>
-              <input
+              <Input
                 type="search"
+                ariaLabel="Buscar medio de pago"
                 value={query}
                 placeholder="Número, placa o conductor"
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={setQuery}
               />
             </label>
             <span id="payment-media-type-filter-label" className="visually-hidden">Filtrar por tipo</span>
@@ -131,10 +131,10 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
                 if (selected || value === '') setStatus(selected ?? '');
               }}
             />
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => onNotice('Solicitud de nuevos medios de pago abierta.')}>
+            <Button size="sm" onClick={() => onNotice('Solicitud de nuevos medios de pago abierta.')}>
               <PlusIcon width={14} height={14} />
               Solicitar medios
-            </button>
+            </Button>
             <ApiTag id="media-request" />
           </div>
         </header>
@@ -146,9 +146,9 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
             title={media.length === 0 ? 'Aún no tienes medios de pago' : 'Ningún medio de pago coincide con los filtros'}
             description="Revisa el número, la placa o el conductor, o cambia el tipo y el estado seleccionados."
             actions={
-              <button
-                type="button"
-                className="btn btn--secondary btn--sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setQuery('');
                   setStatus('');
@@ -156,7 +156,7 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
                 }}
               >
                 Limpiar filtros
-              </button>
+              </Button>
             }
           />
         ) : (
@@ -225,19 +225,19 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
                       </td>
                       <td className="table-page__action">
                         {medium.status === 'active' && (
-                          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setMediumStatus(medium, 'blocked')}>
+                          <Button variant="ghost" size="sm" onClick={() => setMediumStatus(medium, 'blocked')}>
                             Bloquear
-                          </button>
+                          </Button>
                         )}
                         {medium.status === 'blocked' && (
-                          <button type="button" className="btn btn--secondary btn--sm" onClick={() => setMediumStatus(medium, 'active')}>
+                          <Button variant="secondary" size="sm" onClick={() => setMediumStatus(medium, 'active')}>
                             Desbloquear
-                          </button>
+                          </Button>
                         )}
                         {medium.status === 'unassigned' && (
-                          <button type="button" className="btn btn--secondary btn--sm" onClick={() => onNotice(`Asignando ${medium.number} a una unidad.`)}>
+                          <Button variant="secondary" size="sm" onClick={() => onNotice(`Asignando ${medium.number} a una unidad.`)}>
                             Asignar
-                          </button>
+                          </Button>
                         )}
                       </td>
                     </tr>

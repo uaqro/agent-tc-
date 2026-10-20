@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { Button } from '@er-mobility-mx/design-system';
 import type { Receipt, Vehicle } from '../../types/dispersion';
 import { suggestedTopUps, toLiters } from '../../data/dispersion';
 import { BoltIcon, CheckCircleIcon, SearchIcon } from '../icons/Icons';
@@ -103,12 +104,12 @@ export function QuickTopUp({
           </p>
         </div>
         <div className="quick__done-actions">
-          <button type="button" className="btn btn--secondary btn--sm" onClick={() => onViewReceipt(sent)}>
+          <Button variant="secondary" size="sm" onClick={() => onViewReceipt(sent)}>
             Ver comprobante
-          </button>
-          <button type="button" className="btn btn--primary btn--sm" onClick={reset}>
+          </Button>
+          <Button size="sm" onClick={reset}>
             Enviar otra
-          </button>
+          </Button>
         </div>
       </section>
     );
@@ -243,9 +244,9 @@ export function QuickTopUp({
               </p>
             </div>
 
-            <button type="button" className="btn btn--primary" disabled={!valid || overBudget} onClick={handleSend}>
+            <Button disabled={!valid || overBudget} onClick={handleSend}>
               Enviar ahora
-            </button>
+            </Button>
           </div>
 
           {overBudget && (

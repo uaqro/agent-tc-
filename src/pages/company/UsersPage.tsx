@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select } from '@er-mobility-mx/design-system';
 import { InviteUserDialog } from '../../components/company/InviteUserDialog';
 import { PlusIcon, SearchIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -90,8 +90,7 @@ export function UsersPage({ onNotice }: UsersPageProps) {
           <div className="table-page__filters">
             <label className="table-page__search">
               <SearchIcon width={15} height={15} />
-              <span className="visually-hidden">Buscar usuario</span>
-              <input type="search" value={query} placeholder="Nombre o correo" onChange={(event) => setQuery(event.target.value)} />
+              <Input type="search" ariaLabel="Buscar usuario" value={query} placeholder="Nombre o correo" onChange={setQuery} />
             </label>
             <span id="users-role-filter-label" className="visually-hidden">Filtrar por rol</span>
             <Select
@@ -113,10 +112,10 @@ export function UsersPage({ onNotice }: UsersPageProps) {
                 if (selected || value === '') setStatus(selected ?? '');
               }}
             />
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => setInviteOpen(true)}>
+            <Button size="sm" onClick={() => setInviteOpen(true)}>
               <PlusIcon width={14} height={14} />
               Invitar usuario
-            </button>
+            </Button>
           </div>
         </header>
 
@@ -127,9 +126,9 @@ export function UsersPage({ onNotice }: UsersPageProps) {
             title="Ningún usuario coincide con los filtros"
             description="Revisa el nombre o el correo, o cambia el rol y el estado seleccionados."
             actions={
-              <button
-                type="button"
-                className="btn btn--secondary btn--sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setQuery('');
                   setRole('');
@@ -137,7 +136,7 @@ export function UsersPage({ onNotice }: UsersPageProps) {
                 }}
               >
                 Limpiar filtros
-              </button>
+              </Button>
             }
           />
         ) : (
@@ -176,19 +175,19 @@ export function UsersPage({ onNotice }: UsersPageProps) {
                       </td>
                       <td className="table-page__action">
                         {user.status === 'invited' && (
-                          <button type="button" className="btn btn--ghost btn--sm" onClick={() => onNotice(`Invitación reenviada a ${user.email}.`)}>
+                          <Button variant="ghost" size="sm" onClick={() => onNotice(`Invitación reenviada a ${user.email}.`)}>
                             Reenviar invitación
-                          </button>
+                          </Button>
                         )}
                         {user.status === 'active' && !isSelf && (
-                          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setUserStatus(user, 'suspended')}>
+                          <Button variant="ghost" size="sm" onClick={() => setUserStatus(user, 'suspended')}>
                             Suspender
-                          </button>
+                          </Button>
                         )}
                         {user.status === 'suspended' && (
-                          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setUserStatus(user, 'active')}>
+                          <Button variant="ghost" size="sm" onClick={() => setUserStatus(user, 'active')}>
                             Reactivar
-                          </button>
+                          </Button>
                         )}
                       </td>
                     </tr>

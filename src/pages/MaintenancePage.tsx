@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Button, Input } from '@er-mobility-mx/design-system';
 import { ServiceOrderDialog } from '../components/maintenance/ServiceOrderDialog';
 import { AlertIcon, CalendarIcon, GearIcon, PlusIcon, SearchIcon, WalletIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -98,19 +99,19 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
           </div>
           <label className="maintenance__input">
             <SearchIcon width={16} height={16} />
-            <span className="visually-hidden">{mode === 'orders' ? 'Buscar órdenes de servicio' : 'Buscar vehículos'}</span>
-            <input
+            <Input
               type="search"
+              ariaLabel={mode === 'orders' ? 'Buscar órdenes de servicio' : 'Buscar vehículos'}
               value={query}
               placeholder={mode === 'orders' ? 'Folio, placa, taller o sistema' : 'Placa, conductor, marca o modelo'}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={setQuery}
             />
           </label>
         </div>
-        <button type="button" className="btn btn--primary" onClick={() => setDialog({})}>
+        <Button onClick={() => setDialog({})}>
           <PlusIcon width={16} height={16} />
           Crear orden de servicio
-        </button>
+        </Button>
       </section>
 
       {needle && (
@@ -119,9 +120,9 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
             <h2>
               {resultCount} {mode === 'orders' ? (resultCount === 1 ? 'orden' : 'órdenes') : resultCount === 1 ? 'vehículo' : 'vehículos'} para “{query.trim()}”
             </h2>
-            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setQuery('')}>
+            <Button variant="ghost" size="sm" onClick={() => setQuery('')}>
               Limpiar
-            </button>
+            </Button>
           </header>
 
           {resultCount === 0 ? (
@@ -172,9 +173,9 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
                         {next && ` · próximo: ${next.service}`}
                       </p>
                     </div>
-                    <button type="button" className="btn btn--secondary btn--sm" onClick={() => setDialog({ vehicleId: vehicle.id })}>
+                    <Button variant="secondary" size="sm" onClick={() => setDialog({ vehicleId: vehicle.id })}>
                       Crear orden
-                    </button>
+                    </Button>
                   </li>
                 );
               })}
@@ -305,9 +306,9 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
                   {hasOrder ? (
                     <span className="chip chip--info">Con orden</span>
                   ) : (
-                    <button type="button" className="btn btn--secondary btn--sm" onClick={() => setDialog({ vehicleId: service.vehicleId })}>
+                    <Button variant="secondary" size="sm" onClick={() => setDialog({ vehicleId: service.vehicleId })}>
                       Crear orden
-                    </button>
+                    </Button>
                   )}
                 </li>
               );

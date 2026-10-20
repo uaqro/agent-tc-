@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select } from '@er-mobility-mx/design-system';
 import { CardIcon, PlusIcon, SearchIcon } from '../../components/icons/Icons';
 import { TollAssignDialog } from '../../components/toll/TollAssignDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -120,12 +120,12 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
           <div className="table-page__filters">
             <label className="table-page__search">
               <SearchIcon width={15} height={15} />
-              <span className="visually-hidden">Buscar TAG</span>
-              <input
+              <Input
                 type="search"
+                ariaLabel="Buscar TAG"
                 value={query}
                 placeholder="Número de TAG, placa o conductor"
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={setQuery}
               />
             </label>
             <label>
@@ -170,9 +170,9 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
             title={tags.length === 0 ? 'Aún no tienes TAGs de telepeaje' : 'Ningún TAG coincide con los filtros'}
             description="Revisa el número, la placa o el conductor, o cambia el tipo y el estado seleccionados."
             actions={
-              <button
-                type="button"
-                className="btn btn--secondary btn--sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setQuery('');
                   setStatus('');
@@ -180,7 +180,7 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
                 }}
               >
                 Limpiar filtros
-              </button>
+              </Button>
             }
           />
         ) : (
@@ -238,27 +238,27 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
                       <td className="table-page__action">
                         {!readOnly && tag.status === 'active' && (
                           <>
-                            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setTagStatus(tag, 'blocked')}>
+                            <Button variant="ghost" size="sm" onClick={() => setTagStatus(tag, 'blocked')}>
                               Bloquear
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn--ghost btn--sm"
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => setTagStatus(tag, 'replacement')}
                             >
                               Reportar robo o daño
-                            </button>
+                            </Button>
                           </>
                         )}
                         {!readOnly && tag.status === 'blocked' && (
                           <button type="button" className="btn btn--secondary btn--sm" onClick={() => setTagStatus(tag, 'active')}>
                             Desbloquear
-                          </button>
+                          </Button>
                         )}
                         {!readOnly && tag.status === 'unassigned' && (
                           <button type="button" className="btn btn--secondary btn--sm" onClick={() => setAssigning(tag)}>
                             Asignar
-                          </button>
+                          </Button>
                         )}
                         {tag.status === 'replacement' && <span className="table-page__sub">Reposición en trámite</span>}
                       </td>
