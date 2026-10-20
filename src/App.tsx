@@ -24,6 +24,12 @@ import { VehiclesPage } from './pages/VehiclesPage';
 import { TollBalancesPage } from './pages/toll/TollBalancesPage';
 import { TollMediaPage } from './pages/toll/TollMediaPage';
 import { TollRulesPage } from './pages/toll/TollRulesPage';
+import { EvAccountPage } from './pages/electromobility/EvAccountPage';
+import { EvChargersPage } from './pages/electromobility/EvChargersPage';
+import { EvChargingPage } from './pages/electromobility/EvChargingPage';
+import { EvFleetPage } from './pages/electromobility/EvFleetPage';
+import { EvPoliciesPage } from './pages/electromobility/EvPoliciesPage';
+import { EvSummaryPage } from './pages/electromobility/EvSummaryPage';
 import { GasOptimizerPage } from './pages/intelligence/GasOptimizerPage';
 import { InsightsPage } from './pages/intelligence/InsightsPage';
 import { TedPage } from './pages/intelligence/TedPage';
@@ -97,6 +103,43 @@ const ROUTES: Record<AppRoute, { menuItem: string; section: string; title: strin
     title: 'Mantenimiento',
     crumb: 'Resumen',
     subtitle: 'Órdenes de servicio, preventivos próximos y gasto en taller',
+  },
+  'ev-summary': {
+    menuItem: 'ev-resumen',
+    section: 'Electromovilidad',
+    title: 'Electromovilidad',
+    crumb: 'Resumen',
+    subtitle: 'Energía, consumo y cargadores de la flota eléctrica e híbrida',
+  },
+  'ev-account': {
+    menuItem: 'ev-cuenta',
+    section: 'Electromovilidad',
+    title: 'Cuenta y fondeo',
+    subtitle: 'Una sola cuenta corporativa fondea todas las recargas; las unidades no tienen saldo propio',
+  },
+  'ev-charging': {
+    menuItem: 'ev-recargas',
+    section: 'Electromovilidad',
+    title: 'Recargas',
+    subtitle: 'Sesiones de recarga autorizadas, en curso y denegadas, con su desglose de costo',
+  },
+  'ev-policies': {
+    menuItem: 'ev-restricciones',
+    section: 'Electromovilidad',
+    title: 'Restricciones de carga',
+    subtitle: 'Horarios, días, energía, monto y tipo de red por empresa, centro de costos, grupo o unidad',
+  },
+  'ev-chargers': {
+    menuItem: 'ev-cargadores',
+    section: 'Electromovilidad',
+    title: 'Cargadores',
+    subtitle: 'Cargadores propios, solicitudes de instalación o integración y red pública',
+  },
+  'ev-fleet': {
+    menuItem: 'ev-flota',
+    section: 'Electromovilidad',
+    title: 'Unidades y tarjetas',
+    subtitle: 'Unidades eléctricas e híbridas y sus tarjetas de recarga RFID o virtuales',
   },
   reports: {
     menuItem: 'reportes',
@@ -305,6 +348,12 @@ function AppContent() {
         {route === 'toll-rules' && <TollRulesPage onNotice={setNotice} readOnly={!writable(route)} />}
         {route === 'toll-media' && <TollMediaPage onNotice={setNotice} readOnly={!writable(route)} />}
         {route === 'maintenance' && <MaintenancePage onNotice={setNotice} />}
+        {route === 'ev-summary' && <EvSummaryPage />}
+        {route === 'ev-account' && <EvAccountPage onNotice={setNotice} readOnly={!writable(route)} />}
+        {route === 'ev-charging' && <EvChargingPage />}
+        {route === 'ev-policies' && <EvPoliciesPage onNotice={setNotice} readOnly={!writable(route)} />}
+        {route === 'ev-chargers' && <EvChargersPage onNotice={setNotice} readOnly={!writable(route)} />}
+        {route === 'ev-fleet' && <EvFleetPage onNotice={setNotice} readOnly={!writable(route)} />}
         {route === 'reports' && <ReportsPage />}
         {route === 'insights' && <InsightsPage onNotice={setNotice} onNavigate={navigate} />}
         {route === 'optimizer' && (

@@ -32,6 +32,18 @@ export const menuGroups: MenuGroup[] = [
     items: [{ id: 'mantenimiento-resumen', label: 'Resumen', icon: 'gear' }],
   },
   {
+    id: 'electromovilidad',
+    label: 'Electromovilidad',
+    items: [
+      { id: 'ev-resumen', label: 'Resumen', icon: 'bolt' },
+      { id: 'ev-cuenta', label: 'Cuenta y fondeo', icon: 'wallet' },
+      { id: 'ev-recargas', label: 'Recargas', icon: 'clock' },
+      { id: 'ev-restricciones', label: 'Restricciones de carga', icon: 'lock' },
+      { id: 'ev-cargadores', label: 'Cargadores', icon: 'pin' },
+      { id: 'ev-flota', label: 'Unidades y tarjetas', icon: 'card' },
+    ],
+  },
+  {
     id: 'inteligencia',
     label: 'Inteligencia',
     items: [
