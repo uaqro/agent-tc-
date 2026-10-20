@@ -1,5 +1,5 @@
 import type { FundingRule, RuleStatus, RuleType } from '../../types/dispersion';
-import { Button, StatusPill } from '@er-mobility-mx/design-system';
+import { Button, SectionHeader, StatusPill } from '@er-mobility-mx/design-system';
 import { toLiters } from '../../data/dispersion';
 import { EyeIcon, PauseIcon, PlayIcon, PlusIcon, RuleIcon, UploadIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
@@ -33,21 +33,29 @@ export function RulesSection({ rules, onSimulate, onToggleStatus, onCreate, onBu
   return (
     <section className="rules" aria-labelledby="rules-title">
       <header className="rules__head">
-        <h2 className="rules__title" id="rules-title">
-          Automatización de dispersiones
-          <ApiTag id="disp-rules" />
-        </h2>
-        <div className="rules__actions">
-          <ApiTag id="disp-bulk" />
-          <Button variant="secondary" size="sm" onClick={onBulkUpload}>
-            <UploadIcon width={15} height={15} />
-            Carga masiva desde archivo
-          </Button>
-          <Button size="sm" onClick={onCreate}>
-            <PlusIcon width={15} height={15} />
-            Nueva automatización
-          </Button>
-        </div>
+        <SectionHeader
+          size="sm"
+          level={2}
+          style={{ width: '100%' }}
+          trailing={
+            <div className="rules__actions">
+              <ApiTag id="disp-bulk" />
+              <Button variant="secondary" size="sm" onClick={onBulkUpload}>
+                <UploadIcon width={15} height={15} />
+                Carga masiva desde archivo
+              </Button>
+              <Button size="sm" onClick={onCreate}>
+                <PlusIcon width={15} height={15} />
+                Nueva automatización
+              </Button>
+            </div>
+          }
+        >
+          <span id="rules-title">
+            Automatización de dispersiones
+            <ApiTag id="disp-rules" />
+          </span>
+        </SectionHeader>
       </header>
 
       {rules.length === 0 && (

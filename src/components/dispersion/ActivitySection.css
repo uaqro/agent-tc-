@@ -47,16 +47,6 @@
   border-top: 1px solid var(--tc-local-border-subtle);
 }
 
-.activity__title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--tc-local-text-strong);
-}
-
 .activity__scroll {
   overflow-x: auto;
 }

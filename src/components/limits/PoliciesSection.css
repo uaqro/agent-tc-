@@ -7,13 +7,6 @@
   margin-bottom: 10px;
 }
 
-.policies__title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--tc-local-text-strong);
-}
-
 .policies__list {
   list-style: none;
   margin: 0;

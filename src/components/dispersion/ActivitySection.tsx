@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, StatusPill } from '@er-mobility-mx/design-system';
+import { Button, SectionHeader, StatusPill } from '@er-mobility-mx/design-system';
 import type { FundingRule, Receipt, ReceiptKind } from '../../types/dispersion';
 import { CalendarIcon, ClockIcon, EyeIcon, PlayIcon } from '../icons/Icons';
 import { formatCount, formatDateLong, formatDateTime, formatMoney } from '../../utils/format';
@@ -43,32 +43,39 @@ export function ActivitySection({
   return (
     <section className="activity" aria-labelledby="activity-title">
       <header className="activity__head">
-        <h2 className="activity__title" id="activity-title">
-          {activeTab === 'history' ? <ClockIcon width={17} height={17} /> : <CalendarIcon width={17} height={17} />}
-          {activeTab === 'history' ? 'Últimas dispersiones' : 'Pagos programados'}
-          <ApiTag id={activeTab === 'history' ? 'disp-history' : 'disp-scheduled'} />
-        </h2>
-
-        <div className="activity__tabs" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'history'}
-            className={activeTab === 'history' ? 'is-active' : ''}
-            onClick={() => onTabChange('history')}
-          >
-            Últimas dispersiones
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'scheduled'}
-            className={activeTab === 'scheduled' ? 'is-active' : ''}
-            onClick={() => onTabChange('scheduled')}
-          >
-            Pagos programados ({scheduled.length})
-          </button>
-        </div>
+        <SectionHeader
+          size="sm"
+          level={2}
+          style={{ width: '100%' }}
+          trailing={
+            <div className="activity__tabs" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'history'}
+                className={activeTab === 'history' ? 'is-active' : ''}
+                onClick={() => onTabChange('history')}
+              >
+                Últimas dispersiones
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'scheduled'}
+                className={activeTab === 'scheduled' ? 'is-active' : ''}
+                onClick={() => onTabChange('scheduled')}
+              >
+                Pagos programados ({scheduled.length})
+              </button>
+            </div>
+          }
+        >
+          <span id="activity-title">
+            {activeTab === 'history' ? <ClockIcon width={17} height={17} /> : <CalendarIcon width={17} height={17} />}
+            {activeTab === 'history' ? 'Últimas dispersiones' : 'Pagos programados'}
+            <ApiTag id={activeTab === 'history' ? 'disp-history' : 'disp-scheduled'} />
+          </span>
+        </SectionHeader>
       </header>
 
       <div className="activity__scroll">

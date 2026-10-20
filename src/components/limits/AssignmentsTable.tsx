@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
+import { Button, Input, SectionHeader, Select, StatusPill } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import type { LimitPolicy, UnitAssignment } from '../../types/limits';
 import { PERIOD_META, assignableGroups, effectiveLimit, formatMeasure, usedInMeasure } from '../../data/limits';
@@ -53,35 +53,43 @@ export function AssignmentsTable({
   return (
     <section className="assignments" aria-labelledby="assignments-title">
       <header className="assignments__head">
-        <h2 className="assignments__title" id="assignments-title">
-          Asignación por unidad
-          <ApiTag id="lim-assignments" />
-        </h2>
-        <div className="assignments__filters">
-          <div className="assignments__search">
-            <Input
-              id="assignments-search"
-              type="search"
-              icon="search"
-              ariaLabel="Buscar unidad"
-              value={query}
-              placeholder="Placa, dispositivo o conductor"
-              onChange={setQuery}
-            />
-          </div>
-          <Select
-            id="assignments-group-filter"
-            options={groupOptions}
-            value={group}
-            aria-labelledby="assignments-group-filter-label"
-            onChange={(value) => {
-              if (groupOptions.some((option) => option.value === value)) setGroup(value);
-            }}
-          />
-          <span id="assignments-group-filter-label" className="visually-hidden">
-            Filtrar por grupo
+        <SectionHeader
+          size="sm"
+          level={2}
+          style={{ width: '100%' }}
+          trailing={
+            <div className="assignments__filters">
+              <div className="assignments__search">
+                <Input
+                  id="assignments-search"
+                  type="search"
+                  icon="search"
+                  ariaLabel="Buscar unidad"
+                  value={query}
+                  placeholder="Placa, dispositivo o conductor"
+                  onChange={setQuery}
+                />
+              </div>
+              <Select
+                id="assignments-group-filter"
+                options={groupOptions}
+                value={group}
+                aria-labelledby="assignments-group-filter-label"
+                onChange={(value) => {
+                  if (groupOptions.some((option) => option.value === value)) setGroup(value);
+                }}
+              />
+              <span id="assignments-group-filter-label" className="visually-hidden">
+                Filtrar por grupo
+              </span>
+            </div>
+          }
+        >
+          <span id="assignments-title">
+            Asignación por unidad
+            <ApiTag id="lim-assignments" />
           </span>
-        </div>
+        </SectionHeader>
       </header>
 
       <div className="assignments__scroll">

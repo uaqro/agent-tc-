@@ -16,13 +16,6 @@
   border-bottom: 1px solid var(--tc-local-border-subtle);
 }
 
-.assignments__title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--tc-local-text-strong);
-}
-
 .assignments__filters {
   display: flex;
   gap: 8px;

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Button } from '@er-mobility-mx/design-system';
+import { Button, SectionHeader } from '@er-mobility-mx/design-system';
 import type { AttentionItem, AttentionKind, Vehicle } from '../../types/dispersion';
 import { toLiters } from '../../data/dispersion';
 import { AlertIcon, BoltIcon, CheckCircleIcon, RequestIcon, ScissorsIcon } from '../icons/Icons';
@@ -45,11 +45,19 @@ export function AttentionList({ items, vehicles, headerSlot, onResolve, onDismis
     return (
       <section className="attention">
         <header className="attention__head">
-          <h2 className="attention__title">
+          <SectionHeader
+            size="sm"
+            level={2}
+            style={{ width: '100%' }}
+            trailing={
+              <>
+                <ApiTag id="disp-attention" />
+                {headerSlot}
+              </>
+            }
+          >
             Sin unidades por revisar
-            <ApiTag id="disp-attention" />
-          </h2>
-          {headerSlot}
+          </SectionHeader>
         </header>
         <p className="attention__clear-row">
           <CheckCircleIcon width={20} height={20} />
@@ -62,11 +70,21 @@ export function AttentionList({ items, vehicles, headerSlot, onResolve, onDismis
   return (
     <section className="attention" aria-labelledby="attention-title">
       <header className="attention__head">
-        <h2 className="attention__title" id="attention-title">
-          {items.length} {items.length === 1 ? 'unidad necesita' : 'unidades necesitan'} atención
-          <ApiTag id="disp-attention" />
-        </h2>
-        {headerSlot}
+        <SectionHeader
+          size="sm"
+          level={2}
+          style={{ width: '100%' }}
+          trailing={
+            <>
+              <ApiTag id="disp-attention" />
+              {headerSlot}
+            </>
+          }
+        >
+          <span id="attention-title">
+            {items.length} {items.length === 1 ? 'unidad necesita' : 'unidades necesitan'} atención
+          </span>
+        </SectionHeader>
       </header>
 
       <ul className="attention__list">

@@ -110,7 +110,7 @@ no prescribe una conversión mecánica por nombre.
   mismos callbacks. `EmptyState` recibe el mismo botón Flow para crear la
   primera política.
 
-## Adopción de Button, Input y DatePicker
+## Adopción de primitives Button/Input y component DatePicker
 
 Esta pasada amplía la adopción de estos primitives de Flow `3.0.0-beta.9`;
 siguen siendo beta y no se consideran una aprobación para reemplazo mecánico.
@@ -132,66 +132,100 @@ siguen siendo beta y no se consideran una aprobación para reemplazo mecánico.
 - `DatePicker` ya está en uso en órdenes de servicio y en el constructor de
   reportes. No se encontraron inputs nativos `type="date"` pendientes; se
   conservan los límites de fecha y la validación actuales.
+- `SectionHeader` se adoptó en `ChartCard`, `ActivitySection`,
+  `AttentionList`, `RulesSection`, `PoliciesSection` y `AssignmentsTable`.
+  La adopción cubre cuatro tarjetas de gráficas y los encabezados de esas
+  secciones; conserva niveles `h2`/`h3`, IDs usados por `aria-labelledby`,
+  descripciones de gráficas y acciones/filtros en el slot trailing. Es una
+  migración selectiva, no un reemplazo de todos los headings del inventario.
 - El contenedor compartido de los 13 diálogos usa ahora `OverlayShell` de Flow.
   Se conservan el encabezado, subtítulo, pie, tamaños y contenido propios del
   producto; el shell aporta portal, bloqueo/restauración del scroll, cierre
   con Escape o backdrop, foco inicial, trampa de Tab y retorno del foco al
   disparador. Los títulos tienen IDs únicos para asociar el diálogo accesible.
 
-## Inventario completo de primitives públicos
+## Inventario de primitives públicos
+
+### Criterio de capas de Flow
+
+Flow define la cascada `foundations → primitives → components → patterns →
+templates`. La capa de cada pieza se toma de la distinción conceptual que
+documenta `docs/ARQUITECTURA.md`, no se infiere por el nombre, el barrel desde
+el que se importa ni por el proyecto de producto que la consume: primitives
+son piezas básicas de interfaz; components son conceptos compuestos de
+interfaz; patterns resuelven composiciones de negocio. Hay una discrepancia
+en el paquete: `items.json` marca `Card` y `Select` como primitives, pero
+`docs/ARQUITECTURA.md` los clasifica explícitamente como components. Para que
+el inventario refleje la cascada conceptual de Flow, aquí se registran como
+components y se documenta esa diferencia.
 
 Revisión del catálogo exportado por el paquete instalado
-`@er-mobility-mx/design-system` `3.0.0-beta.9`: 58 exports de la capa
-`ui/primitives`, contrastados con `src/data/items.json` (madurez web) y los
-imports de `src/`. "No usado" describe el estado del código, no implica que
-todo primitive deba adoptarse. Se registra la oportunidad más cercana y la
-razón para adoptarlo, evaluarlo después o no incorporarlo.
+`@er-mobility-mx/design-system` `3.0.0-beta.9`: el manifiesto contiene 57
+entradas marcadas `primitives`, 66 `components` y 64 `patterns`. Para alinearlo
+con la cascada conceptual documentada, esta matriz registra 55 primitives y
+68 components: `Card` y `Select` se reclasifican como components por la
+discrepancia descrita arriba. La matriz detallada de adopción de primitives
+contiene exclusivamente las 55 entradas de esa capa; components y patterns no
+forman parte de su denominador de avance. `ToastStack` es un export auxiliar
+asociado a `Toast`, sin entrada independiente en el manifiesto, y no se cuenta
+como primitive separado. La madurez web y el uso se contrastan con el
+manifiesto y los imports de `src/`. "No usado" describe el estado del código,
+no implica que todo primitive deba adoptarse. Se registra la oportunidad más
+cercana y la razón para adoptarlo, evaluarlo después o no incorporarlo.
+
+Con un criterio de caso de uso concreto (la app ya consume el primitive o
+tiene una función equivalente que merece una evaluación, aunque la API actual
+no cubra todos sus requisitos), **30 de los 55 primitives** tienen relación
+aplicable: 15 ya se consumen y 15 son candidatos aún no adoptados. Los 25
+restantes no tienen un caso actual identificado. `Toast` se cuenta entre los
+adoptados porque `ToastHost` lo compone en la experiencia de avisos, aunque la
+app importa directamente el host y no `Toast`. Esta cifra no obliga a migrar
+cada candidato: por ejemplo, `LimitBar` tiene un caso funcional, pero no
+representa los umbrales operativos que exige el producto.
 
 | Primitive | Madurez web | Uso/relación observada | Evaluación |
 |---|---|---|---|
 | `AutoGrid` | estable | Las páginas usan grids CSS locales. | No migrar en bloque; layout estructural amplio y actualmente no hay contrato visual de app que exija el wrapper. Evaluar al tocar un grid concreto. |
 | `Avatar` | estable | `TopBar` renderiza las iniciales del perfil con `Avatar` tamaño `sm`. | Adoptado dentro del botón de perfil; el wrapper conserva el nombre de usuario como nombre accesible y oculta las iniciales duplicadas. |
-| `Badge` | estable | Contadores de solicitudes/notificaciones y marcas junto a filas. | Evaluar solo donde el valor sea un badge/counter; no reemplazar chips de estado con un badge genérico. |
+| `Badge` | estable | Hay seis salidas de contador identificables en cuatro contextos (API, solicitudes, órdenes abiertas y conteo de registros). | Candidato acotado a contadores; no reemplazar chips de estado con un badge genérico. |
 | `Breadcrumb` | estable | `PageHeader` usa `Breadcrumb` para Ticket Car, sección y página actual. | Adoptado; se mantiene separado el botón de regreso. Flow fija el nombre accesible del landmark como “Breadcrumb”. |
 | `BrandCanvas` | beta | Sin superficie decorativa de marca equivalente. | Sin caso actual; es decorativo y no reemplaza canvas ni visualizaciones con datos. |
 | `Button` | beta | Acciones comunes migradas en el lote actual. | En uso deliberado; conservar excepciones semánticas y revisar cambios de apariencia, ya que permanece beta. |
-| `Card` | estable | Varias tarjetas del dashboard y producto usan CSS propio. | Oportunidad por superficie, no reemplazo masivo: validar variantes, slots, interacción y diferencias visuales por familia. |
 | `Calendar` | estable | Interno al `DatePicker`; la app no lo importa directamente. | No consumir por separado en formularios; usar el componente compuesto `DatePicker`. |
-| `ChartLegend` | estable | Gráficas propias con leyendas/categorías locales. | Evaluar por gráfica; comprobar soporte de etiquetas, valores, colores semánticos y densidad antes de sustituir. |
-| `ChatMessage` | estable | TED renderiza su propio hilo de mensajes. | Oportunidad acotada en TED; comparar estados, autor, contenido enriquecido y contrato de datos. |
+| `ChartLegend` | estable | Dos gráficas locales (`BarChart` y `LineChart`) renderizan una leyenda; ambas aparecen en Dashboard. | Candidato de dos instancias; comprobar etiquetas, valores, colores y densidad. |
+| `ChatMessage` | estable | TED tiene una plantilla de render para cada mensaje, dentro de una lista dinámica en una pantalla. | Candidato acotado a TED; comparar estados, autor, contenido enriquecido y contrato de datos. |
 | `Checkbox` | estable | Selección múltiple en formularios y tablas. | En uso; mantiene el comportamiento controlado y las descripciones del producto. |
-| `Chip` | estable | Hay pills de filtro/selección y chips estáticos de estado. | Candidato solo para selección/remoción interactiva; no usarlo como etiqueta de estado estática. |
-| `ChipGroup` | estable | Los grupos de pills se maquetan localmente. | Solo aporta agrupación visual; considerar junto con `Chip` cuando se revise un grupo concreto, no cambia la semántica por sí mismo. |
+| `Chip` | estable | Nueve etiquetas locales explícitas en ocho módulos, más un grupo de filtros por severidad en Insights. | Candidato solo donde coincidan selección/remoción o etiqueta informativa; excluir estados ya cubiertos por `StatusPill`. |
+| `ChipGroup` | estable | Seis grupos locales de selección/pills en cinco módulos. | Candidato de agrupación visual; validar junto con `Chip`, pues no aporta semántica de selección por sí solo. |
 | `CircularProgress` | beta | No se encontró indicador circular de progreso. | Sin uso actual identificable; no añadir uno para decorar KPIs. |
 | `ControlShell` | estable | No se importa desde la app. | Export marcado por el paquete como shell interno/no publicado para consumo de producto; no adoptarlo directamente. |
-| `DetailRow` | estable | Múltiples vistas presentan pares etiqueta/valor. | Posible candidato para detalles homogéneos; no sustituir `dl` accesibles ni tablas sin validar semántica. |
-| `Divider` | beta | Separadores resueltos con bordes CSS locales. | No migrar separadores decorativos de forma global; beta y variación visual amplia. |
-| `EmptyState` | estable | Se usa un componente local equivalente (`components/ui/EmptyState.tsx`). | Oportunidad de consolidación; comparar slots de acción, modo card/compacto y densidad antes de retirar el wrapper local. |
+| `DetailRow` | estable | Dieciséis grupos `<dl>` en quince módulos contienen 63 pares `<dt>/<dd>`; incluyen resúmenes y detalles. | Candidato de alcance amplio; empezar por filas de detalle, no por reemplazar resúmenes ni semántica de tablas sin validar. |
+| `Divider` | beta | No hay `<hr>` en JSX; se identifican 41 declaraciones `border-top/bottom` en 23 CSS, en su mayoría límites decorativos. | No priorizar por ese conteo: no equivale a separadores semánticos ni justifica reemplazo masivo. |
+| `EmptyState` | estable | El equivalente local se usa 24 veces en 17 módulos consumidores. | Alta frecuencia; comparar acciones, variantes card/compact y densidad antes de consolidar el wrapper. |
 | `Field` | estable | Envuelve los campos migrados. | En uso; conserva etiquetas, requerido, ayuda y error accesible. |
 | `Flag` | estable | No se identificaron banderas de país. | Sin caso actual; no sustituir iconos genéricos ni emojis que no representan países. |
-| `FlowChart` | estable | Dashboard y analítica usan gráficas con estructuras propias. | Oportunidad potencial, no migración directa: mapear tipos de gráfica, series, tooltips e interacción y comparar salida por pantalla. |
+| `FlowChart` | estable | Dos gráficas locales (`BarChart` y `LineChart`) se presentan en Dashboard. | Candidato de dos instancias; comparar tipos, series, tooltips, interacción y salida antes de reemplazar el módulo SVG. |
 | `FlowLogo` | estable | La marca mostrada es Edenred One/Ticket Car. | No aplica: no sustituye el logo del producto por el wordmark de Flow. |
 | `IconButton` | estable | Acciones solo-icono de barra, gráficas y controles flotantes. | En uso; nombre accesible y tamaño se declaran explícitamente. |
-| `InlineCode` | estable | IDs y métodos de API se presentan con `<code>`. | Oportunidad pequeña para identificadores inline; no usar en bloques de código ni texto normal. |
+| `InlineCode` | estable | Cinco sitios JSX de `<code>` en dos módulos de integración/API. | Candidato pequeño y localizado; limitarlo a identificadores/métodos inline, no bloques de código. |
 | `Input` | beta | Búsquedas y campos de texto simples migrados. | En uso deliberado; se mantienen nativos los campos que requieren atributos no publicados o ARIA especializado. |
-| `LimitBar` | estable | La tabla de políticas de peaje muestra gasto frente al tope con umbrales locales de aviso al 75% y peligro al 90%. | No adoptar en ese caso: la API solo cambia el estado al cruzar 100%, no representa los umbrales operativos actuales ni expone semántica accesible de progreso. Mantener la barra etiquetada hasta que Flow soporte ese contrato. |
+| `LimitBar` | estable | Un medidor de políticas de peaje compara gasto con tope y alerta al 75%/90%. | Hay un caso, pero no migrar: la API actual marca el cruce del 100% y no representa los umbrales operativos ni la semántica accesible necesaria. |
 | `Listbox` | beta | `QuickTopUp` usa `Listbox` para renderizar las opciones del combobox de vehículos. | Adoptado como lista de opciones controlada; se conservan el filtro por placa/dispositivo/conductor, la navegación desde el input, la selección y las clases visuales de resultado. |
 | `OverlayScope` | beta | La app corre como pantalla completa, no como superficie embebida. | Sin necesidad actual; sirve para contener overlays dentro de un marco anfitrión embebido. |
 | `OverlayShell` | estable | Base del `Modal` compartido por 13 diálogos. | En uso; el shell se delega a Flow y el contenido/presentación sigue siendo del producto. |
 | `PageFrame` | deprecado | No importado. | No adoptar; el manifiesto indica que se retira en 4.0. |
-| `Popover` | beta | Hay paneles propios de solicitudes, Dev y menús/ayudas de gráfica. | Candidato por superficie flotante; migrar por caso después de comprobar anclaje, cierre, foco, clipping y estilos del producto. |
+| `Popover` | beta | Hay 43 apariciones de `ApiTag` en 14 módulos TSX; cada tag abre el detalle de integración con popover propio. Además, hay dos paneles locales de mayor tamaño con semántica de diálogo. | Alta reutilización potencial al migrar la implementación compartida de `ApiTag`; verificar anclaje, cierre, foco, clipping y diferenciar diálogos de popovers. |
 | `Progress` | estable | No hay progreso general de tarea o carga; el único medidor con cifras es gasto contra límite. | No adoptar: no hay un caso de progreso genérico y no cubre los umbrales semánticos del medidor de peaje. |
 | `Radio` | estable | Selección de rol en invitaciones. | En uso; se conserva la descripción de las opciones y la validación del grupo. |
 | `ScaleLegend` | estable | No se encontró leyenda de escala continua. | Sin caso actual; no equivale a leyendas categóricas de gráficas. |
-| `SectionBar` | estable | Secciones combinan título, filtros y tabs en layouts propios. | Evaluar si aparece un patrón sticky coincidente; no es sustituto general de encabezados de sección. |
-| `SectionHeader` | estable | Encabezados de sección repetidos en páginas y diálogos. | Oportunidad de consistencia; evaluar slots, tamaños y acciones por contexto antes de unificar. |
-| `Select` | estable | Filtros y opciones de formularios. | En uso; conserva selección de valores, filtros y callbacks. |
+| `SectionBar` | estable | No se encontró una barra de sección sticky con contenido/trailing equivalente; los tres `sticky` locales corresponden a navegación o encabezado de tabla. | Sin caso coincidente identificado; no migrar solo por tener encabezados de sección. |
+| `SectionHeader` | estable | `ChartCard` (cuatro tarjetas), `ActivitySection`, `AttentionList`, `RulesSection`, `PoliciesSection` y `AssignmentsTable`. | Adoptado selectivamente; conservar IDs accesibles, niveles semánticos y contenido trailing. Los demás headings no son candidatos automáticos. |
 | `SheetBody` | beta | No hay bottom sheets de Flow en la app. | No aplica hasta que exista una superficie tipo sheet. |
 | `SheetHeader` | beta | No hay bottom sheets de Flow en la app. | No aplica hasta que exista una superficie tipo sheet. |
 | `Skeleton` | estable | El prototipo muestra datos mock sin estados de carga. | Sin caso visible actual; no introducir placeholders donde no hay carga asíncrona. |
 | `Slider` | estable | No se encontró un input `range`. | Sin caso actual; los importes/cantidades son entradas discretas con `min`/`step`, no rangos continuos. |
 | `Sparkline` | estable | Los KPIs muestran cifras y variaciones, no microseries inline. | Sin equivalencia directa en la UI actual; evaluar solo si se agrega tendencia temporal compacta. |
-| `Stack` | beta | La composición usa flex/grid CSS locales. | Candidato de layout al refactorizar una zona; no cambia semántica y puede provocar cambios amplios de espaciado. |
+| `Stack` | beta | Hay 197 declaraciones `display:flex/grid` en 42 CSS. Ese total incluye layouts de página y de control, no solo stacks equivalentes. | Frecuencia bruta máxima, pero no priorizar por volumen: identificar grupos de hermanos con gap coincidente y migrar localmente. |
 | `Specimen` | estable | Sin catálogo de especímenes dentro del producto. | Herramienta de exhibición/validación, no primitive de pantalla de usuario. |
 | `Spinner` | estable | No se identificó operación asíncrona con espera visual en el mock. | Sin caso actual; incorporar solo junto a una acción realmente en curso. |
 | `StatusPill` | estable | Reemplaza etiquetas de estado estáticas en facturas, accesos, medios de pago, mantenimiento, flota, políticas y reglas. | Adoptado para estados: success, warning, danger, info y neutral según significado. Se conservan chips de tipo/clasificación e interactivos. |
@@ -202,20 +236,97 @@ razón para adoptarlo, evaluarlo después o no incorporarlo.
 | `Textarea` | estable | Descripción de orden de servicio y otros textos largos. | En uso; conserva filas, valores y cambios controlados. |
 | `Timeline` | beta | Mantenimiento usa tablas/listas, no una cronología de eventos por registro. | Posible necesidad futura, no reemplazo de tablas de órdenes. |
 | `Toast` | estable | `App` muestra avisos breves mediante `ToastHost` y `useToast`. | Adoptado con tono neutral y duración de 3.6 s; mantiene el tiempo del aviso anterior y pausa el temporizador por puntero/foco. |
-| `ToastStack` | sin madurez independiente | `ToastHost` compone internamente la pila en portal. | No adoptarlo aislado; la app consume `ToastHost` y `useToast`. |
 | `ToastHost` | estable | Envuelve el punto de entrada y aloja los avisos de toda la app. | Adoptado con la cola FIFO de Flow; los callbacks de notificación conservan su firma. |
 | `ToggleControl` | beta | No se importa directamente. | Mecanismo compartido interno; usar `Checkbox`/`Switch` según semántica, no el helper de bajo nivel. |
 | `NavCard` | estable | No hay navegación entre páginas con tarjeta prev/next. | Sin caso actual; el menú lateral y breadcrumbs cubren otras tareas. |
 | `TextAction` | beta | No se identificó una acción textual compacta con contrato coincidente en encabezados. | Evaluar solo donde una acción de baja jerarquía deba compartir el patrón; no es reemplazo universal de `Button`. |
 
-### Componentes compuestos adyacentes al inventario
+### Orden ascendente de los 15 candidatos por uso observado
 
-Estos exports no pertenecen a la capa `ui/primitives`; se anotan para evitar
-confundir el inventario de primitives con el catálogo entero. La madurez viene
-del mismo manifiesto web.
+El orden siguiente va de menor a mayor **frecuencia observable del patrón local**
+que podría corresponder al primitive. No es todavía un orden de ejecución: el
+conteo no prueba compatibilidad, y varios candidatos tienen limitaciones de API.
+Los empates comparten rango. Los conteos son JSX/TSX salvo donde se indica un
+proxy de CSS; las instancias dentro de listas de datos pueden crecer en runtime.
 
-| Componente | Madurez web | Relación con el producto | Decisión de inventario |
+| Rango | Primitive | Evidencia de uso en la app | Lectura para priorizar |
+|---:|---|---|---|
+| 1 | `Divider` | 0 separadores semánticos `<hr>`; 41 declaraciones `border-top/bottom` en 23 CSS. | Los bordes encontrados son mayormente decorativos; no tratarlos como 41 oportunidades de migración. |
+| 1 | `SectionBar` | 0 barras sticky de sección con composición equivalente. Hay 3 declaraciones sticky, pero son del menú, topbar y encabezado de tabla. | Sin caso coincidente identificado actualmente. |
+| 2 | `LimitBar` | 1 medidor de gasto frente a límite en políticas de peaje. | Caso claro, pero bloqueado por la falta de umbrales 75%/90% en la API actual. |
+| 2 | `ChatMessage` | 1 plantilla de render de mensaje en TED; los mensajes se repiten dinámicamente en una sola pantalla. | Evaluación localizada; el conteo estático no refleja el número de mensajes en una conversación. |
+| 3 | `ChartLegend` | 2 instancias, en `BarChart` y `LineChart`, ambas usadas por Dashboard. | Candidato de alcance acotado; validar forma y densidad de leyenda. |
+| 3 | `FlowChart` | 2 visualizaciones de datos locales: una de barras y una de línea en Dashboard. | Candidato técnico relevante, pero no sustitución directa sin comparar configuración, accesibilidad e interacción. |
+| 4 | `InlineCode` | 5 sitios JSX `<code>` en 2 módulos de integración/API. | Pequeño y fácil de pilotear; solo para fragmentos inline. |
+| 5 | `Badge` | 6 salidas de contador en 4 contextos; el resumen API genera tres valores por estado. | Alcance acotado a contadores; evitar duplicar pills de estado. |
+| 5 | `ChipGroup` | 6 grupos locales en 5 módulos (controles de selección y filtros por severidad). | Valorar junto con `Chip`; algunos grupos pueden ser controles segmentados, no grupos de chips. |
+| 6 | `Chip` | 9 sitios JSX de etiquetas en 8 módulos, además de un grupo de severidad seleccionable en Insights. | Hay frecuencia, pero solo migrar elementos cuyo contrato informativo/seleccionable coincida; estados ya cubiertos por `StatusPill` quedan fuera. |
+| 7 | `DetailRow` | 16 grupos `<dl>` en 15 módulos, con 63 pares `<dt>/<dd>`. | Alto número de pares, pero varios son resúmenes KPI o detalles de políticas; validar fila por fila y conservar `dl`. |
+| 8 | `EmptyState` | 24 usos de `<EmptyState>` en 17 módulos consumidores. | Alta repetición de una misma composición; revisar primero el contrato de acciones y variantes del wrapper local. |
+| 9 | `Popover` | 43 apariciones de `ApiTag` en 14 módulos; todos comparten una implementación local de detalle flotante. | Mucha extensión con un punto de migración central; priorizar si Flow preserva el comportamiento del detalle. Los paneles de solicitudes/Dev son diálogos y no se cuentan como popovers. |
+| 10 | `SectionHeader` | 44 elementos `<h2>/<h3>` en 28 módulos TSX, con adopción inicial en seis módulos consumidores. | Continuar solo donde coincidan composición y contrato; ya preserva niveles, IDs accesibles, descripciones y acciones en trailing. |
+| 11 | `Stack` | Proxy amplio: 197 declaraciones `display:flex/grid` en 42 CSS. | Mayor volumen bruto, pero no representa 197 stacks equivalentes; seleccionar grupos de hermanos con gap común y no convertir layouts globalmente. |
+
+**Siguiente orden recomendado después de esta adopción inicial:** revisar
+visualmente y cerrar el grupo de `SectionHeader` en las seis superficies
+migradas; después evaluar `Popover` en el punto compartido de `ApiTag` (máximo
+alcance por cambio) y pilotear `EmptyState`. `FlowChart` y `LimitBar` requieren
+una prueba de equivalencia funcional antes de decidir; no subirlos de prioridad
+solo por su importancia visual.
+
+### Componentes y patterns: catálogo fuera de primitives
+
+Las dos listas siguientes pertenecen a capas distintas de `primitives`; sus
+elementos no se cuentan en el avance de migración de primitives. Los nombres
+proceden del campo `layer` del manifiesto. `ToastStack` es un export auxiliar
+de la composición de `Toast`, no una entrada independiente del catálogo.
+
+**Componentes (`components`, 68):** `Accordion`, `Active filters`, `AvatarGroup`,
+`BalanceDisplay`, `Bars`, `BiometricPrompt`, `BottomSheet`, `BrandHero`,
+`BulkBar`, `BulletChart`, `Card`, `CardCarousel`, `CardMedia`, `ChatComposer`,
+`ChatThread`, `CodeBlock`, `Data freshness`, `DataGrid`, `DatePicker`,
+`DateRangePicker`, `Dialog`, `Document viewer`, `Donut`, `Drawer`,
+`FileUpload`, `FilterBar`, `FilterableEditableTable`, `GanttChart`,
+`GlobalSearch`, `HelpCenter`, `InputAmount`, `InputPhone`, `KanbanBoard`,
+`List`, `ListRow`, `MapCanvas`, `Menu`, `NavBar`, `NipReveal`,
+`NotificationCenter`, `OTPInput`, `Pagination`, `ParetoChart`,
+`PasscodeKeypad`, `PeekSheet`, `QrScanner`, `QuickAction`, `QuickActionBar`,
+`RoleMatrix`, `RouteBanner`, `Saved views`, `ScatterPlot`, `SectionRule`,
+`SegmentedControl`, `Select`, `Sidebar`, `SmallMultiples`, `StatTile`,
+`StationRow`, `TabPanel`, `Table`, `TableTree`, `Tabs`, `Tooltip`, `TopBar`,
+`TransactionRow`, `Treemap`, `WidgetFrame`.
+
+**Patterns (`patterns`, 64):** `AnatomyView`, `AuthForm`, `Biometric unlock`,
+`Bulk card issue`, `BulkActionsTable`, `Búsqueda global`, `CardControls`,
+`Conversation`, `Dashboard / analytics`, `Dashboard customize`, `DataTable`,
+`Device pairing`, `DocFooter`, `DocHero`, `DownloadCard`,
+`Driver offboarding`, `Fault report`, `FilterSet`, `Fleet assignment`,
+`Formulario multi-paso (Wizard)`, `Fuel session`, `GuidanceCard`,
+`Guía: data viz para flotas grandes`, `IdentityCheck`, `InstallCard`,
+`KpiBand`, `Legacy PIN login`, `Listado + detalle (CRUD)`,
+`Notification setup`, `OTP verification`, `OnboardingCarousel`, `PageHeader`,
+`Passcode entry`, `PaymentCard`, `PlaygroundCanvas`, `Points redemption`,
+`Preventive schedule`, `Profile edit`, `ProfileMenu`, `ProposalCard`,
+`PullToRefresh`, `QR station scan`, `Receipt dispute`, `Referral invite`,
+`Reward catalogue`, `RideOffer`, `Selector de país`, `Service booking`,
+`Sesion de carga`, `Session recovery`, `Settings`, `Spend policy edit`,
+`StateGrid`, `Statement export`, `StationFinder`, `Support ticket`,
+`Toll passage`, `TransactionGroup`, `TransferList`, `Vehicle onboarding`,
+`WidgetGrid`, `WidgetLibrary`, `Wizard`, `Work order review`.
+
+No se identificaron imports de la capa `patterns` en la app. Los patrones
+locales del producto no se reclasifican como patterns de Flow por similitud
+visual; requieren una evaluación separada.
+
+### Componentes relacionados con usos observados en la app
+
+La siguiente tabla es una selección del catálogo anterior, no parte de la
+matriz de primitives. Todos sus elementos están clasificados como `components`
+por el manifiesto de Flow.
+
+| Componente (capa Flow) | Madurez web | Relación con el producto | Decisión |
 |---|---|---|---|
+| `Card` | estable | Varias tarjetas del dashboard y producto usan CSS propio. | Evaluar por familia y comenzar con un caso representativo; no hacer reemplazo masivo. |
 | `DatePicker` | beta | En uso en órdenes de servicio y reportes. | Mantener adopción; no hay input nativo `type="date"` pendiente. |
 | `DateRangePicker` | deprecado | Alias legado, no importado. | No adoptar; usar `DatePicker` con modo rango si se requiere. |
 | `InputAmount` | estable | En uso para importes monetarios. | Adoptado en formularios con currency/formatting. |
@@ -225,8 +336,9 @@ del mismo manifiesto web.
 | `FileUpload` | estable | La carga masiva de dispersión usa el componente para seleccionar/soltar CSV único. | Adoptado con aceptación de CSV y error localizado por archivo rechazado; `FileReader`, parseo, plantilla y validación de filas permanecen propios del producto. |
 | `Table` / `DataGrid` | beta | Hay tablas HTML semánticas con diseños y acciones por página. | Mantener tablas nativas por ahora; evaluar un prototipo acotado, pues la API beta no justifica reemplazo masivo. |
 | `Pagination` | estable | Tablas actuales no exponen paginación. | No añadir comportamiento nuevo solo para usar el primitive. |
-| `Tooltip` | estable | Las gráficas tienen tooltip CSS con contenido y foco. | Candidato para retirar manejo visual local; verificar contenido y posicionamiento. |
-| `Menu` | estable | Acciones del dashboard usan un menú contextual propio. | Candidato puntual en `ChartCard`; comprobar roles, teclado y callback de cada opción. |
+| `Select` | estable | Filtros y opciones de formularios. | Adoptado; conserva selección de valores, filtros y callbacks. |
+| `Tooltip` | estable | Las gráficas tienen tooltip CSS con contenido y foco. | Adoptado en `ChartCard`; Flow administra hover/foco, relación accesible y posicionamiento adaptable. |
+| `Menu` | estable | Acciones del dashboard usan un menú contextual propio. | Adoptado en `ChartCard`; conserva los callbacks y alinea el menú a la derecha del trigger. |
 | `Accordion` | estable | Hay expansiones de detalle con botones locales. | Candidato solo donde el contenido tenga semántica de sección expandible. |
 | `ChatComposer` / `ChatThread` | estable | TED tiene composer e hilo propios, con estados de pensamiento. | Oportunidad de mapeo; comparar contrato de envío, estados y contenido antes de reemplazar. |
 | `SegmentedControl` | estable | Hay tabs y grupos de selección segmentada, con semánticas diferentes. | No intercambiar por nombre; determinar si cada grupo cambia vista o selecciona valores. |
@@ -268,6 +380,20 @@ terminar esa evaluación.
   producto usa estados en 75% y 90%, mientras que `LimitBar` solo marca
   sobrepaso al 100% y `Progress` no ofrece umbrales. Mantener la señal actual
   evita degradar la anticipación de riesgo.
+
+### Adopción de Tooltip y Menu
+
+- `ChartCard` delega en `Tooltip` de Flow la apertura por hover/foco, el
+  anuncio accesible del contenido y el posicionamiento inferior con colisión
+  contra el viewport. Se elimina el tooltip CSS local; la burbuja adopta la
+  superficie visual de Flow.
+- `Menu` reemplaza el menú contextual manual de `ChartCard`. Las opciones
+  mantienen el callback `onOptionSelect`; Flow gestiona los roles, el cierre
+  por selección/clic exterior/Escape, el retorno del foco y la navegación con
+  flechas, Home y End.
+- Se mantienen los labels accesibles de los dos triggers y la alineación del
+  menú al borde derecho de la tarjeta. No se migra otra superficie: estos son
+  los únicos tooltip y menú contextuales propios identificados en el producto.
 
 ## Cómo leer la matriz
 
@@ -449,48 +575,47 @@ validar que reglas globales existentes no anulen el foco de Flow.
   Symbols y sus licencias. Ubuntu e IBM Plex Mono también se sirven desde esos
   assets; no se carga una fuente de iconos de Google en paralelo.
 
-## Primitives: inventario de madurez y adopción
+## Evidencia de uso por capa: formularios y navegación
 
-La fuente de madurez es `items.*.maturity` en el manifiesto del paquete
-`@er-mobility-mx/design-system@3.0.0-beta.9`. El inventario siguiente mapea
-cada primitive de formulario marcado `stable` en ese manifiesto. Los paths son
-relativos al directorio `src/`.
+La madurez procede de `items.*.maturity` en el manifiesto del paquete
+`@er-mobility-mx/design-system@3.0.0-beta.9`; los paths son relativos a `src/`.
+Las tablas se separan por la capa conceptual documentada arriba. Esta selección
+no sustituye el inventario completo ni mezcla los componentes dentro del
+denominador de primitives.
+
+### Primitives usados en formularios y controles
 
 | Primitive | Madurez | Usos Flow actuales | Pendiente / decisión |
 |---|---|---|---|
 | `Checkbox` | Estable | `components/company/InviteUserDialog.tsx`, `components/company/ParameterCatalogDialog.tsx`, `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`, `components/toll/TollPolicyDialog.tsx`. | No quedan casillas nativas (`type="checkbox"`) en TSX/JSX. |
-| `Dialog` | Estable | Sin adopción directa. | Revisar contrato de foco, Escape, retorno de foco y capas antes de sustituir overlays locales. |
 | `Field` | Estable | `components/company/InviteUserDialog.tsx`, `components/company/ParameterCatalogDialog.tsx`, `components/company/ParameterRecordDialog.tsx`, `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/OverrideDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/maintenance/ServiceOrderDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`, `components/toll/TollAmountDialog.tsx`, `components/toll/TollAssignDialog.tsx`, `components/toll/TollPolicyDialog.tsx`. | En entradas numéricas nativas se conserva para etiqueta y descripción cuando Flow `Input` no publica `min`/`step`. |
-| `IconButton` | Estable | `components/layout/TopBar.tsx` (Ayuda y Notificaciones). | Sin otros botones solo-icono incorporados en este lote. |
-| `InputAmount` | Estable | `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/OverrideDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/toll/TollAmountDialog.tsx`, `components/toll/TollPolicyDialog.tsx`. | Mantener límites de moneda y formato vía la API publicada. |
-| `InputPhone` | Estable | Sin uso actual. | No hay flujo de teléfono equivalente identificado. |
-| `OtpInput` | Estable | Sin uso actual. | No hay flujo OTP equivalente identificado. |
+| `IconButton` | Estable | `components/layout/TopBar.tsx`, `components/dashboard/ChartCard.tsx` y `components/layout/FloatingControls.tsx`. | Los triggers conservan nombres accesibles. |
 | `Radio` | Estable | `components/company/InviteUserDialog.tsx` (selección de rol). | No quedan otros grupos de radio nativos mapeados. |
-| `Select` | Estable | `components/company/ParameterCatalogDialog.tsx`, `components/company/ParameterRecordDialog.tsx`, `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/AssignmentsTable.tsx`, `components/limits/OverrideDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/maintenance/ServiceOrderDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`, `components/toll/TollAssignDialog.tsx`, `components/toll/TollPolicyDialog.tsx`, `pages/DriversPage.tsx`, `pages/PaymentMediaPage.tsx`, `pages/ReportsPage.tsx`, `pages/VehiclesPage.tsx`, `pages/company/InvoicesPage.tsx`, `pages/company/UsersPage.tsx`, `pages/dev/ApiImprovementsPage.tsx`, `pages/toll/TollMediaPage.tsx`, `pages/toll/TollRulesPage.tsx`. | No quedan elementos `<select>` nativos en TSX/JSX. `value` y `onChange(string)` se mantienen controlados. |
 | `Switch` | Estable | `components/api/ApiCoverage.tsx`, `components/dev/DevMode.tsx`, `components/limits/PolicyDialog.tsx`, `components/toll/TollPolicyDialog.tsx`, `pages/company/ParametersPage.tsx`, `pages/toll/TollBalancesPage.tsx`. | No quedan switches nativos (`role="switch"`) en TSX/JSX; los callbacks reciben booleano. |
-| `Tabs` | Estable | `pages/ReportsPage.tsx` (`Tabs` y `TabPanel`). | No hay otra tablist identificada en el inventario actual. |
 | `Textarea` | Estable | `components/maintenance/ServiceOrderDialog.tsx`. | Sin otro textarea candidato. |
+| `Button` | Beta | Usado en páginas y diálogos de producto. | Adoptado para acciones; se conserva el control local cuando tiene semántica distinta. |
+| `Input` | Beta | Búsquedas, formularios, asignaciones y navegación. | Adoptado para texto simple; los inputs nativos mantienen los atributos no publicados como `min`, `step` y `type="time"`. |
 
-Primitives que actualmente se usan, pero **no** figuran como estables en el
-mismo manifiesto:
+### Componentes usados en formularios y navegación
 
-| Primitive | Madurez | Usos actuales |
-|---|---|---|
-| `Button` | Beta | `components/layout/PageHeader.tsx`, `components/limits/AssignmentsTable.tsx`, `components/limits/PoliciesSection.tsx`, `components/reports/DynamicReportBuilder.tsx`, `pages/ReportsPage.tsx`. |
-| `DatePicker` | Beta | `components/maintenance/ServiceOrderDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`. |
-| `Input` | Beta | `components/company/InviteUserDialog.tsx`, `components/company/ParameterCatalogDialog.tsx`, `components/company/ParameterRecordDialog.tsx`, `components/layout/TopBar.tsx`, `components/limits/AssignmentsTable.tsx`, `components/limits/PolicyDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`, `components/toll/TollPolicyDialog.tsx`. |
+| Componente | Madurez | Usos Flow actuales | Pendiente / decisión |
+|---|---|---|---|
+| `DatePicker` | Beta | `components/maintenance/ServiceOrderDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`. | Adoptado; no hay input nativo `type="date"` pendiente. |
+| `Dialog` | Estable | Sin adopción directa; los diálogos del producto usan `Modal` con `OverlayShell`. | No duplicar la migración del shell; evaluar la composición antes de reemplazarla. |
+| `InputAmount` | Estable | `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/OverrideDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/toll/TollAmountDialog.tsx`, `components/toll/TollPolicyDialog.tsx`. | Adoptado; mantiene límites de moneda y formato vía la API publicada. |
+| `Select` | Estable | Formularios, filtros y páginas de Reportes, Flota, Medios de pago, Facturas, Usuarios y reglas. | Adoptado; no quedan elementos `<select>` nativos en TSX/JSX y `value`/`onChange(string)` siguen controlados. |
+| `Tabs` / `TabPanel` | Estable | `pages/ReportsPage.tsx`. | Adoptado en Reportes; revisar las otras tablists locales por pantalla antes de migrarlas. |
 
-Los usos existentes beta se conservan para no ampliar el alcance de madurez
-de este lote. La medición estática del estado actual encuentra cero
+Los usos existentes beta se conservan considerando su madurez publicada. La
+medición estática del estado actual encuentra cero
 `<select>`, `type="checkbox"` y `role="switch"` nativos en los TSX/JSX de
 `src/`; los inputs numéricos nativos con restricciones `min`/`step` o
 `type="time"` se mantienen donde la API pública de `Input` no cubre el
 comportamiento requerido.
 
-Otros componentes y patrones siguen evaluándose por separado: `ControlShell`
-(beta), `Stack`, `Card`, `EmptyState`, charts y overlays. Compartir apariencia
-o nombre no implica equivalencia de contrato; revisar interacción, accesibilidad
-y API pública antes de migrarlos.
+Otros primitives y components se siguen evaluando por separado. Compartir
+apariencia o nombre no implica equivalencia de contrato; revisar interacción,
+accesibilidad y API pública antes de migrarlos.
 
 El shell de navegación y los charts se mantienen fuera de esta primera tabla de
 adopción: el sidebar actual combina búsqueda, pin, filtrado, navegación y
