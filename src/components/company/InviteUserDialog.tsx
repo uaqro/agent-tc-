@@ -75,14 +75,20 @@ export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUs
       <fieldset className="policy-form__block company-form__fields">
         <legend>Rol</legend>
         <div className="company-form__roles">
-          {(Object.keys(USER_ROLE_LABEL) as UserRole[]).map((option) => (
-            <label key={option} className={`company-form__role${role === option ? ' is-active' : ''}`}>
-              <input type="radio" name="role" checked={role === option} onChange={() => setRole(option)} />
-              <span>
-                <strong>{USER_ROLE_LABEL[option]}</strong>
-                <small>{USER_ROLE_DESCRIPTION[option]}</small>
-              </span>
-            </label>
+          {roleOptions.map((option) => (
+            <div key={option} className={`company-form__role${role === option ? ' is-active' : ''}`}>
+              <Radio
+                name="role"
+                value={option}
+                checked={role === option}
+                label={USER_ROLE_LABEL[option]}
+                description={USER_ROLE_DESCRIPTION[option]}
+                onChange={(value) => {
+                  const selectedRole = roleOptions.find((candidate) => candidate === value);
+                  if (selectedRole) setRole(selectedRole);
+                }}
+              />
+            </div>
           ))}
         </div>
       </fieldset>

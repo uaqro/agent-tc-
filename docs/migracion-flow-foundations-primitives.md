@@ -100,6 +100,9 @@ no prescribe una conversión mecánica por nombre.
   para metadatos, campos definidos por catálogo y registros. Se preservan las
   opciones de referencia activa, la opción opcional «Sin asignar» y las
   validaciones de campos obligatorios y nombres duplicados.
+- El diálogo de invitación usa `Radio` Flow para elegir el rol y `Checkbox`
+  para el alcance por región, además de `Input`/`Field` ya migrados para nombre
+  y correo. Se conservan las descripciones de rol y la validación de regiones.
 
 ## Cómo leer la matriz
 
