@@ -1,5 +1,5 @@
 import type { FundingRule, RuleStatus, RuleType } from '../../types/dispersion';
-import { Button, SectionHeader, StatusPill } from '@er-mobility-mx/design-system';
+import { Button, SectionHeader, Stack, StatusPill } from '@er-mobility-mx/design-system';
 import { toLiters } from '../../data/dispersion';
 import { EyeIcon, PauseIcon, PlayIcon, PlusIcon, RuleIcon, UploadIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
@@ -38,7 +38,7 @@ export function RulesSection({ rules, onSimulate, onToggleStatus, onCreate, onBu
           level={2}
           style={{ width: '100%' }}
           trailing={
-            <div className="rules__actions">
+            <Stack gap={2} wrap>
               <ApiTag id="disp-bulk" />
               <Button variant="secondary" size="sm" onClick={onBulkUpload}>
                 <UploadIcon width={15} height={15} />
@@ -48,7 +48,7 @@ export function RulesSection({ rules, onSimulate, onToggleStatus, onCreate, onBu
                 <PlusIcon width={15} height={15} />
                 Nueva automatización
               </Button>
-            </div>
+            </Stack>
           }
         >
           <span id="rules-title">

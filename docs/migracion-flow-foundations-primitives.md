@@ -138,6 +138,10 @@ siguen siendo beta y no se consideran una aprobación para reemplazo mecánico.
   secciones; conserva niveles `h2`/`h3`, IDs usados por `aria-labelledby`,
   descripciones de gráficas y acciones/filtros en el slot trailing. Es una
   migración selectiva, no un reemplazo de todos los headings del inventario.
+- `Stack` se piloteó en las acciones del encabezado de `RulesSection`: `gap={2}`
+  conserva la separación de 8 px y `wrap` mantiene el salto de línea en
+  ventanas estrechas. Se deja el resto de layouts flex/grid en CSS hasta
+  evaluar cada composición y sus gaps; el conteo bruto no determina adopciones.
 - El contenedor compartido de los 13 diálogos usa ahora `OverlayShell` de Flow.
   Se conservan el encabezado, subtítulo, pie, tamaños y contenido propios del
   producto; el shell aporta portal, bloqueo/restauración del scroll, cierre
@@ -176,7 +180,7 @@ cercana y la razón para adoptarlo, evaluarlo después o no incorporarlo.
 Con un criterio de caso de uso concreto (la app ya consume el primitive o
 tiene una función equivalente que merece una evaluación, aunque la API actual
 no cubra todos sus requisitos), **30 de los 55 primitives** tienen relación
-aplicable: 15 ya se consumen y 15 son candidatos aún no adoptados. Los 25
+aplicable: 17 ya se consumen y 13 son candidatos aún no adoptados. Los 25
 restantes no tienen un caso actual identificado. `Toast` se cuenta entre los
 adoptados porque `ToastHost` lo compone en la experiencia de avisos, aunque la
 app importa directamente el host y no `Toast`. Esta cifra no obliga a migrar
@@ -225,7 +229,7 @@ representa los umbrales operativos que exige el producto.
 | `Skeleton` | estable | El prototipo muestra datos mock sin estados de carga. | Sin caso visible actual; no introducir placeholders donde no hay carga asíncrona. |
 | `Slider` | estable | No se encontró un input `range`. | Sin caso actual; los importes/cantidades son entradas discretas con `min`/`step`, no rangos continuos. |
 | `Sparkline` | estable | Los KPIs muestran cifras y variaciones, no microseries inline. | Sin equivalencia directa en la UI actual; evaluar solo si se agrega tendencia temporal compacta. |
-| `Stack` | beta | Hay 197 declaraciones `display:flex/grid` en 42 CSS. Ese total incluye layouts de página y de control, no solo stacks equivalentes. | Frecuencia bruta máxima, pero no priorizar por volumen: identificar grupos de hermanos con gap coincidente y migrar localmente. |
+| `Stack` | beta | Hay 197 declaraciones `display:flex/grid` en 42 CSS; primera adopción en las acciones agrupadas de `RulesSection`. | `Stack` reemplaza el flex local con gap de 8 px y wrapping; continuar solo con grupos de hermanos equivalentes, no por el conteo bruto. |
 | `Specimen` | estable | Sin catálogo de especímenes dentro del producto. | Herramienta de exhibición/validación, no primitive de pantalla de usuario. |
 | `Spinner` | estable | No se identificó operación asíncrona con espera visual en el mock. | Sin caso actual; incorporar solo junto a una acción realmente en curso. |
 | `StatusPill` | estable | Reemplaza etiquetas de estado estáticas en facturas, accesos, medios de pago, mantenimiento, flota, políticas y reglas. | Adoptado para estados: success, warning, danger, info y neutral según significado. Se conservan chips de tipo/clasificación e interactivos. |
@@ -241,38 +245,36 @@ representa los umbrales operativos que exige el producto.
 | `NavCard` | estable | No hay navegación entre páginas con tarjeta prev/next. | Sin caso actual; el menú lateral y breadcrumbs cubren otras tareas. |
 | `TextAction` | beta | No se identificó una acción textual compacta con contrato coincidente en encabezados. | Evaluar solo donde una acción de baja jerarquía deba compartir el patrón; no es reemplazo universal de `Button`. |
 
-### Orden ascendente de los 15 candidatos por uso observado
+### Orden de prioridad e impacto de los 13 candidatos restantes
 
-El orden siguiente va de menor a mayor **frecuencia observable del patrón local**
-que podría corresponder al primitive. No es todavía un orden de ejecución: el
-conteo no prueba compatibilidad, y varios candidatos tienen limitaciones de API.
-Los empates comparten rango. Los conteos son JSX/TSX salvo donde se indica un
-proxy de CSS; las instancias dentro de listas de datos pueden crecer en runtime.
+La prioridad combina alcance potencial en la app, centralidad del punto de
+cambio, valor de producto y viabilidad del contrato de Flow. No es un conteo de
+migraciones realizadas: las oportunidades deben confirmarse por superficie y
+validarse visual y funcionalmente. Los proxies de CSS son indicios para
+investigar, no instancias equivalentes.
 
-| Rango | Primitive | Evidencia de uso en la app | Lectura para priorizar |
-|---:|---|---|---|
-| 1 | `Divider` | 0 separadores semánticos `<hr>`; 41 declaraciones `border-top/bottom` en 23 CSS. | Los bordes encontrados son mayormente decorativos; no tratarlos como 41 oportunidades de migración. |
-| 1 | `SectionBar` | 0 barras sticky de sección con composición equivalente. Hay 3 declaraciones sticky, pero son del menú, topbar y encabezado de tabla. | Sin caso coincidente identificado actualmente. |
-| 2 | `LimitBar` | 1 medidor de gasto frente a límite en políticas de peaje. | Caso claro, pero bloqueado por la falta de umbrales 75%/90% en la API actual. |
-| 2 | `ChatMessage` | 1 plantilla de render de mensaje en TED; los mensajes se repiten dinámicamente en una sola pantalla. | Evaluación localizada; el conteo estático no refleja el número de mensajes en una conversación. |
-| 3 | `ChartLegend` | 2 instancias, en `BarChart` y `LineChart`, ambas usadas por Dashboard. | Candidato de alcance acotado; validar forma y densidad de leyenda. |
-| 3 | `FlowChart` | 2 visualizaciones de datos locales: una de barras y una de línea en Dashboard. | Candidato técnico relevante, pero no sustitución directa sin comparar configuración, accesibilidad e interacción. |
-| 4 | `InlineCode` | 5 sitios JSX `<code>` en 2 módulos de integración/API. | Pequeño y fácil de pilotear; solo para fragmentos inline. |
-| 5 | `Badge` | 6 salidas de contador en 4 contextos; el resumen API genera tres valores por estado. | Alcance acotado a contadores; evitar duplicar pills de estado. |
-| 5 | `ChipGroup` | 6 grupos locales en 5 módulos (controles de selección y filtros por severidad). | Valorar junto con `Chip`; algunos grupos pueden ser controles segmentados, no grupos de chips. |
-| 6 | `Chip` | 9 sitios JSX de etiquetas en 8 módulos, además de un grupo de severidad seleccionable en Insights. | Hay frecuencia, pero solo migrar elementos cuyo contrato informativo/seleccionable coincida; estados ya cubiertos por `StatusPill` quedan fuera. |
-| 7 | `DetailRow` | 16 grupos `<dl>` en 15 módulos, con 63 pares `<dt>/<dd>`. | Alto número de pares, pero varios son resúmenes KPI o detalles de políticas; validar fila por fila y conservar `dl`. |
-| 8 | `EmptyState` | 24 usos de `<EmptyState>` en 17 módulos consumidores. | Alta repetición de una misma composición; revisar primero el contrato de acciones y variantes del wrapper local. |
-| 9 | `Popover` | 43 apariciones de `ApiTag` en 14 módulos; todos comparten una implementación local de detalle flotante. | Mucha extensión con un punto de migración central; priorizar si Flow preserva el comportamiento del detalle. Los paneles de solicitudes/Dev son diálogos y no se cuentan como popovers. |
-| 10 | `SectionHeader` | 44 elementos `<h2>/<h3>` en 28 módulos TSX, con adopción inicial en seis módulos consumidores. | Continuar solo donde coincidan composición y contrato; ya preserva niveles, IDs accesibles, descripciones y acciones en trailing. |
-| 11 | `Stack` | Proxy amplio: 197 declaraciones `display:flex/grid` en 42 CSS. | Mayor volumen bruto, pero no representa 197 stacks equivalentes; seleccionar grupos de hermanos con gap común y no convertir layouts globalmente. |
+| Prioridad | Primitive | Evidencia de uso | Impacto potencial | Acción y condición |
+|---:|---|---|---|---|
+| 1 | `Popover` | 43 apariciones de `ApiTag` en 14 módulos usan el mismo detalle flotante local. | Muy alto: un cambio en el wrapper compartido alcanza muchos contextos. | Migrar primero el detalle compartido de `ApiTag`; verificar anclaje, cierre, foco, clipping y contenido. No convertir los paneles de solicitudes/Dev, que tienen semántica de diálogo. |
+| 2 | `EmptyState` | 24 usos en 17 módulos consumidores. | Muy alto: patrón repetido y punto de integración central. | Evaluar el wrapper local contra acciones, variantes `card`/`compact` y densidad; migrar por lotes si el contrato coincide. |
+| 3 | `DetailRow` | 63 pares `<dt>/<dd>` distribuidos en 16 grupos `<dl>` y 15 módulos. | Alto: amplia presencia en detalles de producto. | Auditar por composición; empezar con pares de detalle simples y preservar la semántica `<dl>`. Excluir resúmenes KPI y estructuras que no sean filas de detalle. |
+| 4 | `Chip` | 9 etiquetas explícitas en 8 módulos, además de un grupo de filtros seleccionable en Insights. | Medio-alto: reutilización entre clasificación y filtros. | Pilotear etiquetas informativas y selección/remoción solo donde coincidan; excluir estados ya resueltos por `StatusPill`. |
+| 5 | `ChipGroup` | 6 grupos locales en 5 módulos. | Medio-alto: multiplica el alcance de una adopción correcta de `Chip`. | Evaluar en conjunto con `Chip`; comprobar si cada grupo es selección de chips o si requiere un control segmentado. |
+| 6 | `Badge` | 6 salidas de contador en 4 contextos. | Medio: alcance acotado pero fácil de reconocer y probar. | Migrar solo contadores; mantener separados estados y clasificaciones. |
+| 7 | `FlowChart` | 2 gráficas locales (barras y línea) en Dashboard. | Alto valor visual, baja extensión. | Hacer prueba de equivalencia con datos, tooltips, interacción, accesibilidad y salida antes de sustituir las gráficas locales. |
+| 8 | `ChartLegend` | 2 leyendas, una en cada gráfica de Dashboard. | Medio: pequeño en número, visible en una superficie principal. | Evaluar en el mismo piloto que `FlowChart`; comprobar categorías, valores, colores y densidad. |
+| 9 | `ChatMessage` | Una plantilla de render en TED; la lista de mensajes crece en runtime. | Medio y localizado: depende del uso de la conversación. | Comparar autor, estados y contenido enriquecido; medir la lista dinámica, no solo el sitio JSX. |
+| 10 | `InlineCode` | 5 sitios JSX `<code>` en 2 módulos de integración/API. | Bajo en alcance, con impacto localizado. | Adopción pequeña para identificadores y métodos inline; no aplicar a bloques de código. |
+| 11 | `LimitBar` | Un medidor de gasto frente a límite en políticas de peaje. | Alto para esa regla, pero el contrato actual no cubre el comportamiento requerido. | Bloqueado: no migrar hasta poder representar umbrales 75%/90% y conservar la semántica accesible. |
+| 12 | `Divider` | Cero separadores semánticos `<hr>`; los 41 bordes encontrados son mayormente decorativos. | Sin impacto de migración demostrado hoy. | No convertir bordes decorativos en separadores; reevaluar cuando exista una división semántica real. |
+| 13 | `SectionBar` | No hay barra sticky de sección equivalente; los 3 casos `sticky` son navegación o encabezado de tabla. | Sin impacto de migración demostrado hoy. | No adoptar por compartir el concepto de encabezado; esperar una superficie que coincida con el contrato sticky. |
 
-**Siguiente orden recomendado después de esta adopción inicial:** revisar
-visualmente y cerrar el grupo de `SectionHeader` en las seis superficies
-migradas; después evaluar `Popover` en el punto compartido de `ApiTag` (máximo
-alcance por cambio) y pilotear `EmptyState`. `FlowChart` y `LimitBar` requieren
-una prueba de equivalencia funcional antes de decidir; no subirlos de prioridad
-solo por su importancia visual.
+**Siguiente lote para escalar:** comenzar por el punto compartido de `ApiTag`
+(`Popover`) y el wrapper de `EmptyState`; después abordar `DetailRow` mediante
+un inventario de sus 15 módulos y un primer grupo homogéneo. Seguir ampliando
+`Stack` desde el piloto, y evaluar `Chip`/`ChipGroup` en conjunto. Mantener
+`FlowChart`/`ChartLegend` como un piloto acotado y no avanzar con `LimitBar`,
+`Divider` o `SectionBar` sin resolver primero sus brechas de contrato.
 
 ### Componentes y patterns: catálogo fuera de primitives
 
