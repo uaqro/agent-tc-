@@ -9,10 +9,10 @@
 }
 
 .reports__panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  background: var(--tc-local-surface);
+  border: 1px solid var(--tc-local-border);
+  border-radius: var(--tc-local-radius-md);
+  box-shadow: var(--tc-local-shadow-sm);
   overflow: hidden;
 }
 
@@ -23,41 +23,20 @@
   gap: 12px;
   flex-wrap: wrap;
   padding: 14px 18px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--tc-local-border-subtle);
 }
 
 .reports__title {
   margin: 0;
   font-size: 15px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .reports__hint {
   margin: 2px 0 0;
   font-size: 12.5px;
-  color: var(--text-muted);
-}
-
-.reports__tabs {
-  display: inline-flex;
-  padding: 3px;
-  border-radius: var(--radius-sm);
-  background: var(--surface-sunken);
-}
-
-.reports__tabs button {
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.reports__tabs button.is-active {
-  background: var(--surface);
-  color: var(--text-strong);
-  box-shadow: var(--shadow-sm);
+  color: var(--tc-local-text-muted);
 }
 
 

@@ -63,6 +63,19 @@ function OptionalValue({ label, value, onChange, integer = false, unit }: {
   );
 }
 
+const MEASURES: { value: LimitMeasure; label: string }[] = [
+  { value: 'liters', label: 'Litros' },
+  { value: 'money', label: 'Pesos (MXN)' },
+];
+const PERIODS: { value: LimitPeriod; label: string }[] = [
+  { value: 'day', label: `Por ${PERIOD_META.day.noun}` },
+  { value: 'week', label: `Por ${PERIOD_META.week.noun}` },
+  { value: 'fortnight', label: `Por ${PERIOD_META.fortnight.noun}` },
+  { value: 'month', label: `Por ${PERIOD_META.month.noun}` },
+];
+const FILL_COUNTS = [1, 2, 3, 4];
+const FILL_INTERVALS = [0, 2, 4, 6, 8, 12, 24];
+
 export function PolicyDialog({ policy, policies, onClose, onSave }: PolicyDialogProps) {
   const { networks } = useFuelPolicies();
   const [draft, setDraft] = useState<LimitPolicy>(() => {
@@ -143,6 +156,18 @@ export function PolicyDialog({ policy, policies, onClose, onSave }: PolicyDialog
   const takenOver = assignableGroups.filter((group) => draft.groupIds.includes(group.id))
     .map((group) => ({ group, from: policyForGroup(policies, group.id) }))
     .filter((entry) => entry.from && entry.from.id !== draft.id);
+  const stationOptions = [
+    { value: '', label: 'Toda la red' },
+    ...stationSubnets.map((subnet) => ({
+      value: subnet.id,
+      label: `${subnet.label} · ${formatCount(subnet.stations)} estaciones`,
+    })),
+  ];
+  const fillCountOptions = FILL_COUNTS.map((value) => ({ value: String(value), label: String(value) }));
+  const fillIntervalOptions = FILL_INTERVALS.map((value) => ({
+    value: String(value),
+    label: value === 0 ? 'Sin intervalo' : `${value} horas`,
+  }));
 
   return (
     <Modal open size="lg" title={policy ? 'Editar política de uso' : 'Nueva política de uso'} onClose={onClose}

@@ -4,10 +4,10 @@
   align-items: center;
   gap: 4px;
   padding: 24px 18px;
-  border: 1.5px dashed var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface-muted);
-  color: var(--text-muted);
+  border: 1.5px dashed var(--tc-local-border);
+  border-radius: var(--tc-local-radius-md);
+  background: var(--tc-local-surface-muted);
+  color: var(--tc-local-text-muted);
   cursor: pointer;
   text-align: center;
   transition: border-color 140ms ease, background 140ms ease;
@@ -15,7 +15,7 @@
 
 .bulk__drop:hover,
 .bulk__drop--over {
-  border-color: var(--brand-blue);
+  border-color: var(--tc-local-brand-blue);
   background: rgba(47, 107, 255, 0.06);
 }
 
@@ -26,7 +26,7 @@
 .bulk__drop-title {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .bulk__drop-hint {
@@ -42,22 +42,22 @@
 
 .bulk__stats > div {
   padding: 10px 12px;
-  background: var(--surface-muted);
-  border-radius: var(--radius-sm);
+  background: var(--tc-local-surface-muted);
+  border-radius: var(--tc-local-radius-sm);
 }
 
 .bulk__stats dt {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .bulk__stats dd {
   margin: 5px 0 0;
   font-size: 17px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .bulk__stat--error {
@@ -90,18 +90,18 @@
 .bulk__table td {
   text-align: left;
   padding: 7px 10px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--tc-local-border-subtle);
   white-space: nowrap;
 }
 
 .bulk__table th {
   position: sticky;
   top: 0;
-  background: var(--surface);
+  background: var(--tc-local-surface);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .bulk__row--error td {

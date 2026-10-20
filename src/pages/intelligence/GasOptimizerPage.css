@@ -21,12 +21,12 @@
 .region-card__states {
   margin: 2px 0 0;
   font-size: 11.5px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .region-card__savings {
   margin: 12px 0 0;
-  font-family: var(--font-brand);
+  font-family: var(--tc-local-font-brand);
   font-size: 24px;
   font-weight: 700;
   color: #007840;
@@ -35,7 +35,7 @@
 .region-card__hint {
   margin: 0;
   font-size: 11.5px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .region-card__counts {
@@ -43,7 +43,7 @@
   justify-content: space-between;
   margin: 12px 0 8px;
   font-size: 12px;
-  color: var(--text-body);
+  color: var(--tc-local-text-body);
 }
 
 
@@ -99,7 +99,7 @@
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .optimizer__control select,
@@ -205,7 +205,7 @@
 
 .optimizer__facts dt {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .optimizer__facts dd {

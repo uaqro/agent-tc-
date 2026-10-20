@@ -59,7 +59,7 @@
 }
 
 .api-tag__pill:focus-visible {
-  outline: 2px solid var(--text-strong);
+  outline: 2px solid var(--tc-local-text-strong);
   outline-offset: 2px;
 }
 
@@ -71,14 +71,14 @@
   gap: 6px;
   max-width: calc(100vw - 32px);
   padding: 12px 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md, 10px);
-  box-shadow: var(--shadow-lg, 0 12px 32px rgba(15, 23, 42, 0.18));
+  background: var(--tc-local-surface);
+  border: 1px solid var(--tc-local-border);
+  border-radius: var(--tc-local-radius-md, 10px);
+  box-shadow: var(--tc-local-shadow-lg, 0 12px 32px rgba(15, 23, 42, 0.18));
   font-size: 12.5px;
   font-weight: 400;
   line-height: 1.45;
-  color: var(--text-body);
+  color: var(--tc-local-text-body);
   white-space: normal;
   text-align: left;
 }
@@ -108,7 +108,7 @@
 
 .api-tag__title {
   font-size: 13px;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .api-tag__methods {
@@ -120,25 +120,25 @@
 .api-tag__methods code {
   padding: 1px 6px;
   border-radius: 4px;
-  background: var(--surface-sunken);
+  background: var(--tc-local-surface-sunken);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .api-tag__no-method {
   font-size: 11.5px;
   font-style: italic;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 /* Banner */
 .api-banner {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--text-strong);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  background: var(--tc-local-surface);
+  border: 1px solid var(--tc-local-border);
+  border-left: 4px solid var(--tc-local-text-strong);
+  border-radius: var(--tc-local-radius-lg);
+  box-shadow: var(--tc-local-shadow-sm);
 }
 
 .api-banner__head {
@@ -156,14 +156,14 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .api-banner__headline {
   margin: 2px 0 8px;
   font-size: 15px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .api-banner__counts {
@@ -210,7 +210,7 @@
   gap: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-body);
+  color: var(--tc-local-text-body);
   cursor: pointer;
 }
 
@@ -226,7 +226,7 @@
   width: 34px;
   height: 20px;
   border-radius: 999px;
-  background: var(--border-control);
+  background: var(--tc-local-border-control);
   transition: background 0.15s ease;
 }
 
@@ -244,7 +244,7 @@
 }
 
 .api-banner__switch input:checked + .api-banner__track {
-  background: var(--text-strong);
+  background: var(--tc-local-text-strong);
 }
 
 .api-banner__switch input:checked + .api-banner__track::after {
@@ -252,7 +252,7 @@
 }
 
 .api-banner__switch input:focus-visible + .api-banner__track {
-  outline: 2px solid var(--text-strong);
+  outline: 2px solid var(--tc-local-text-strong);
   outline-offset: 2px;
 }
 
@@ -266,7 +266,7 @@
 
 .api-banner__detail {
   padding: 4px 18px 18px;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--tc-local-border-subtle);
 }
 
 .api-banner__columns {
@@ -278,7 +278,7 @@
 
 .api-banner__column {
   padding: 12px 14px;
-  border-radius: var(--radius-md, 10px);
+  border-radius: var(--tc-local-radius-md, 10px);
 }
 
 .api-banner__column--available {
@@ -297,19 +297,19 @@
   margin: 0;
   font-size: 13px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .api-banner__column-hint {
   margin: 2px 0 10px;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .api-banner__none {
   margin: 0;
   font-size: 12.5px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .api-banner__detail ul {
@@ -327,12 +327,12 @@
   gap: 3px;
   font-size: 12.5px;
   line-height: 1.45;
-  color: var(--text-body);
+  color: var(--tc-local-text-body);
 }
 
 .api-banner__detail li strong {
   font-size: 13px;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .api-banner__extras {
@@ -367,5 +367,5 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }

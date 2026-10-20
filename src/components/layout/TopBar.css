@@ -1,13 +1,13 @@
 .topbar {
   grid-area: topbar;
-  height: var(--topbar-height);
+  height: var(--tc-local-topbar-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   padding: 0 24px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: var(--tc-local-surface);
+  border-bottom: 1px solid var(--tc-local-border);
   position: sticky;
   top: 0;
   z-index: 40;
@@ -36,42 +36,16 @@
 }
 
 .topbar__product {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--brand-red-tint);
-  color: var(--brand-red);
-  font-family: var(--font-brand);
+  color: var(--flow-red-600);
+  font-family: var(--font-display);
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .topbar__search {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   width: 340px;
   max-width: 100%;
-  height: 42px;
-  padding: 0 14px;
-  border: 1px solid var(--border-control);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--text-muted);
-}
-
-.topbar__search:focus-within {
-  border-color: var(--text-strong);
-}
-
-.topbar__search input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 14px;
-  color: var(--text-strong);
 }
 
 .topbar__actions {
@@ -81,46 +55,19 @@
   flex-shrink: 0;
 }
 
-.topbar__icon {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  color: var(--text-strong);
-  transition: background 140ms ease;
-}
-
-.topbar__icon:hover {
-  background: var(--surface-sunken);
-}
-
-.topbar__icon--dot::after {
-  content: '';
-  position: absolute;
-  top: 8px;
-  right: 9px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--brand-red);
-  box-shadow: 0 0 0 2px var(--surface);
-}
-
 .topbar__user {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   margin-left: 6px;
   padding: 4px 12px 4px 4px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--tc-local-border);
   border-radius: 999px;
   transition: background 140ms ease;
 }
 
 .topbar__user:hover {
-  background: var(--surface-sunken);
+  background: var(--tc-local-surface-sunken);
 }
 
 .topbar__avatar {
@@ -129,7 +76,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--brand-navy);
+  background: var(--tc-local-brand-navy);
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -138,7 +85,7 @@
 .topbar__user-name {
   font-size: 13.5px;
   font-weight: 500;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 @media (max-width: 900px) {

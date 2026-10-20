@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { BellIcon, HelpIcon, SearchIcon } from '../icons/Icons';
+import { IconButton, Input } from '@er-mobility-mx/design-system';
 import './TopBar.css';
 
 interface TopBarProps {
@@ -37,27 +37,22 @@ export function TopBar({ userName, onAction, extra }: TopBarProps) {
             if (query.trim()) onAction('search', query.trim());
           }}
         >
-          <SearchIcon width={17} height={17} />
-          <input
+          <Input
             type="search"
             value={query}
             placeholder="Buscar unidades, tarjetas, conductores…"
-            aria-label="Búsqueda global"
-            onChange={(event) => setQuery(event.target.value)}
+            ariaLabel="Búsqueda global"
+            icon="search"
+            onChange={setQuery}
+            style={{ width: '100%' }}
           />
         </form>
       </div>
 
       <nav className="topbar__actions" aria-label="Acciones de usuario">
         {extra}
-        <button type="button" className="topbar__icon" title="Ayuda" onClick={() => onAction('help')}>
-          <HelpIcon />
-          <span className="visually-hidden">Ayuda</span>
-        </button>
-        <button type="button" className="topbar__icon topbar__icon--dot" title="Notificaciones" onClick={() => onAction('notifications')}>
-          <BellIcon />
-          <span className="visually-hidden">Notificaciones</span>
-        </button>
+        <IconButton icon="help" ariaLabel="Ayuda" onClick={() => onAction('help')} />
+        <IconButton icon="notifications" ariaLabel="Notificaciones" badge onClick={() => onAction('notifications')} />
         <button type="button" className="topbar__user" onClick={() => onAction('profile')}>
           <span className="topbar__avatar" aria-hidden="true">
             {initialsOf(userName)}

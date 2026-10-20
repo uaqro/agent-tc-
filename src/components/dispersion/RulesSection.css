@@ -11,7 +11,7 @@
   margin: 0;
   font-size: 15px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .rules__actions {
@@ -33,16 +33,16 @@
   display: flex;
   flex-direction: column;
   padding: 14px 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent-green);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  background: var(--tc-local-surface);
+  border: 1px solid var(--tc-local-border);
+  border-left: 3px solid var(--tc-local-accent-green);
+  border-radius: var(--tc-local-radius-md);
+  box-shadow: var(--tc-local-shadow-sm);
 }
 
 .rule-card--paused {
-  border-left-color: var(--border);
-  background: var(--surface-muted);
+  border-left-color: var(--tc-local-border);
+  background: var(--tc-local-surface-muted);
 }
 
 .rule-card__head {
@@ -56,7 +56,7 @@
   margin: 0;
   font-size: 14.5px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .rule-card__note {
@@ -72,19 +72,19 @@
   flex-wrap: wrap;
   margin: 10px 0 0;
   font-size: 12.5px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .rule-card__summary {
   margin: 8px 0 0;
   font-size: 13.5px;
-  color: var(--text-body);
+  color: var(--tc-local-text-body);
 }
 
 .rule-card__trigger {
   margin: 4px 0 0;
   font-size: 12.5px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .rule-card__foot {
@@ -102,13 +102,13 @@
   flex-direction: column;
   font-size: 17px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .rule-card__amount small {
   font-size: 11.5px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .rule-card__buttons {

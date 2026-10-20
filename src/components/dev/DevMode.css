@@ -8,16 +8,16 @@
   gap: 6px;
   height: 34px;
   padding: 0 10px;
-  border: 1px dashed var(--border-control);
+  border: 1px dashed var(--tc-local-border-control);
   border-radius: 999px;
   font-size: 12.5px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .dev-menu__trigger:hover {
-  border-color: var(--text-strong);
-  color: var(--text-strong);
+  border-color: var(--tc-local-text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .dev-menu__trigger.is-on {
@@ -35,7 +35,7 @@
 .dev-menu__state {
   padding: 1px 6px;
   border-radius: 999px;
-  background: var(--surface-sunken);
+  background: var(--tc-local-surface-sunken);
   font-size: 10.5px;
   letter-spacing: 0.04em;
 }
@@ -56,9 +56,9 @@
   width: 340px;
   max-width: calc(100vw - 32px);
   padding: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  background: var(--tc-local-surface);
+  border: 1px solid var(--tc-local-border);
+  border-radius: var(--tc-local-radius-lg);
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
 }
 
@@ -66,13 +66,13 @@
   margin: 0;
   font-size: 14px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .dev-menu__hint {
   margin: -6px 0 2px;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .dev-menu__link {
@@ -86,8 +86,8 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 12px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--tc-local-border-subtle);
+  border-radius: var(--tc-local-radius-sm);
   cursor: pointer;
 }
 
@@ -99,7 +99,7 @@
 .dev-switch__text strong {
   display: block;
   font-size: 13px;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .dev-switch__text small {
@@ -107,7 +107,7 @@
   margin-top: 2px;
   font-size: 12px;
   line-height: 1.4;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .dev-switch input {
@@ -123,7 +123,7 @@
   width: 34px;
   height: 20px;
   border-radius: 999px;
-  background: var(--border-control);
+  background: var(--tc-local-border-control);
   transition: background 0.15s ease;
 }
 
@@ -149,7 +149,7 @@
 }
 
 .dev-switch input:focus-visible + .dev-switch__track {
-  outline: 2px solid var(--text-strong);
+  outline: 2px solid var(--tc-local-text-strong);
   outline-offset: 2px;
 }
 

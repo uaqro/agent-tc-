@@ -33,20 +33,16 @@ export function ReportsPage() {
             <p className="reports__hint">{active.hint}</p>
           </div>
 
-          <div className="reports__tabs" role="tablist" aria-label="Tipo de reporte">
-            {VIEWS.map((candidate) => (
-              <button
-                type="button"
-                role="tab"
-                key={candidate.id}
-                aria-selected={view === candidate.id}
-                className={view === candidate.id ? 'is-active' : ''}
-                onClick={() => setView(candidate.id)}
-              >
-                {candidate.label}
-              </button>
-            ))}
-          </div>
+          <Tabs
+            id={REPORT_TABS_ID}
+            items={REPORT_TABS}
+            value={view}
+            onChange={(nextView) => {
+              const next = VIEWS.find((candidate) => candidate.id === nextView);
+              if (next) setView(next.id);
+            }}
+            ariaLabel="Tipo de reporte"
+          />
         </header>
 
         {view === 'consolidated' ? <ConsolidatedReportPanel /> : <DynamicReportBuilder />}

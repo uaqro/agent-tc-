@@ -4,14 +4,14 @@
   align-items: center;
   gap: 6px;
   padding: 36px 20px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
   text-align: center;
 }
 
 .empty-state--card {
-  background: var(--surface);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-md);
+  background: var(--tc-local-surface);
+  border: 1px dashed var(--tc-local-border);
+  border-radius: var(--tc-local-radius-md);
 }
 
 .empty-state--compact {
@@ -25,15 +25,15 @@
   height: 44px;
   margin-bottom: 6px;
   border-radius: 50%;
-  background: var(--surface-sunken);
-  color: var(--text-muted);
+  background: var(--tc-local-surface-sunken);
+  color: var(--tc-local-text-muted);
 }
 
 .empty-state__title {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .empty-state__description {

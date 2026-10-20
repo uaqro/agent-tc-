@@ -1,7 +1,7 @@
 .ted__chat {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--topbar-height) - 190px);
+  height: calc(100vh - var(--tc-local-topbar-height) - 190px);
   min-height: 520px;
   overflow: hidden;
 }
@@ -11,14 +11,14 @@
   align-items: center;
   gap: 12px;
   padding: 14px 18px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--tc-local-border);
 }
 
 .ted__name {
   margin: 0;
   font-size: 16px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .ted__status {
@@ -27,7 +27,7 @@
   gap: 6px;
   margin: 1px 0 0;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .ted__online {
@@ -65,7 +65,7 @@
   flex-direction: column;
   gap: 16px;
   padding: 20px 18px;
-  background: var(--surface-muted);
+  background: var(--tc-local-surface-muted);
 }
 
 .ted__message {
@@ -84,12 +84,12 @@
   margin: 0;
   padding: 12px 14px;
   border-radius: 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
+  background: var(--tc-local-surface);
+  border: 1px solid var(--tc-local-border);
+  box-shadow: var(--tc-local-shadow-sm);
   font-size: 14px;
   line-height: 1.55;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .ted__message--ted .ted__bubble {
@@ -97,8 +97,8 @@
 }
 
 .ted__message--user .ted__bubble {
-  background: var(--brand-navy);
-  border-color: var(--brand-navy);
+  background: var(--tc-local-brand-navy);
+  border-color: var(--tc-local-brand-navy);
   color: #fff;
   border-top-right-radius: 4px;
 }
@@ -107,7 +107,7 @@
   display: block;
   margin-top: 4px;
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .ted__message--user .ted__time {
@@ -124,7 +124,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--text-muted);
+  background: var(--tc-local-text-muted);
   animation: ted-dot 1s infinite ease-in-out;
 }
 
@@ -154,22 +154,22 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px 18px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--tc-local-border);
 }
 
 .ted__suggestions button {
   padding: 6px 12px;
-  border: 1px solid var(--border-control);
+  border: 1px solid var(--tc-local-border-control);
   border-radius: 999px;
-  background: var(--surface);
+  background: var(--tc-local-surface);
   font-size: 12.5px;
-  color: var(--text-body);
+  color: var(--tc-local-text-body);
   transition: background 140ms ease, border-color 140ms ease;
 }
 
 .ted__suggestions button:not(:disabled):hover {
-  background: var(--surface-sunken);
-  border-color: var(--text-muted);
+  background: var(--tc-local-surface-sunken);
+  border-color: var(--tc-local-text-muted);
 }
 
 .ted__suggestions button:disabled {
@@ -188,15 +188,15 @@
   min-width: 0;
   height: 44px;
   padding: 0 14px;
-  border: 1px solid var(--border-control);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--tc-local-border-control);
+  border-radius: var(--tc-local-radius-md);
   font-size: 14px;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
   outline: none;
 }
 
 .ted__composer input:focus {
-  border-color: var(--text-strong);
+  border-color: var(--tc-local-text-strong);
 }
 
 .ted__send {
@@ -204,19 +204,19 @@
   place-items: center;
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-md);
-  background: var(--brand-red);
+  border-radius: var(--tc-local-radius-md);
+  background: var(--tc-local-brand-red);
   color: #fff;
   transition: background 140ms ease;
 }
 
 .ted__send:not(:disabled):hover {
-  background: var(--brand-red-hover);
+  background: var(--tc-local-brand-red-hover);
 }
 
 .ted__send:disabled {
-  background: var(--surface-sunken);
-  color: var(--text-muted);
+  background: var(--tc-local-surface-sunken);
+  color: var(--tc-local-text-muted);
   cursor: not-allowed;
 }
 

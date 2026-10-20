@@ -31,10 +31,13 @@ export function PageHeader({ section, title, crumb, subtitle, menuOpen, onBack, 
           <span className="visually-hidden">{menuOpen ? 'Ocultar menú lateral' : 'Mostrar menú lateral'}</span>
         </button>
         {onBack && (
-          <button type="button" className="page-header__button" onClick={onBack} title="Regresar al resumen">
-            <ArrowLeftIcon width={18} height={18} />
-            <span className="visually-hidden">Regresar al resumen</span>
-          </button>
+          <Button
+            variant="ghost"
+            size="sm"
+            icon="arrow_back"
+            ariaLabel="Regresar al resumen"
+            onClick={onBack}
+          />
         )}
         <nav className="page-header__breadcrumb" aria-label="Ubicación">
           <span>Ticket Car</span>

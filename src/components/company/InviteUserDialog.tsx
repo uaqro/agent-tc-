@@ -57,14 +57,19 @@ export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUs
       }
     >
       <div className="company-form__grid">
-        <label className="policy-form__field">
-          <span>Nombre completo *</span>
-          <input value={name} onChange={(event) => setName(event.target.value)} />
-        </label>
-        <label className="policy-form__field">
-          <span>Correo *</span>
-          <input type="email" value={email} placeholder="nombre@empresa.mx" onChange={(event) => setEmail(event.target.value)} />
-        </label>
+        <Field label="Nombre completo" htmlFor="invite-user-name" required>
+          <Input id="invite-user-name" required value={name} onChange={setName} />
+        </Field>
+        <Field label="Correo" htmlFor="invite-user-email" required error={emailError}>
+          <Input
+            id="invite-user-email"
+            type="email"
+            required
+            value={email}
+            placeholder="nombre@empresa.mx"
+            onChange={setEmail}
+          />
+        </Field>
       </div>
 
       <fieldset className="policy-form__block company-form__fields">
@@ -101,16 +106,6 @@ export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUs
         </p>
       </fieldset>
 
-      {emailInvalid && (
-        <p className="company-form__error" role="alert">
-          Escribe un correo válido.
-        </p>
-      )}
-      {emailTaken && (
-        <p className="company-form__error" role="alert">
-          Ese correo ya tiene un usuario en la empresa.
-        </p>
-      )}
     </Modal>
   );
 }

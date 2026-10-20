@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Field, Select } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import type { TollCategory, TollTag } from '../../types/toll';
 import { TOLL_CATEGORY_LABEL, TOLL_TAG_TYPE_LABEL } from '../../data/toll';
@@ -16,6 +17,14 @@ interface TollAssignDialogProps {
 export function TollAssignDialog({ tag, vehicles, onClose, onAssign }: TollAssignDialogProps) {
   const [vehicleId, setVehicleId] = useState(vehicles[0]?.id ?? '');
   const [category, setCategory] = useState<TollCategory>(tag.category);
+  const vehicleOptions = vehicles.map((vehicle) => ({
+    value: vehicle.id,
+    label: `${vehicle.plate} · ${vehicle.driver}`,
+  }));
+  const categoryOptions = (Object.keys(TOLL_CATEGORY_LABEL) as TollCategory[]).map((key) => ({
+    value: key,
+    label: TOLL_CATEGORY_LABEL[key],
+  }));
 
   return (
     <Modal
@@ -39,26 +48,20 @@ export function TollAssignDialog({ tag, vehicles, onClose, onAssign }: TollAssig
       ) : (
         <>
           <div className="policy-form__fields">
-            <label className="policy-form__field">
-              <span>Unidad</span>
-              <select value={vehicleId} onChange={(event) => setVehicleId(event.target.value)}>
-                {vehicles.map((vehicle) => (
-                  <option key={vehicle.id} value={vehicle.id}>
-                    {vehicle.plate} · {vehicle.driver}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="policy-form__field">
-              <span>Categoría vehicular</span>
-              <select value={category} onChange={(event) => setCategory(event.target.value as TollCategory)}>
-                {(Object.keys(TOLL_CATEGORY_LABEL) as TollCategory[]).map((key) => (
-                  <option key={key} value={key}>
-                    {TOLL_CATEGORY_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <Field label="Unidad" htmlFor="toll-assign-vehicle">
+              <Select id="toll-assign-vehicle" options={vehicleOptions} value={vehicleId} onChange={setVehicleId} />
+            </Field>
+            <Field label="Categoría vehicular" htmlFor="toll-assign-category">
+              <Select
+                id="toll-assign-category"
+                options={categoryOptions}
+                value={category}
+                onChange={(value) => {
+                  const option = categoryOptions.find((candidate) => candidate.value === value);
+                  if (option) setCategory(option.value);
+                }}
+              />
+            </Field>
           </div>
           <p className="policy-form__preview policy-form__preview--spaced">
             La categoría debe coincidir con los ejes de la unidad: la caseta cobra según la categoría registrada en el TAG. El

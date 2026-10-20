@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: var(--topbar-height) minmax(0, 1fr);
+  grid-template-rows: var(--tc-local-topbar-height) minmax(0, 1fr);
   grid-template-areas:
     'topbar topbar'
     'sidemenu main';
@@ -11,7 +11,7 @@
 .app__main {
   grid-area: main;
   min-width: 0;
-  background: var(--page-bg);
+  background: var(--tc-local-page-bg);
 }
 
 .app__notice-region {
@@ -25,11 +25,11 @@
 .app__notice {
   margin: 0;
   padding: 10px 14px;
-  background: var(--brand-navy);
-  color: var(--text-inverse);
+  background: var(--tc-local-brand-navy);
+  color: var(--tc-local-text-inverse);
   font-size: 13px;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--tc-local-radius-sm);
+  box-shadow: var(--tc-local-shadow-lg);
   animation: notice-in 160ms ease-out;
 }
 

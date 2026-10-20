@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Field, InputAmount, Select } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import type { LimitOverride, LimitPolicy, OverrideDuration, UnitAssignment } from '../../types/limits';
 import {
@@ -29,6 +30,8 @@ export function OverrideDialog({ vehicle, assignment, policy, onClose, onConfirm
 
   const until = overrideUntil(duration, policy.period);
   const valid = extra > 0;
+  const durationOptions = OVERRIDE_DURATIONS.map((option) => ({ value: option.id, label: option.label }));
+  const reasonOptions = OVERRIDE_REASONS.map((option) => ({ value: option, label: option }));
 
   return (
     <Modal
@@ -53,36 +56,47 @@ export function OverrideDialog({ vehicle, assignment, policy, onClose, onConfirm
       }
     >
       <div className="policy-form__fields">
-        <label className="policy-form__field">
-          <span>Ampliación ({policy.measure === 'liters' ? 'L' : 'MXN'})</span>
-          <input
-            type="number"
-            min={1}
-            step={policy.measure === 'liters' ? 10 : 100}
-            value={extra}
-            onChange={(event) => setExtra(Number(event.target.value))}
+        <Field label={`Ampliación (${policy.measure === 'liters' ? 'L' : 'MXN'})`} htmlFor="override-extra" required>
+          {policy.measure === 'money' ? (
+            <InputAmount
+              id="override-extra"
+              value={String(extra)}
+              required
+              onChange={(value) => setExtra(Number(value) || 0)}
+            />
+          ) : (
+            <input
+              id="override-extra"
+              className="policy-form__native-control"
+              type="number"
+              min={1}
+              step={10}
+              value={extra}
+              onChange={(event) => setExtra(Number(event.target.value))}
+            />
+          )}
+        </Field>
+        <Field label="Vigencia" htmlFor="override-duration">
+          <Select
+            id="override-duration"
+            options={durationOptions}
+            value={duration}
+            onChange={(value) => {
+              const option = OVERRIDE_DURATIONS.find((candidate) => candidate.id === value);
+              if (option) setDuration(option.id);
+            }}
           />
-        </label>
-        <label className="policy-form__field">
-          <span>Vigencia</span>
-          <select value={duration} onChange={(event) => setDuration(event.target.value as OverrideDuration)}>
-            {OVERRIDE_DURATIONS.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="policy-form__field">
-          <span>Motivo</span>
-          <select value={reason} onChange={(event) => setReason(event.target.value)}>
-            {OVERRIDE_REASONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </label>
+        </Field>
+        <Field label="Motivo" htmlFor="override-reason">
+          <Select
+            id="override-reason"
+            options={reasonOptions}
+            value={reason}
+            onChange={(value) => {
+              if (OVERRIDE_REASONS.includes(value)) setReason(value);
+            }}
+          />
+        </Field>
       </div>
 
       <p className="policy-form__preview policy-form__preview--spaced">

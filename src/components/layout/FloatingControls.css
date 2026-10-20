@@ -5,18 +5,18 @@
   transform: translateY(-50%);
   writing-mode: vertical-rl;
   padding: 16px 8px;
-  background: var(--brand-navy-soft);
-  color: var(--text-inverse);
+  background: var(--tc-local-brand-navy-soft);
+  color: var(--tc-local-text-inverse);
   font-size: 12.5px;
   letter-spacing: 0.06em;
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--tc-local-radius-sm) 0 0 var(--tc-local-radius-sm);
+  box-shadow: var(--tc-local-shadow-md);
   z-index: 45;
   transition: background 140ms ease;
 }
 
 .feedback-tab:hover {
-  background: var(--brand-blue);
+  background: var(--tc-local-brand-blue);
 }
 
 .chat-button {
@@ -28,14 +28,14 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--brand-red);
+  background: var(--tc-local-brand-red);
   color: #fff;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--tc-local-shadow-lg);
   z-index: 45;
   transition: transform 140ms ease, background 140ms ease;
 }
 
 .chat-button:hover {
   transform: translateY(-2px);
-  background: var(--brand-red-hover);
+  background: var(--tc-local-brand-red-hover);
 }

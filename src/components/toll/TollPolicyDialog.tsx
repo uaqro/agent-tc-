@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Field, Input, InputAmount, Select } from '@er-mobility-mx/design-system';
 import type { TollPeriod, TollPolicy } from '../../types/toll';
 import { DAY_LABELS, fleetAssignableGroups as assignableGroups } from '../../data/limits';
 import { TOLL_PERIOD_META, emptyTollPolicy, tollRoads, tollScheduleLabel } from '../../data/toll';
@@ -16,6 +17,8 @@ interface TollPolicyDialogProps {
 
 const toggle = <T,>(list: T[], value: T): T[] =>
   list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
+const TOLL_PERIODS: TollPeriod[] = ['day', 'week', 'month'];
+const CROSSING_LIMITS = [2, 4, 6, 8, 10, 15, 20];
 
 export function TollPolicyDialog({ policy, policies, onClose, onSave }: TollPolicyDialogProps) {
   const [draft, setDraft] = useState<TollPolicy>(policy ?? { ...emptyTollPolicy, id: `tp-${Date.now()}` });
@@ -23,6 +26,14 @@ export function TollPolicyDialog({ policy, policies, onClose, onSave }: TollPoli
   const patch = (changes: Partial<TollPolicy>) => setDraft((current) => ({ ...current, ...changes }));
 
   const roadIds = wholeNetwork ? [] : draft.roadIds;
+  const periodOptions = TOLL_PERIODS.map((period) => ({
+    value: period,
+    label: `Por ${TOLL_PERIOD_META[period].noun}`,
+  }));
+  const crossingOptions = CROSSING_LIMITS.map((value) => ({
+    value: String(value),
+    label: String(value),
+  }));
   const valid =
     draft.name.trim() !== '' &&
     draft.periodLimitMXN > 0 &&
@@ -59,15 +70,16 @@ export function TollPolicyDialog({ policy, policies, onClose, onSave }: TollPoli
     >
       <fieldset className="policy-form__block">
         <legend>1 · Aplica a</legend>
-        <label className="policy-form__field">
-          <span>Nombre de la política</span>
-          <input
+        <Field label="Nombre de la política" htmlFor="toll-policy-name" required>
+          <Input
+            id="toll-policy-name"
             type="text"
+            required
             value={draft.name}
             placeholder="Ej. Corredor de carga · Corredor Norte"
             onChange={(event) => patch({ name: event.target.value })}
           />
-        </label>
+        </Field>
         <div className="policy-form__checks">
           {assignableGroups.map((group) => (
             <label key={group.id}>
@@ -90,39 +102,36 @@ export function TollPolicyDialog({ policy, policies, onClose, onSave }: TollPoli
       <fieldset className="policy-form__block">
         <legend>2 · Gasto y cruces</legend>
         <div className="policy-form__fields">
-          <label className="policy-form__field">
-            <span>Periodo</span>
-            <select value={draft.period} onChange={(event) => patch({ period: event.target.value as TollPeriod })}>
-              {(Object.keys(TOLL_PERIOD_META) as TollPeriod[]).map((period) => (
-                <option key={period} value={period}>
-                  Por {TOLL_PERIOD_META[period].noun}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="policy-form__field">
-            <span>Límite de gasto {TOLL_PERIOD_META[draft.period].adjective} (MXN)</span>
-            <input
-              type="number"
-              min={1}
-              step={100}
-              value={draft.periodLimitMXN}
-              onChange={(event) => patch({ periodLimitMXN: Number(event.target.value) })}
+          <Field label="Periodo" htmlFor="toll-policy-period">
+            <Select
+              id="toll-policy-period"
+              options={periodOptions}
+              value={draft.period}
+              onChange={(value) => {
+                const option = periodOptions.find((candidate) => candidate.value === value);
+                if (option) patch({ period: option.value });
+              }}
             />
-          </label>
-          <label className="policy-form__field">
-            <span>Cruces por día</span>
-            <select
-              value={draft.maxCrossingsPerDay}
-              onChange={(event) => patch({ maxCrossingsPerDay: Number(event.target.value) })}
-            >
-              {[2, 4, 6, 8, 10, 15, 20].map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </label>
+          </Field>
+          <Field label={`Límite de gasto ${TOLL_PERIOD_META[draft.period].adjective} (MXN)`} htmlFor="toll-policy-limit" required>
+            <InputAmount
+              id="toll-policy-limit"
+              required
+              value={String(draft.periodLimitMXN)}
+              onChange={(value) => patch({ periodLimitMXN: Number(value) || 0 })}
+            />
+          </Field>
+          <Field label="Cruces por día" htmlFor="toll-policy-crossings">
+            <Select
+              id="toll-policy-crossings"
+              options={crossingOptions}
+              value={String(draft.maxCrossingsPerDay)}
+              onChange={(value) => {
+                const crossings = Number(value);
+                if (CROSSING_LIMITS.includes(crossings)) patch({ maxCrossingsPerDay: crossings });
+              }}
+            />
+          </Field>
         </div>
       </fieldset>
 
@@ -173,14 +182,22 @@ export function TollPolicyDialog({ policy, policies, onClose, onSave }: TollPoli
           ))}
         </div>
         <div className="policy-form__fields">
-          <label className="policy-form__field">
-            <span>Desde</span>
-            <input type="time" value={draft.timeFrom} onChange={(event) => patch({ timeFrom: event.target.value })} />
-          </label>
-          <label className="policy-form__field">
-            <span>Hasta</span>
-            <input type="time" value={draft.timeTo} onChange={(event) => patch({ timeTo: event.target.value })} />
-          </label>
+          <Field label="Desde" htmlFor="toll-policy-time-from">
+            <Input
+              id="toll-policy-time-from"
+              type="time"
+              value={draft.timeFrom}
+              onChange={(timeFrom) => patch({ timeFrom })}
+            />
+          </Field>
+          <Field label="Hasta" htmlFor="toll-policy-time-to">
+            <Input
+              id="toll-policy-time-to"
+              type="time"
+              value={draft.timeTo}
+              onChange={(timeTo) => patch({ timeTo })}
+            />
+          </Field>
         </div>
         <label className="policy-form__switch">
           <input

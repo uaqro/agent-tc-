@@ -6,6 +6,7 @@ import { GlobalFiltersProvider } from './components/filters/GlobalFilters';
 import { SessionProvider, useSession } from './components/session/Session';
 import { sessionKey } from './data/session';
 import './index.css';
+import '@er-mobility-mx/design-system/styles.css';
 
 /** Remounts the filters and every page when the session changes, so they read the newly scoped data. */
 function ScopedApp() {

@@ -15,9 +15,9 @@
 .modal {
   width: 100%;
   max-width: 560px;
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  background: var(--tc-local-surface);
+  border-radius: var(--tc-local-radius-lg);
+  box-shadow: var(--tc-local-shadow-lg);
   display: flex;
   flex-direction: column;
   animation: modal-rise 160ms ease-out;
@@ -33,20 +33,20 @@
   justify-content: space-between;
   gap: 16px;
   padding: 18px 20px 14px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--tc-local-border-subtle);
 }
 
 .modal__title {
   margin: 0;
   font-size: 17px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .modal__subtitle {
   margin: 3px 0 0;
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .modal__close {
@@ -54,14 +54,14 @@
   place-items: center;
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
+  border-radius: var(--tc-local-radius-sm);
+  color: var(--tc-local-text-muted);
   flex-shrink: 0;
 }
 
 .modal__close:hover {
-  background: var(--surface-sunken);
-  color: var(--text-strong);
+  background: var(--tc-local-surface-sunken);
+  color: var(--tc-local-text-strong);
 }
 
 .modal__body {
@@ -75,7 +75,7 @@
   gap: 10px;
   flex-wrap: wrap;
   padding: 14px 20px 18px;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--tc-local-border-subtle);
 }
 
 @keyframes modal-fade {

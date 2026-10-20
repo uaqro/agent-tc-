@@ -1,8 +1,8 @@
 .assignments {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  background: var(--tc-local-surface);
+  border: 1px solid var(--tc-local-border);
+  border-radius: var(--tc-local-radius-md);
+  box-shadow: var(--tc-local-shadow-sm);
   overflow: hidden;
 }
 
@@ -13,14 +13,14 @@
   gap: 12px;
   flex-wrap: wrap;
   padding: 12px 18px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--tc-local-border-subtle);
 }
 
 .assignments__title {
   margin: 0;
   font-size: 15px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .assignments__filters {
@@ -34,9 +34,9 @@
   align-items: center;
   gap: 6px;
   padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
+  border: 1px solid var(--tc-local-border);
+  border-radius: var(--tc-local-radius-sm);
+  color: var(--tc-local-text-muted);
 }
 
 .assignments__search input {
@@ -47,23 +47,23 @@
   outline: none;
   background: none;
   font-size: 13px;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .assignments__search:focus-within {
-  border-color: var(--brand-blue);
+  border-color: var(--tc-local-brand-blue);
 }
 
 .assignments select {
   height: 34px;
   max-width: 100%;
   padding: 0 8px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
+  border: 1px solid var(--tc-local-border);
+  border-radius: var(--tc-local-radius-sm);
+  background: var(--tc-local-surface);
   font: inherit;
   font-size: 13px;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .assignments__scroll {
@@ -81,7 +81,7 @@
 .assignments__table td {
   text-align: left;
   padding: 11px 18px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--tc-local-border-subtle);
   vertical-align: middle;
 }
 
@@ -93,20 +93,20 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
   font-weight: 600;
 }
 
 .assignments__plate {
   display: block;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .assignments__sub,
 .assignments__override {
   display: block;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .assignments__override {
@@ -126,7 +126,7 @@
   height: 6px;
   margin-bottom: 5px;
   border-radius: 999px;
-  background: var(--surface-sunken);
+  background: var(--tc-local-surface-sunken);
   overflow: hidden;
 }
 
@@ -134,15 +134,15 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--accent-green);
+  background: var(--tc-local-accent-green);
 }
 
 .assignments__bar--warn span {
-  background: var(--accent-orange);
+  background: var(--tc-local-accent-orange);
 }
 
 .assignments__bar--danger span {
-  background: var(--brand-red);
+  background: var(--tc-local-brand-red);
 }
 
 .assignments__rejections {

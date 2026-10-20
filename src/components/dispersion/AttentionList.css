@@ -1,8 +1,8 @@
 .attention {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  background: var(--tc-local-surface);
+  border: 1px solid var(--tc-local-border);
+  border-radius: var(--tc-local-radius-md);
+  box-shadow: var(--tc-local-shadow-sm);
   overflow: visible;
 }
 
@@ -13,7 +13,7 @@
   gap: 12px;
   flex-wrap: wrap;
   padding: 12px 18px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--tc-local-border-subtle);
 }
 
 .attention__clear-row {
@@ -23,14 +23,14 @@
   margin: 0;
   padding: 14px 18px;
   font-size: 13px;
-  color: var(--accent-green);
+  color: var(--tc-local-accent-green);
 }
 
 .attention__title {
   margin: 0;
   font-size: 15px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .attention__list {
@@ -47,7 +47,7 @@
 }
 
 .attention__item + .attention__item {
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--tc-local-border-subtle);
 }
 
 .attention__icon {
@@ -91,25 +91,25 @@
   flex-wrap: wrap;
   margin: 0;
   font-size: 14px;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .attention__driver {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
   font-weight: 500;
 }
 
 .attention__detail {
   margin: 4px 0 0;
   font-size: 13px;
-  color: var(--text-body);
+  color: var(--tc-local-text-body);
 }
 
 .attention__meta {
   margin: 4px 0 0;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .attention__actions {
