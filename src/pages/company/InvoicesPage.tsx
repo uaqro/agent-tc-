@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
 import { DownloadIcon, SearchIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import {
@@ -18,11 +18,11 @@ interface InvoicesPageProps {
   onNotice: (message: string) => void;
 }
 
-const STATUS_CHIP: Record<InvoiceStatus, string> = {
-  paid: 'chip--active',
-  pending: 'chip--review',
-  overdue: 'chip--danger',
-  cancelled: 'chip--paused',
+const STATUS_TONE: Record<InvoiceStatus, 'success' | 'warning' | 'danger' | 'neutral'> = {
+  paid: 'success',
+  pending: 'warning',
+  overdue: 'danger',
+  cancelled: 'neutral',
 };
 
 const billingGroups = parameterCatalogs.find((catalog) => catalog.id === 'billing-groups')?.records.map((record) => record.values.name) ?? [];
@@ -200,7 +200,7 @@ export function InvoicesPage({ onNotice }: InvoicesPageProps) {
                         </span>
                       </td>
                       <td>
-                        <span className={`chip ${STATUS_CHIP[invoice.status]}`}>{INVOICE_STATUS_LABEL[invoice.status]}</span>
+                        <StatusPill label={INVOICE_STATUS_LABEL[invoice.status]} tone={STATUS_TONE[invoice.status]} />
                       </td>
                       <td className="table-page__action">
                         <Button variant="ghost" size="sm" onClick={() => onNotice(`Descargando PDF de ${invoice.folio}.`)}>

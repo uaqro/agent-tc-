@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { IconButton, Input } from '@er-mobility-mx/design-system';
+import { Avatar, IconButton, Input } from '@er-mobility-mx/design-system';
 import './TopBar.css';
 
 interface TopBarProps {
@@ -8,15 +8,6 @@ interface TopBarProps {
   /** Extra control before the help button, e.g. the dev mode menu. */
   extra?: ReactNode;
 }
-
-const initialsOf = (name: string) =>
-  name
-    .split(/[\s.]+/)
-    .filter(Boolean)
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
 
 export function TopBar({ userName, onAction, extra }: TopBarProps) {
   const [query, setQuery] = useState('');
@@ -55,7 +46,7 @@ export function TopBar({ userName, onAction, extra }: TopBarProps) {
         <IconButton icon="notifications" ariaLabel="Notificaciones" badge onClick={() => onAction('notifications')} />
         <button type="button" className="topbar__user" onClick={() => onAction('profile')}>
           <span className="topbar__avatar" aria-hidden="true">
-            {initialsOf(userName)}
+            <Avatar name={userName} size="sm" />
           </span>
           <span className="topbar__user-name">{userName}</span>
         </button>

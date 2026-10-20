@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
 import { InviteUserDialog } from '../../components/company/InviteUserDialog';
 import { PlusIcon, SearchIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -20,10 +20,10 @@ interface UsersPageProps {
   onNotice: (message: string) => void;
 }
 
-const STATUS_CHIP: Record<UserStatus, string> = {
-  active: 'chip--active',
-  invited: 'chip--info',
-  suspended: 'chip--paused',
+const STATUS_TONE: Record<UserStatus, 'success' | 'info' | 'neutral'> = {
+  active: 'success',
+  invited: 'info',
+  suspended: 'neutral',
 };
 
 export function UsersPage({ onNotice }: UsersPageProps) {
@@ -171,7 +171,7 @@ export function UsersPage({ onNotice }: UsersPageProps) {
                         {user.lastAccess ? formatDateTime(new Date(user.lastAccess)) : <span className="table-page__sub">Nunca</span>}
                       </td>
                       <td>
-                        <span className={`chip ${STATUS_CHIP[user.status]}`}>{USER_STATUS_LABEL[user.status]}</span>
+                        <StatusPill label={USER_STATUS_LABEL[user.status]} tone={STATUS_TONE[user.status]} />
                       </td>
                       <td className="table-page__action">
                         {user.status === 'invited' && (

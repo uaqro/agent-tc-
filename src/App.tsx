@@ -188,11 +188,12 @@ function AppContent() {
     }))
     .filter((group) => group.items.length > 0);
 
-  useEffect(() => {
-    if (!notice) return;
-    const timer = window.setTimeout(() => setNotice(null), 3600);
-    return () => window.clearTimeout(timer);
-  }, [notice]);
+  const notify = useCallback(
+    (message: string) => {
+      toast.show({ message, tone: 'neutral', duration: 3600 });
+    },
+    [toast],
+  );
 
   const handleSelectItem = useCallback(
     (itemId: string) => {
@@ -207,7 +208,7 @@ function AppContent() {
       if (target) {
         setRoute(target);
       } else {
-        setNotice(`${label}: módulo en construcción.`);
+        notify(`${label}: módulo en construcción.`);
       }
       if (!menuPinned) setMenuOpen(false);
     },
@@ -257,7 +258,7 @@ function AppContent() {
         userName={principal.name}
         extra={<DevModeMenu onOpenImprovements={() => navigate('dev-api-improvements')} />}
         onAction={(actionId, detail) =>
-          setNotice(actionId === 'search' ? `Buscando “${detail}” en unidades, tarjetas y conductores.` : TOP_BAR_MESSAGES[actionId])
+          notify(actionId === 'search' ? `Buscando “${detail}” en unidades, tarjetas y conductores.` : TOP_BAR_MESSAGES[actionId])
         }
       />
 
@@ -293,7 +294,7 @@ function AppContent() {
         </PageHeader>
 
         {route === 'dashboard' && (
-          <FuelDashboardPage onCardOption={(chart, option) => setNotice(`${chart}: ${option}.`)} />
+          <FuelDashboardPage onCardOption={(chart, option) => notify(`${chart}: ${option}.`)} />
         )}
         {route === 'dispersion' && <DispersionPage onNotice={setNotice} />}
         {route === 'limits' && (
@@ -334,12 +335,8 @@ function AppContent() {
       </main>
 
       {route !== 'ted' && (
-        <FloatingControls onFeedback={() => setNotice('Formulario de opiniones abierto.')} onChat={() => navigate('ted')} />
+        <FloatingControls onFeedback={() => notify('Formulario de opiniones abierto.')} onChat={() => navigate('ted')} />
       )}
-
-      <div className="app__notice-region" role="status" aria-live="polite">
-        {notice && <p className="app__notice">{notice}</p>}
-      </div>
     </div>
   );
 }

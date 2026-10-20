@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { ToastHost } from '@er-mobility-mx/design-system';
 import App from './App';
 import { DevModeProvider } from './components/dev/DevMode';
 import { GlobalFiltersProvider } from './components/filters/GlobalFilters';

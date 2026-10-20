@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
 import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -186,7 +186,7 @@ export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
                         )}
                       </td>
                       <td>
-                        <span className={`chip ${driver.active ? 'chip--active' : 'chip--paused'}`}>{driver.active ? 'Activo' : 'Inactivo'}</span>
+                        <StatusPill label={driver.active ? 'Activo' : 'Inactivo'} tone={driver.active ? 'success' : 'neutral'} />
                       </td>
                       <td className="table-page__action">
                         <Button variant="ghost" size="sm" onClick={() => onNotice(`Expediente de ${driver.name} abierto.`)}>

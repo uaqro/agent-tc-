@@ -67,7 +67,7 @@ export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: 
             <li className={`policy-card${paused ? ' policy-card--paused' : ''}`} key={policy.id}>
               <header className="policy-card__head">
                 <h3 className="policy-card__name">{policy.name}</h3>
-                <span className={`chip ${paused ? 'chip--paused' : 'chip--active'}`}>{paused ? 'Pausada' : 'Activa'}</span>
+                <StatusPill label={paused ? 'Pausada' : 'Activa'} tone={paused ? 'neutral' : 'success'} />
               </header>
 
               <p className="policy-card__scope">{scopeText(policy)}</p>

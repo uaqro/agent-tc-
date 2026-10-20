@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
 import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -26,10 +26,10 @@ interface VehiclesPageProps {
   showVin?: boolean;
 }
 
-const STATUS_CHIP: Record<VehicleStatus, string> = {
-  active: 'chip--active',
-  maintenance: 'chip--review',
-  inactive: 'chip--paused',
+const STATUS_TONE: Record<VehicleStatus, 'success' | 'warning' | 'neutral'> = {
+  active: 'success',
+  maintenance: 'warning',
+  inactive: 'neutral',
 };
 
 /** Record filter: every unit, the incomplete ones, or the ones missing one piece. */

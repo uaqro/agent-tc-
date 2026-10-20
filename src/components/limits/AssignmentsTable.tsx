@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import type { LimitPolicy, UnitAssignment } from '../../types/limits';
 import { PERIOD_META, assignableGroups, effectiveLimit, formatMeasure, usedInMeasure } from '../../data/limits';
@@ -132,8 +132,8 @@ export function AssignmentsTable({
                         }}
                       />
                       {assignment.individual && <span className="chip chip--info">Individual</span>}
-                      {!policy && <span className="chip chip--danger">Sin candados</span>}
-                      {policy && !enforced && <span className="chip chip--paused">Pausada</span>}
+                      {!policy && <StatusPill label="Sin candados" tone="danger" />}
+                      {policy && !enforced && <StatusPill label="Pausada" tone="neutral" />}
                     </div>
                   </td>
                   <td>

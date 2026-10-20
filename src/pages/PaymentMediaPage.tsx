@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
 import { CardIcon, PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
@@ -22,10 +22,10 @@ interface PaymentMediaPageProps {
   onNotice: (message: string) => void;
 }
 
-const STATUS_CHIP: Record<PaymentMediumStatus, string> = {
-  active: 'chip--active',
-  blocked: 'chip--danger',
-  unassigned: 'chip--paused',
+const STATUS_TONE: Record<PaymentMediumStatus, 'success' | 'danger' | 'neutral'> = {
+  active: 'success',
+  blocked: 'danger',
+  unassigned: 'neutral',
 };
 
 export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
@@ -207,7 +207,7 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
                         )}
                       </td>
                       <td>
-                        <span className={`chip ${STATUS_CHIP[medium.status]}`}>{PAYMENT_STATUS_LABEL[medium.status]}</span>
+                        <StatusPill label={PAYMENT_STATUS_LABEL[medium.status]} tone={STATUS_TONE[medium.status]} />
                       </td>
                       <td>
                         <span className="table-page__nowrap">{vehicle ? formatMoney(vehicle.balanceMXN, true) : '—'}</span>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, Select } from '@er-mobility-mx/design-system';
+import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
 import { CardIcon, PlusIcon, SearchIcon } from '../../components/icons/Icons';
 import { TollAssignDialog } from '../../components/toll/TollAssignDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -24,11 +24,11 @@ interface TollMediaPageProps {
   readOnly?: boolean;
 }
 
-const STATUS_CHIP: Record<TollTagStatus, string> = {
-  active: 'chip--active',
-  blocked: 'chip--danger',
-  unassigned: 'chip--paused',
-  replacement: 'chip--review',
+const STATUS_TONE: Record<TollTagStatus, 'success' | 'danger' | 'neutral' | 'warning'> = {
+  active: 'success',
+  blocked: 'danger',
+  unassigned: 'neutral',
+  replacement: 'warning',
 };
 
 export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps) {
@@ -222,7 +222,7 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
                       </td>
                       <td className="table-page__nowrap">{tag.vehicleId ? TOLL_CATEGORY_LABEL[tag.category] : '—'}</td>
                       <td>
-                        <span className={`chip ${STATUS_CHIP[tag.status]}`}>{TOLL_TAG_STATUS_LABEL[tag.status]}</span>
+                        <StatusPill label={TOLL_TAG_STATUS_LABEL[tag.status]} tone={STATUS_TONE[tag.status]} />
                       </td>
                       <td>{tag.vehicleId ? formatMoney(tag.balanceMXN, true) : '—'}</td>
                       <td>

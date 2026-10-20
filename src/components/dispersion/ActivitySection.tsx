@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button } from '@er-mobility-mx/design-system';
+import { Button, StatusPill } from '@er-mobility-mx/design-system';
 import type { FundingRule, Receipt, ReceiptKind } from '../../types/dispersion';
 import { CalendarIcon, ClockIcon, EyeIcon, PlayIcon } from '../icons/Icons';
 import { formatCount, formatDateLong, formatDateTime, formatMoney } from '../../utils/format';
@@ -167,7 +167,7 @@ export function ActivitySection({
                   <td>{formatCount(rule.units - rule.excludedUnits)}</td>
                   <td className="activity__amount">{formatMoney(rule.projectedMXN)}</td>
                   <td className="activity__action">
-                    {rule.approved && <span className="chip chip--active">Aprobada</span>}
+                    {rule.approved && <StatusPill label="Aprobada" tone="success" />}
                     <Button variant="ghost" size="sm" onClick={() => onReviewPayment(rule)}>
                       <EyeIcon width={14} height={14} />
                       Revisar

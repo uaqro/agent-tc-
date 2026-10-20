@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Switch } from '@er-mobility-mx/design-system';
+import { Button, StatusPill, Switch } from '@er-mobility-mx/design-system';
 import { CardIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { TollAmountDialog, type TollAmountMode } from '../../components/toll/TollAmountDialog';
@@ -291,7 +291,11 @@ export function TollBalancesPage({ onNotice, readOnly = false }: TollBalancesPag
                   <tr key={movement.id}>
                     <td className="table-page__nowrap">{formatDateTime(new Date(movement.at))}</td>
                     <td>
-                      <span className={`chip ${meta.chip}`}>{meta.label}</span>
+                      {meta.chip ? (
+                        <span className={`chip ${meta.chip}`}>{meta.label}</span>
+                      ) : (
+                        <StatusPill label={meta.label} tone="danger" />
+                      )}
                     </td>
                     <td>
                       <span className="table-page__main">{tag?.number}</span>

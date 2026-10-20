@@ -39,15 +39,9 @@ export function PageHeader({ section, title, crumb, subtitle, menuOpen, onBack, 
             onClick={onBack}
           />
         )}
-        <nav className="page-header__breadcrumb" aria-label="Ubicación">
-          <span>Ticket Car</span>
-          <span aria-hidden="true">›</span>
-          <span>{section}</span>
-          <span aria-hidden="true">›</span>
-          <span className="page-header__current" aria-current="page">
-            {crumb ?? title}
-          </span>
-        </nav>
+        <div className="page-header__breadcrumb">
+          <Breadcrumb items={[{ label: 'Ticket Car' }, { label: section }, { label: crumb ?? title }]} />
+        </div>
       </div>
 
       <h1 className="page-header__title">{title}</h1>

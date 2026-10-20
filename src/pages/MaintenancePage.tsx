@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input } from '@er-mobility-mx/design-system';
+import { Button, Input, StatusPill } from '@er-mobility-mx/design-system';
 import { ServiceOrderDialog } from '../components/maintenance/ServiceOrderDialog';
 import { AlertIcon, CalendarIcon, GearIcon, PlusIcon, SearchIcon, WalletIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -25,11 +25,11 @@ interface MaintenancePageProps {
 
 type SearchMode = 'orders' | 'vehicles';
 
-const STATUS_CHIP: Record<OrderStatus, string> = {
-  scheduled: 'chip--info',
-  'in-shop': 'chip--review',
-  'waiting-parts': 'chip--danger',
-  done: 'chip--active',
+const STATUS_TONE: Record<OrderStatus, 'info' | 'warning' | 'danger' | 'success'> = {
+  scheduled: 'info',
+  'in-shop': 'warning',
+  'waiting-parts': 'danger',
+  done: 'success',
 };
 
 const OPEN_STATUSES: OrderStatus[] = ['scheduled', 'in-shop', 'waiting-parts'];
@@ -150,7 +150,7 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
                         {ORDER_KIND_LABEL[order.kind]} · {order.system} · {order.workshop} · promesa {formatDateLong(order.promised)}
                       </p>
                     </div>
-                    <span className={`chip ${STATUS_CHIP[order.status]}`}>{ORDER_STATUS_LABEL[order.status]}</span>
+                    <StatusPill label={ORDER_STATUS_LABEL[order.status]} tone={STATUS_TONE[order.status]} />
                   </li>
                 );
               })}
@@ -273,7 +273,7 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
                         </td>
                         <td className="maintenance__nowrap">{formatDateLong(order.promised)}</td>
                         <td>
-                          <span className={`chip ${STATUS_CHIP[order.status]}`}>{ORDER_STATUS_LABEL[order.status]}</span>
+                          <StatusPill label={ORDER_STATUS_LABEL[order.status]} tone={STATUS_TONE[order.status]} />
                         </td>
                       </tr>
                     );

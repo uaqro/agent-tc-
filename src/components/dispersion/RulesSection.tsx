@@ -1,5 +1,5 @@
 import type { FundingRule, RuleStatus, RuleType } from '../../types/dispersion';
-import { Button } from '@er-mobility-mx/design-system';
+import { Button, StatusPill } from '@er-mobility-mx/design-system';
 import { toLiters } from '../../data/dispersion';
 import { EyeIcon, PauseIcon, PlayIcon, PlusIcon, RuleIcon, UploadIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
@@ -16,10 +16,10 @@ interface RulesSectionProps {
   onEdit: (rule: FundingRule) => void;
 }
 
-const STATUS_META: Record<RuleStatus, { label: string; chip: string }> = {
-  active: { label: 'Activa', chip: 'chip--active' },
-  paused: { label: 'Pausada', chip: 'chip--paused' },
-  'needs-review': { label: 'Necesita revisión', chip: 'chip--review' },
+const STATUS_META: Record<RuleStatus, { label: string; tone: 'success' | 'neutral' | 'warning' }> = {
+  active: { label: 'Activa', tone: 'success' },
+  paused: { label: 'Pausada', tone: 'neutral' },
+  'needs-review': { label: 'Necesita revisión', tone: 'warning' },
 };
 
 const TYPE_LABEL: Record<RuleType, string> = {
@@ -80,7 +80,7 @@ export function RulesSection({ rules, onSimulate, onToggleStatus, onCreate, onBu
             <li className={`rule-card${paused ? ' rule-card--paused' : ''}`} key={rule.id}>
               <header className="rule-card__head">
                 <h3 className="rule-card__name">{rule.name}</h3>
-                <span className={`chip ${status.chip}`}>{status.label}</span>
+                <StatusPill label={status.label} tone={status.tone} />
               </header>
 
               {rule.statusNote && <p className="rule-card__note">{rule.statusNote}</p>}

@@ -150,9 +150,9 @@ razón para adoptarlo, evaluarlo después o no incorporarlo.
 | Primitive | Madurez web | Uso/relación observada | Evaluación |
 |---|---|---|---|
 | `AutoGrid` | estable | Las páginas usan grids CSS locales. | No migrar en bloque; layout estructural amplio y actualmente no hay contrato visual de app que exija el wrapper. Evaluar al tocar un grid concreto. |
-| `Avatar` | estable | El perfil muestra iniciales en `TopBar`. | Oportunidad directa para sustituir el avatar manual; comparar tamaño, initials y comportamiento con `Avatar`. |
+| `Avatar` | estable | `TopBar` renderiza las iniciales del perfil con `Avatar` tamaño `sm`. | Adoptado dentro del botón de perfil; el wrapper conserva el nombre de usuario como nombre accesible y oculta las iniciales duplicadas. |
 | `Badge` | estable | Contadores de solicitudes/notificaciones y marcas junto a filas. | Evaluar solo donde el valor sea un badge/counter; no reemplazar chips de estado con un badge genérico. |
-| `Breadcrumb` | estable | `PageHeader` construye la ruta con spans. | Oportunidad directa; verificar compatibilidad con el botón de regreso y el layout actual. |
+| `Breadcrumb` | estable | `PageHeader` usa `Breadcrumb` para Ticket Car, sección y página actual. | Adoptado; se mantiene separado el botón de regreso. Flow fija el nombre accesible del landmark como “Breadcrumb”. |
 | `BrandCanvas` | beta | Sin superficie decorativa de marca equivalente. | Sin caso actual; es decorativo y no reemplaza canvas ni visualizaciones con datos. |
 | `Button` | beta | Acciones comunes migradas en el lote actual. | En uso deliberado; conservar excepciones semánticas y revisar cambios de apariencia, ya que permanece beta. |
 | `Card` | estable | Varias tarjetas del dashboard y producto usan CSS propio. | Oportunidad por superficie, no reemplazo masivo: validar variantes, slots, interacción y diferencias visuales por familia. |
@@ -194,16 +194,16 @@ razón para adoptarlo, evaluarlo después o no incorporarlo.
 | `Stack` | beta | La composición usa flex/grid CSS locales. | Candidato de layout al refactorizar una zona; no cambia semántica y puede provocar cambios amplios de espaciado. |
 | `Specimen` | estable | Sin catálogo de especímenes dentro del producto. | Herramienta de exhibición/validación, no primitive de pantalla de usuario. |
 | `Spinner` | estable | No se identificó operación asíncrona con espera visual en el mock. | Sin caso actual; incorporar solo junto a una acción realmente en curso. |
-| `StatusPill` | estable | Los estados usan `.chip` y variantes CSS en varias tablas/tarjetas. | Oportunidad directa y prioritaria para badges de estado; revisar mapeo de tonos y contraste, separado de chips interactivos. |
+| `StatusPill` | estable | Reemplaza etiquetas de estado estáticas en facturas, accesos, medios de pago, mantenimiento, flota, políticas y reglas. | Adoptado para estados: success, warning, danger, info y neutral según significado. Se conservan chips de tipo/clasificación e interactivos. |
 | `StatusView` | beta | No hay pantalla de indisponibilidad/error de servicio. | Sin caso actual en el prototipo offline/mock. |
 | `Stepper` | estable | Los formularios actuales no son asistentes multipaso. | No aplica; no representa pasos de combustible o selecciones segmentadas. |
 | `Switch` | estable | Preferencias de desarrollo y estados on/off. | En uso; mantiene el modelo controlado y los nombres accesibles. |
 | `TabBar` | beta | La navegación principal es un menú lateral/top bar. | No aplica a la navegación actual; diseñado para navegación inferior móvil. |
 | `Textarea` | estable | Descripción de orden de servicio y otros textos largos. | En uso; conserva filas, valores y cambios controlados. |
 | `Timeline` | beta | Mantenimiento usa tablas/listas, no una cronología de eventos por registro. | Posible necesidad futura, no reemplazo de tablas de órdenes. |
-| `Toast` | estable | `App` muestra un aviso live-region propio que desaparece por temporizador. | Oportunidad de consolidación; comprobar anuncio, temporizador, pausa por foco/hover y acción/dismiss. |
-| `ToastStack` | sin madurez independiente | Contenedor de composición del sistema Toast. | No adoptarlo aislado; evaluar como parte de la migración del host/cola. |
-| `ToastHost` | estable | Las notificaciones se administran mediante estado local único en `App`. | Candidato directo junto con `useToast`; exige comprobar cola, orden, deduplicación y compatibilidad con callbacks actuales. |
+| `Toast` | estable | `App` muestra avisos breves mediante `ToastHost` y `useToast`. | Adoptado con tono neutral y duración de 3.6 s; mantiene el tiempo del aviso anterior y pausa el temporizador por puntero/foco. |
+| `ToastStack` | sin madurez independiente | `ToastHost` compone internamente la pila en portal. | No adoptarlo aislado; la app consume `ToastHost` y `useToast`. |
+| `ToastHost` | estable | Envuelve el punto de entrada y aloja los avisos de toda la app. | Adoptado con la cola FIFO de Flow; los callbacks de notificación conservan su firma. |
 | `ToggleControl` | beta | No se importa directamente. | Mecanismo compartido interno; usar `Checkbox`/`Switch` según semántica, no el helper de bajo nivel. |
 | `NavCard` | estable | No hay navegación entre páginas con tarjeta prev/next. | Sin caso actual; el menú lateral y breadcrumbs cubren otras tareas. |
 | `TextAction` | beta | No se identificó una acción textual compacta con contrato coincidente en encabezados. | Evaluar solo donde una acción de baja jerarquía deba compartir el patrón; no es reemplazo universal de `Button`. |
@@ -222,7 +222,7 @@ del mismo manifiesto web.
 | `Tabs` / `TabPanel` | estable | En uso en Reportes; hay tabs locales en Mantenimiento, TED, Insights y Optimizador. | No se asume migración total: revisar equivalencia de paneles, IDs y navegación por teclado por pantalla. |
 | `Dialog` | estable | El producto usa una composición propia con `OverlayShell`. | No duplicar la migración del shell; evaluar si su estructura/estilo satisface los diálogos antes de reemplazar la composición. |
 | `BottomSheet` / `Drawer` | estable | No hay flujo que requiera sheet móvil o drawer de detalle. | Sin reemplazo directo actual. |
-| `FileUpload` | estable | Carga masiva conserva `<input type="file">` nativo. | Candidato directo; comparar validación, rechazo visible, descarga/lectura y estilos antes de adoptarlo. |
+| `FileUpload` | estable | La carga masiva de dispersión usa el componente para seleccionar/soltar CSV único. | Adoptado con aceptación de CSV y error localizado por archivo rechazado; `FileReader`, parseo, plantilla y validación de filas permanecen propios del producto. |
 | `Table` / `DataGrid` | beta | Hay tablas HTML semánticas con diseños y acciones por página. | Mantener tablas nativas por ahora; evaluar un prototipo acotado, pues la API beta no justifica reemplazo masivo. |
 | `Pagination` | estable | Tablas actuales no exponen paginación. | No añadir comportamiento nuevo solo para usar el primitive. |
 | `Tooltip` | estable | Las gráficas tienen tooltip CSS con contenido y foco. | Candidato para retirar manejo visual local; verificar contenido y posicionamiento. |
@@ -232,12 +232,32 @@ del mismo manifiesto web.
 | `SegmentedControl` | estable | Hay tabs y grupos de selección segmentada, con semánticas diferentes. | No intercambiar por nombre; determinar si cada grupo cambia vista o selecciona valores. |
 | `FilterBar` / `ActiveFilters` | estable / n/a | Filtros están compuestos con layout y chips propios. | Evaluar por pantalla si simplifican filtros reales; `ActiveFilters` sin madurez web explícita queda fuera de adopción. |
 
+### Adopción de StatusPill, Avatar y Breadcrumb
+
+- `StatusPill` reemplaza estados fijos de registros en facturas, usuarios,
+  parámetros, medios de pago, órdenes de servicio, vehículos, conductores,
+  TAGs, reglas y políticas; también los estados de aprobación, sugerencia
+  enviada y movimientos rechazados de peaje. Los tonos se asignan por
+  significado (`success`, `warning`, `danger`, `info`, `neutral`), no por la
+  clase CSS que tenían. Los chips que
+  describen tipos de movimiento/actividad, categorías de alertas o filtros
+  interactivos permanecen sin cambio.
+- El botón de perfil de `TopBar` usa `Avatar` con iniciales determinadas por
+  Flow. Se preserva el nombre visible y se oculta el avatar decorativo al árbol
+  accesible para no duplicar el nombre del botón.
+- `PageHeader` usa el `Breadcrumb` de Flow para la ruta de tres niveles y
+  conserva el botón de regreso existente. El primitive no expone una propiedad
+  para traducir su nombre de landmark; anuncia “Breadcrumb”.
+- Se verificaron visualmente el shell (avatar y breadcrumb) y las pills de
+  facturas en la demo. La compilación TypeScript y Vite pasó; este proyecto no
+  define script `lint`.
+
 Este inventario prioriza encontrar la cobertura que falta, no maximizar el
-número de imports de Flow. La siguiente decisión debe salir de los candidatos
-concretos (Avatar, Breadcrumb, StatusPill, Toast, FileUpload, Listbox,
-LimitBar/Progress, Tooltip/Menu y componentes de TED), uno por uno y contra sus
-contratos públicos y madurez; no se inicia la migración de tabs como bloque
-hasta terminar esa evaluación.
+número de imports de Flow. Los siguientes candidatos para evaluar son
+`Listbox`, `LimitBar`/`Progress`,
+`Tooltip`/`Menu` y componentes de TED, uno por uno y contra sus contratos
+públicos y madurez; no se inicia la migración de tabs como bloque hasta
+terminar esa evaluación.
 
 ## Cómo leer la matriz
 

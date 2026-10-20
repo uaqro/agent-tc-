@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, Switch } from '@er-mobility-mx/design-system';
+import { Button, Input, StatusPill, Switch } from '@er-mobility-mx/design-system';
 import { ParameterCatalogDialog } from '../../components/company/ParameterCatalogDialog';
 import { ParameterRecordDialog } from '../../components/company/ParameterRecordDialog';
 import { ApiCoverageBanner, ApiTag } from '../../components/api/ApiCoverage';
@@ -246,7 +246,7 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
                         </td>
                       ))}
                       <td>
-                        <span className={`chip ${record.active ? 'chip--active' : 'chip--paused'}`}>{record.active ? 'Activo' : 'Inactivo'}</span>
+                        <StatusPill label={record.active ? 'Activo' : 'Inactivo'} tone={record.active ? 'success' : 'neutral'} />
                       </td>
                       <td className="table-page__action">
                         <Button variant="ghost" size="sm" onClick={() => setRecordDialog({ mode: 'edit', record })}>

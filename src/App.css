@@ -14,36 +14,6 @@
   background: var(--tc-local-page-bg);
 }
 
-.app__notice-region {
-  position: fixed;
-  left: 22px;
-  bottom: 22px;
-  z-index: 50;
-  pointer-events: none;
-}
-
-.app__notice {
-  margin: 0;
-  padding: 10px 14px;
-  background: var(--tc-local-brand-navy);
-  color: var(--tc-local-text-inverse);
-  font-size: 13px;
-  border-radius: var(--tc-local-radius-sm);
-  box-shadow: var(--tc-local-shadow-lg);
-  animation: notice-in 160ms ease-out;
-}
-
-@keyframes notice-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;

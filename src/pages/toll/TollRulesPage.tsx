@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Select } from '@er-mobility-mx/design-system';
+import { Button, Select, StatusPill } from '@er-mobility-mx/design-system';
 import { PauseIcon, PlayIcon, PlusIcon, RuleIcon } from '../../components/icons/Icons';
 import { TollPolicyDialog } from '../../components/toll/TollPolicyDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -154,7 +154,7 @@ export function TollRulesPage({ onNotice, readOnly = false }: TollRulesPageProps
               <li className={`policy-card${paused ? ' policy-card--paused' : ''}`} key={policy.id}>
                 <header className="policy-card__head">
                   <h3 className="policy-card__name">{policy.name}</h3>
-                  <span className={`chip ${paused ? 'chip--paused' : 'chip--active'}`}>{paused ? 'Pausada' : 'Activa'}</span>
+                  <StatusPill label={paused ? 'Pausada' : 'Activa'} tone={paused ? 'neutral' : 'success'} />
                 </header>
                 <p className="policy-card__scope">{scopeText(policy)}</p>
                 {paused && <p className="policy-card__note">Sus TAGs cruzan sin candados mientras esté pausada.</p>}
