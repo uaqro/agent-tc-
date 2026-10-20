@@ -140,8 +140,10 @@ siguen siendo beta y no se consideran una aprobación para reemplazo mecánico.
   migración selectiva, no un reemplazo de todos los headings del inventario.
 - `Stack` se piloteó en las acciones del encabezado de `RulesSection`: `gap={2}`
   conserva la separación de 8 px y `wrap` mantiene el salto de línea en
-  ventanas estrechas. Se deja el resto de layouts flex/grid en CSS hasta
-  evaluar cada composición y sus gaps; el conteo bruto no determina adopciones.
+  ventanas estrechas. La adopción se amplió a las acciones de `PoliciesSection`
+  y a los filtros y estados agrupados de `AssignmentsTable`, preservando la
+  alineación y el wrapping con el mismo paso de espacio. Los layouts
+  estructurales siguen en CSS; el conteo bruto no determina adopciones.
 - `Popover` reemplaza el panel flotante propio de `ApiTag`, el marcador
   compartido de cobertura API. Flow ahora administra portal, anclaje inferior,
   colisión con viewport, reposicionamiento en scroll/resize, cierre por clic
@@ -235,7 +237,7 @@ representa los umbrales operativos que exige el producto.
 | `Skeleton` | estable | El prototipo muestra datos mock sin estados de carga. | Sin caso visible actual; no introducir placeholders donde no hay carga asíncrona. |
 | `Slider` | estable | No se encontró un input `range`. | Sin caso actual; los importes/cantidades son entradas discretas con `min`/`step`, no rangos continuos. |
 | `Sparkline` | estable | Los KPIs muestran cifras y variaciones, no microseries inline. | Sin equivalencia directa en la UI actual; evaluar solo si se agrega tendencia temporal compacta. |
-| `Stack` | beta | Hay 197 declaraciones `display:flex/grid` en 42 CSS; primera adopción en las acciones agrupadas de `RulesSection`. | `Stack` reemplaza el flex local con gap de 8 px y wrapping; continuar solo con grupos de hermanos equivalentes, no por el conteo bruto. |
+| `Stack` | beta | Acciones agrupadas de `RulesSection` y `PoliciesSection`; filtros y estados agrupados de `AssignmentsTable`. | Adoptado selectivamente con `gap={2}` (8 px) y `wrap`; preservar layouts estructurales y migrar solo grupos de hermanos con contrato equivalente. |
 | `Specimen` | estable | Sin catálogo de especímenes dentro del producto. | Herramienta de exhibición/validación, no primitive de pantalla de usuario. |
 | `Spinner` | estable | No se identificó operación asíncrona con espera visual en el mock. | Sin caso actual; incorporar solo junto a una acción realmente en curso. |
 | `StatusPill` | estable | Reemplaza etiquetas de estado estáticas en facturas, accesos, medios de pago, mantenimiento, flota, políticas y reglas. | Adoptado para estados: success, warning, danger, info y neutral según significado. Se conservan chips de tipo/clasificación e interactivos. |

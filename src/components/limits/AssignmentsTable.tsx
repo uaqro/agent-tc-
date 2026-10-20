@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, SectionHeader, Select, StatusPill } from '@er-mobility-mx/design-system';
+import { Button, Input, SectionHeader, Select, Stack, StatusPill } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import type { LimitPolicy, UnitAssignment } from '../../types/limits';
 import { PERIOD_META, assignableGroups, effectiveLimit, formatMeasure, usedInMeasure } from '../../data/limits';
@@ -58,7 +58,7 @@ export function AssignmentsTable({
           level={2}
           style={{ width: '100%' }}
           trailing={
-            <div className="assignments__filters">
+            <Stack gap={2} wrap>
               <div className="assignments__search">
                 <Input
                   id="assignments-search"
@@ -82,7 +82,7 @@ export function AssignmentsTable({
               <span id="assignments-group-filter-label" className="visually-hidden">
                 Filtrar por grupo
               </span>
-            </div>
+            </Stack>
           }
         >
           <span id="assignments-title">
@@ -128,7 +128,7 @@ export function AssignmentsTable({
                   </td>
                   <td>{vehicle.group}</td>
                   <td>
-                    <div className="assignments__policy">
+                    <Stack gap={2} wrap align="center">
                       <Select
                         options={policyOptions}
                         value={assignment.policyId ?? ''}
@@ -142,7 +142,7 @@ export function AssignmentsTable({
                       {assignment.individual && <span className="chip chip--info">Individual</span>}
                       {!policy && <StatusPill label="Sin candados" tone="danger" />}
                       {policy && !enforced && <StatusPill label="Pausada" tone="neutral" />}
-                    </div>
+                    </Stack>
                   </td>
                   <td>
                     {policy && policy.periodLimit > 0 ? (

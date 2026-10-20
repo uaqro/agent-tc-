@@ -16,12 +16,6 @@
   border-bottom: 1px solid var(--tc-local-border-subtle);
 }
 
-.assignments__filters {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 .assignments__search {
   width: 220px;
   max-width: 100%;
@@ -74,12 +68,6 @@
   color: #1d55e0;
 }
 
-.assignments__policy {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
 
 .assignments__bar {
   width: 180px;

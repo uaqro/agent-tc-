@@ -107,17 +107,19 @@ export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: 
               </dl>
 
               <footer className="policy-card__foot">
-                <Button variant="secondary" size="sm" onClick={() => onEdit(policy)}>
-                  Editar
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={paused ? 'play_arrow' : 'pause'}
-                  onClick={() => onToggleStatus(policy)}
-                >
-                  {paused ? 'Activar' : 'Pausar'}
-                </Button>
+                <Stack gap={2} wrap>
+                  <Button variant="secondary" size="sm" onClick={() => onEdit(policy)}>
+                    Editar
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={paused ? 'play_arrow' : 'pause'}
+                    onClick={() => onToggleStatus(policy)}
+                  >
+                    {paused ? 'Activar' : 'Pausar'}
+                  </Button>
+                </Stack>
               </footer>
             </li>
           );
