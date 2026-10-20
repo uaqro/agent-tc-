@@ -11,7 +11,7 @@ import {
   stationsLabel,
   validationLabel,
 } from '../../data/limits';
-import { PauseIcon, PlayIcon, PlusIcon, RuleIcon } from '../icons/Icons';
+import { RuleIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
 import { formatCount } from '../../utils/format';
 import { ApiTag } from '../api/ApiCoverage';
@@ -39,10 +39,9 @@ export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: 
           Políticas de uso
           <ApiTag id="lim-policies" />
         </h2>
-        <button type="button" className="btn btn--primary btn--sm" onClick={onCreate}>
-          <PlusIcon width={15} height={15} />
+        <Button variant="primary" size="sm" icon="add" onClick={onCreate}>
           Nueva política
-        </button>
+        </Button>
       </header>
 
       {policies.length === 0 && (
@@ -52,10 +51,9 @@ export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: 
           title="Aún no hay políticas de uso"
           description="No hay controles, restricciones de consumo ni configuraciones de uso asignados a la flota."
           actions={
-            <button type="button" className="btn btn--primary btn--sm" onClick={onCreate}>
-              <PlusIcon width={15} height={15} />
+            <Button variant="primary" size="sm" icon="add" onClick={onCreate}>
               Crear primera política
-            </button>
+            </Button>
           }
         />
       )}
@@ -109,13 +107,17 @@ export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: 
               </dl>
 
               <footer className="policy-card__foot">
-                <button type="button" className="btn btn--secondary btn--sm" onClick={() => onEdit(policy)}>
+                <Button variant="secondary" size="sm" onClick={() => onEdit(policy)}>
                   Editar
-                </button>
-                <button type="button" className="btn btn--ghost btn--sm" onClick={() => onToggleStatus(policy)}>
-                  {paused ? <PlayIcon width={13} height={13} /> : <PauseIcon width={13} height={13} />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={paused ? 'play_arrow' : 'pause'}
+                  onClick={() => onToggleStatus(policy)}
+                >
                   {paused ? 'Activar' : 'Pausar'}
-                </button>
+                </Button>
               </footer>
             </li>
           );

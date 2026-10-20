@@ -104,6 +104,10 @@ no prescribe una conversión mecánica por nombre.
 - El diálogo de invitación usa `Radio` Flow para elegir el rol y `Checkbox`
   para el alcance por región, además de `Input`/`Field` ya migrados para nombre
   y correo. Se conservan las descripciones de rol y la validación de regiones.
+- La sección de políticas usa `Button` de Flow en crear, editar, activar y
+  pausar; las acciones conservan iconos del set Material Symbols de Flow y los
+  mismos callbacks. `EmptyState` recibe el mismo botón Flow para crear la
+  primera política.
 
 ## Cómo leer la matriz
 
