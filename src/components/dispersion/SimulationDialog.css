@@ -118,10 +118,6 @@
   margin-top: 14px;
 }
 
-.sim__chevron--open {
-  transform: rotate(180deg);
-}
-
 .sim__table {
   width: 100%;
   margin-top: 10px;

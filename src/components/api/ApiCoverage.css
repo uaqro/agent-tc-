@@ -206,17 +206,12 @@
   align-items: center;
 }
 
-.api-banner__chevron {
-  transition: transform 0.15s ease;
-}
-
-.api-banner__chevron.is-open {
-  transform: rotate(180deg);
+.api-banner__accordion {
+  border-top: 1px solid var(--tc-local-border-subtle);
 }
 
 .api-banner__detail {
   padding: 4px 18px 18px;
-  border-top: 1px solid var(--tc-local-border-subtle);
 }
 
 .api-banner__columns {

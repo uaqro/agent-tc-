@@ -1,8 +1,7 @@
-import { useState } from 'react';
-import { Button } from '@er-mobility-mx/design-system';
+import { Accordion, Button } from '@er-mobility-mx/design-system';
 import type { RunSimulation } from '../../types/dispersion';
 import { Modal } from '../ui/Modal';
-import { AlertIcon, CheckCircleIcon, ChevronDownIcon } from '../icons/Icons';
+import { AlertIcon, CheckCircleIcon } from '../icons/Icons';
 import { formatCount, formatDateLong, formatLiters, formatMoney, formatSignedPercent } from '../../utils/format';
 import './SimulationDialog.css';
 
@@ -15,8 +14,6 @@ interface SimulationDialogProps {
 }
 
 export function SimulationDialog({ open, mode, simulation, onClose, onConfirm }: SimulationDialogProps) {
-  const [detailOpen, setDetailOpen] = useState(false);
-
   if (!simulation) return null;
 
   const { rule } = simulation;
@@ -105,43 +102,40 @@ export function SimulationDialog({ open, mode, simulation, onClose, onConfirm }:
       </section>
 
       <section className="sim__detail">
-        <Button
-          variant="link"
-          size="sm"
-          aria-expanded={detailOpen}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}
-          onClick={() => setDetailOpen((value) => !value)}
-        >
-          <ChevronDownIcon width={16} height={16} className={detailOpen ? 'sim__chevron--open' : undefined} />
-          Ver detalle de unidades
-        </Button>
-
-        {detailOpen && (
-          <table className="sim__table">
-            <thead>
-              <tr>
-                <th scope="col">Placa</th>
-                <th scope="col">Conductor</th>
-                <th scope="col">Monto</th>
-              </tr>
-            </thead>
-            <tbody>
-              {simulation.sample.map((line) => (
-                <tr key={line.plate}>
-                  <td>{line.plate}</td>
-                  <td>{line.driver}</td>
-                  <td>{formatMoney(line.amountMXN, true)}</td>
-                </tr>
-              ))}
-              <tr className="sim__table-rest">
-                <td colSpan={3}>
-                  y {formatCount(Math.max(simulation.unitsAffected - simulation.sample.length, 0))} unidades más con la
-                  misma lógica de monto.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        )}
+        <Accordion
+          items={[
+            {
+              id: 'unit-details',
+              title: 'Ver detalle de unidades',
+              content: (
+                <table className="sim__table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Placa</th>
+                      <th scope="col">Conductor</th>
+                      <th scope="col">Monto</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {simulation.sample.map((line) => (
+                      <tr key={line.plate}>
+                        <td>{line.plate}</td>
+                        <td>{line.driver}</td>
+                        <td>{formatMoney(line.amountMXN, true)}</td>
+                      </tr>
+                    ))}
+                    <tr className="sim__table-rest">
+                      <td colSpan={3}>
+                        y {formatCount(Math.max(simulation.unitsAffected - simulation.sample.length, 0))} unidades más
+                        con la misma lógica de monto.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              ),
+            },
+          ]}
+        />
       </section>
     </Modal>
   );

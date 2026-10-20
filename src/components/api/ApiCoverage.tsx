@@ -12,8 +12,7 @@ import {
   type FuelPage,
 } from '../../data/apiCoverage';
 import { useDevMode } from '../dev/DevMode';
-import { ChevronDownIcon } from '../icons/Icons';
-import { Button, Popover, Switch } from '@er-mobility-mx/design-system';
+import { Accordion, Popover, Switch } from '@er-mobility-mx/design-system';
 import './ApiCoverage.css';
 
 /** Coverage aids only exist in dev mode; `showCoverage` switches the markers on the pages. */
@@ -106,10 +105,8 @@ const ORDER: ApiStatus[] = ['available', 'partial', 'unavailable'];
 /** Per-page summary of what the headless fuel API supports, with the switch for the inline markers. */
 export function ApiCoverageBanner({ page }: { page: FuelPage }) {
   const { visible, enabled, setEnabled } = useCoverage();
-  const [expanded, setExpanded] = useState(false);
   const capabilities = capabilitiesFor(page);
   const opportunities = apiOpportunities[page];
-  const detailId = useId();
 
   if (!visible) return null;
 
@@ -136,82 +133,82 @@ export function ApiCoverageBanner({ page }: { page: FuelPage }) {
           <div className="api-banner__switch">
             <Switch checked={enabled} label="Marcar en la página" onChange={setEnabled} />
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            aria-expanded={expanded}
-            aria-controls={detailId}
-            onClick={() => setExpanded((value) => !value)}
-          >
-            {expanded ? 'Ocultar detalle' : 'Ver detalle'}
-            <ChevronDownIcon width={14} height={14} className={expanded ? 'api-banner__chevron is-open' : 'api-banner__chevron'} />
-          </Button>
         </div>
       </div>
 
-      {expanded && (
-        <div className="api-banner__detail" id={detailId}>
-          <div className="api-banner__columns">
-            {ORDER.map((status) => {
-              const items = capabilities.filter((capability) => capability.status === status);
-              return (
-                <div key={status} className={`api-banner__column api-banner__column--${status}`}>
-                  <p className="api-banner__column-title">{API_STATUS_LABEL[status]}</p>
-                  <p className="api-banner__column-hint">{API_STATUS_HINT[status]}</p>
-                  {items.length === 0 ? (
-                    <p className="api-banner__none">Nada en esta página.</p>
-                  ) : (
-                    <ul>
-                      {items.map((capability) => (
-                        <li key={capability.id}>
-                          <strong>{capability.label}</strong>
-                          <span>{capability.note}</span>
-                          {capability.methods.length > 0 && (
-                            <span className="api-tag__methods">
-                              {capability.methods.map((method) => (
-                                <code key={method}>{method}</code>
+      <div className="api-banner__accordion">
+        <Accordion
+          items={[
+            {
+              id: 'coverage-detail',
+              title: 'Detalle de cobertura',
+              content: (
+                <div className="api-banner__detail">
+                  <div className="api-banner__columns">
+                    {ORDER.map((status) => {
+                      const items = capabilities.filter((capability) => capability.status === status);
+                      return (
+                        <div key={status} className={`api-banner__column api-banner__column--${status}`}>
+                          <p className="api-banner__column-title">{API_STATUS_LABEL[status]}</p>
+                          <p className="api-banner__column-hint">{API_STATUS_HINT[status]}</p>
+                          {items.length === 0 ? (
+                            <p className="api-banner__none">Nada en esta página.</p>
+                          ) : (
+                            <ul>
+                              {items.map((capability) => (
+                                <li key={capability.id}>
+                                  <strong>{capability.label}</strong>
+                                  <span>{capability.note}</span>
+                                  {capability.methods.length > 0 && (
+                                    <span className="api-tag__methods">
+                                      {capability.methods.map((method) => (
+                                        <code key={method}>{method}</code>
+                                      ))}
+                                    </span>
+                                  )}
+                                </li>
                               ))}
-                            </span>
+                            </ul>
                           )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
 
-          <div className="api-banner__extras">
-            {opportunities.length > 0 && (
-              <div>
-                <p className="api-banner__column-title">La API lo permite y el mockup aún no lo muestra</p>
-                <ul>
-                  {opportunities.map((item) => (
-                    <li key={item.label}>
-                      <strong>{item.label}</strong>
-                      <span>{item.note}</span>
-                      <span className="api-tag__methods">
-                        {item.methods.map((method) => (
-                          <code key={method}>{method}</code>
+                  <div className="api-banner__extras">
+                    {opportunities.length > 0 && (
+                      <div>
+                        <p className="api-banner__column-title">La API lo permite y el mockup aún no lo muestra</p>
+                        <ul>
+                          {opportunities.map((item) => (
+                            <li key={item.label}>
+                              <strong>{item.label}</strong>
+                              <span>{item.note}</span>
+                              <span className="api-tag__methods">
+                                {item.methods.map((method) => (
+                                  <code key={method}>{method}</code>
+                                ))}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <div>
+                      <p className="api-banner__column-title">Restricciones generales</p>
+                      <ul className="api-banner__constraints">
+                        {apiGeneralConstraints.map((constraint) => (
+                          <li key={constraint}>{constraint}</li>
                         ))}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <div>
-              <p className="api-banner__column-title">Restricciones generales</p>
-              <ul className="api-banner__constraints">
-                {apiGeneralConstraints.map((constraint) => (
-                  <li key={constraint}>{constraint}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ),
+            },
+          ]}
+        />
+      </div>
     </section>
   );
 }

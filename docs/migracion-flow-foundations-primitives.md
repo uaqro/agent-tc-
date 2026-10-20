@@ -350,7 +350,7 @@ por el manifiesto de Flow.
 | `Select` | estable | Filtros y opciones de formularios. | Adoptado; conserva selección de valores, filtros y callbacks. |
 | `Tooltip` | estable | Las gráficas tienen tooltip CSS con contenido y foco. | Adoptado en `ChartCard`; Flow administra hover/foco, relación accesible y posicionamiento adaptable. |
 | `Menu` | estable | Acciones del dashboard usan un menú contextual propio. | Adoptado en `ChartCard`; conserva los callbacks y alinea el menú a la derecha del trigger. |
-| `Accordion` | estable | Hay expansiones de detalle con botones locales. | Candidato solo donde el contenido tenga semántica de sección expandible. |
+| `Accordion` | estable | `ApiCoverageBanner` y `SimulationDialog` tienen contenido de detalle expandible; solicitudes y ajustes Dev abren diálogos, no disclosures. | Adoptado en cobertura API y simulación; contenido inicialmente cerrado y trigger/región accesibles generados por Flow. No aplica al botón «Ver más» de ActivitySection. |
 | `ChatComposer` / `ChatThread` | estable | TED tiene composer e hilo propios, con estados de pensamiento. | Oportunidad de mapeo; comparar contrato de envío, estados y contenido antes de reemplazar. |
 | `SegmentedControl` | estable | Hay tabs y grupos de selección segmentada, con semánticas diferentes. | No intercambiar por nombre; determinar si cada grupo cambia vista o selecciona valores. |
 | `FilterBar` / `ActiveFilters` | estable / n/a | Filtros están compuestos con layout y chips propios. | Evaluar por pantalla si simplifican filtros reales; `ActiveFilters` sin madurez web explícita queda fuera de adopción. |
