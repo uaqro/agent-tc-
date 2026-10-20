@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Button, SectionHeader, StatusPill } from '@er-mobility-mx/design-system';
+import { useId, useState } from 'react';
+import { Button, SectionHeader, StatusPill, TabPanel, Tabs } from '@er-mobility-mx/design-system';
 import type { FundingRule, Receipt, ReceiptKind } from '../../types/dispersion';
 import { CalendarIcon, ClockIcon, EyeIcon, PlayIcon } from '../icons/Icons';
 import { formatCount, formatDateLong, formatDateTime, formatMoney } from '../../utils/format';
@@ -38,6 +38,7 @@ export function ActivitySection({
   onRunPayment,
 }: ActivitySectionProps) {
   const [expanded, setExpanded] = useState(false);
+  const tabsId = useId();
   const visible = expanded ? receipts : receipts.slice(0, PAGE_SIZE);
 
   return (
@@ -48,26 +49,18 @@ export function ActivitySection({
           level={2}
           style={{ width: '100%' }}
           trailing={
-            <div className="activity__tabs" role="tablist">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeTab === 'history'}
-                className={activeTab === 'history' ? 'is-active' : ''}
-                onClick={() => onTabChange('history')}
-              >
-                Últimas dispersiones
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeTab === 'scheduled'}
-                className={activeTab === 'scheduled' ? 'is-active' : ''}
-                onClick={() => onTabChange('scheduled')}
-              >
-                Pagos programados ({scheduled.length})
-              </button>
-            </div>
+            <Tabs
+              id={tabsId}
+              items={[
+                { value: 'history', label: 'Últimas dispersiones' },
+                { value: 'scheduled', label: 'Pagos programados', count: scheduled.length },
+              ]}
+              value={activeTab}
+              onChange={(value) => {
+                if (value === 'history' || value === 'scheduled') onTabChange(value);
+              }}
+              ariaLabel="Actividad de dispersión"
+            />
           }
         >
           <span id="activity-title">
@@ -78,7 +71,8 @@ export function ActivitySection({
         </SectionHeader>
       </header>
 
-      <div className="activity__scroll">
+      <TabPanel tabsId={tabsId} value={activeTab} active>
+        <div className="activity__scroll">
         {activeTab === 'history' && receipts.length === 0 ? (
           <EmptyState
             icon={<ClockIcon width={22} height={22} />}
@@ -213,6 +207,7 @@ export function ActivitySection({
           </Button>
         )}
       </footer>
+      </TabPanel>
     </section>
   );
 }

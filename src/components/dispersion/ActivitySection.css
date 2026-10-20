@@ -16,27 +16,6 @@
   border-bottom: 1px solid var(--tc-local-border-subtle);
 }
 
-.activity__tabs {
-  display: inline-flex;
-  padding: 3px;
-  border-radius: var(--tc-local-radius-sm);
-  background: var(--tc-local-surface-sunken);
-}
-
-.activity__tabs button {
-  padding: 6px 12px;
-  border-radius: var(--tc-local-radius-sm);
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--tc-local-text-muted);
-}
-
-.activity__tabs button.is-active {
-  background: var(--tc-local-surface);
-  color: var(--tc-local-text-strong);
-  box-shadow: var(--tc-local-shadow-sm);
-}
-
 .activity__foot {
   display: flex;
   align-items: center;

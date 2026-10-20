@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button } from '@er-mobility-mx/design-system';
+import { Button, TabPanel, Tabs } from '@er-mobility-mx/design-system';
 import { AlertIcon, CheckCircleIcon, InfoIcon, SparklesIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import {
@@ -28,6 +28,8 @@ const SEVERITY_ICON: Record<Severity, typeof AlertIcon> = {
   info: InfoIcon,
   success: CheckCircleIcon,
 };
+
+const INSIGHTS_TABS_ID = 'insights-view-tabs';
 
 export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
   const [tab, setTab] = useState<'alerts' | 'insights'>('alerts');
@@ -71,29 +73,21 @@ export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
         </span>
       </div>
 
-      <div className="intel-tabs" role="tablist" aria-label="Vista">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'alerts'}
-          className={tab === 'alerts' ? 'is-active' : ''}
-          onClick={() => setTab('alerts')}
-        >
-          Alertas activas ({alerts.length})
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'insights'}
-          className={tab === 'insights' ? 'is-active' : ''}
-          onClick={() => setTab('insights')}
-        >
-          Insights de optimización ({optimizationInsights.length})
-        </button>
-      </div>
+      <Tabs
+        id={INSIGHTS_TABS_ID}
+        items={[
+          { value: 'alerts', label: `Alertas activas (${alerts.length})` },
+          { value: 'insights', label: `Insights de optimización (${optimizationInsights.length})` },
+        ]}
+        value={tab}
+        onChange={(value) => {
+          if (value === 'alerts' || value === 'insights') setTab(value);
+        }}
+        ariaLabel="Vista de inteligencia"
+      />
 
-      {tab === 'alerts' &&
-        (visible.length === 0 ? (
+      <TabPanel tabsId={INSIGHTS_TABS_ID} value="alerts" active={tab === 'alerts'}>
+        {visible.length === 0 ? (
           <EmptyState
             card
             icon={<CheckCircleIcon width={22} height={22} />}
@@ -146,9 +140,10 @@ export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
               );
             })}
           </ul>
-        ))}
+        )}
+      </TabPanel>
 
-      {tab === 'insights' && (
+      <TabPanel tabsId={INSIGHTS_TABS_ID} value="insights" active={tab === 'insights'}>
         <>
           <section className="insights__savings intel-card">
             <span className="intel-kpi__icon tone--green">
@@ -181,7 +176,7 @@ export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
             ))}
           </ul>
         </>
-      )}
+      </TabPanel>
     </div>
   );
 }

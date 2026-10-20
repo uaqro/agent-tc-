@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, StatusPill } from '@er-mobility-mx/design-system';
+import { Button, Input, StatusPill, TabPanel, Tabs } from '@er-mobility-mx/design-system';
 import { ServiceOrderDialog } from '../components/maintenance/ServiceOrderDialog';
 import { AlertIcon, CalendarIcon, GearIcon, PlusIcon, SearchIcon, WalletIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -33,6 +33,11 @@ const STATUS_TONE: Record<OrderStatus, 'info' | 'warning' | 'danger' | 'success'
 };
 
 const OPEN_STATUSES: OrderStatus[] = ['scheduled', 'in-shop', 'waiting-parts'];
+const MAINTENANCE_TABS_ID = 'maintenance-search-tabs';
+const MAINTENANCE_MODES = [
+  { value: 'orders', label: 'Órdenes' },
+  { value: 'vehicles', label: 'Vehículos' },
+];
 
 const vehicleOf = (id: string) => vehicles.find((vehicle) => vehicle.id === id);
 const detailOf = (id: string) => vehicleDetails.find((detail) => detail.vehicleId === id);
@@ -89,14 +94,16 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
     <div className="intel maintenance">
       <section className="maintenance__toolbar intel-card" aria-label="Consulta de mantenimiento">
         <div className="maintenance__search">
-          <div className="maintenance__modes" role="tablist" aria-label="Consultar por">
-            <button type="button" role="tab" aria-selected={mode === 'orders'} className={mode === 'orders' ? 'is-active' : ''} onClick={() => setMode('orders')}>
-              Órdenes
-            </button>
-            <button type="button" role="tab" aria-selected={mode === 'vehicles'} className={mode === 'vehicles' ? 'is-active' : ''} onClick={() => setMode('vehicles')}>
-              Vehículos
-            </button>
-          </div>
+          <Tabs
+            id={MAINTENANCE_TABS_ID}
+            items={MAINTENANCE_MODES}
+            value={mode}
+            onChange={(value) => {
+              if (value === 'orders' || value === 'vehicles') setMode(value);
+            }}
+            ariaLabel="Consultar por"
+            style={{ flexShrink: 0 }}
+          />
           <label className="maintenance__input">
             <SearchIcon width={16} height={16} />
             <Input
@@ -114,7 +121,7 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
         </Button>
       </section>
 
-      {needle && (
+      <TabPanel tabsId={MAINTENANCE_TABS_ID} value={mode} active>{needle && (
         <section className="maintenance__results intel-card" aria-live="polite" aria-label="Resultados de la consulta">
           <header className="maintenance__results-head">
             <h2>
@@ -183,6 +190,7 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
           )}
         </section>
       )}
+      </TabPanel>
 
       <section className="intel-kpis" aria-label="Indicadores de mantenimiento">
         <article className="intel-card intel-kpi">

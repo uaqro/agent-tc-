@@ -15,28 +15,6 @@
   min-width: 0;
 }
 
-.maintenance__modes {
-  display: inline-flex;
-  flex-shrink: 0;
-  padding: 3px;
-  border-radius: var(--tc-local-radius-sm);
-  background: var(--tc-local-surface-sunken);
-}
-
-.maintenance__modes button {
-  padding: 7px 14px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--tc-local-text-muted);
-}
-
-.maintenance__modes button.is-active {
-  background: var(--tc-local-surface);
-  color: var(--tc-local-text-strong);
-  box-shadow: var(--tc-local-shadow-sm);
-}
-
 .maintenance__input {
   display: flex;
   align-items: center;

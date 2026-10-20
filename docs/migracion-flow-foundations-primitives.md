@@ -61,8 +61,9 @@ no prescribe una conversión mecánica por nombre.
   Los roles de texto comprobados superan 4.5:1; `--flow-red-500` no lo supera
   para texto pequeño sobre blanco (3.99:1), por lo que la etiqueta usa
   `--flow-red-600` (6.68:1). No se activó modo oscuro.
-- Reportes ya usa `Tabs`/`TabPanel` de Flow con IDs enlazados, panel asociado y
-  navegación de flechas; sus filtros de periodo y grupo usan `Select` con
+- Reportes, Mantenimiento, ActivitySection, Insights y Optimizador usan
+  `Tabs`/`TabPanel` de Flow con IDs enlazados, panel asociado y navegación de
+  flechas; los filtros de Reportes usan `Select` con
   `insetLabel`. TopBar usa `Input` Flow para la búsqueda global y conserva el
   envío del formulario. La navegación de tabs, apertura/selección de opciones,
   filtro/limpieza y envío de búsqueda se verificaron en el navegador. Los
@@ -340,7 +341,7 @@ por el manifiesto de Flow.
 | `DatePicker` | beta | En uso en órdenes de servicio y reportes. | Mantener adopción; no hay input nativo `type="date"` pendiente. |
 | `DateRangePicker` | deprecado | Alias legado, no importado. | No adoptar; usar `DatePicker` con modo rango si se requiere. |
 | `InputAmount` | estable | En uso para importes monetarios. | Adoptado en formularios con currency/formatting. |
-| `Tabs` / `TabPanel` | estable | En uso en Reportes; hay tabs locales en Mantenimiento, TED, Insights y Optimizador. | No se asume migración total: revisar equivalencia de paneles, IDs y navegación por teclado por pantalla. |
+| `Tabs` / `TabPanel` | estable | En uso en Reportes, Mantenimiento, ActivitySection, Insights y Optimizador. | Adoptado en las cinco superficies identificadas; los paneles usan IDs asociados y conservan la navegación por teclado. |
 | `Dialog` | estable | El producto usa una composición propia con `OverlayShell`. | No duplicar la migración del shell; evaluar si su estructura/estilo satisface los diálogos antes de reemplazar la composición. |
 | `BottomSheet` / `Drawer` | estable | No hay flujo que requiera sheet móvil o drawer de detalle. | Sin reemplazo directo actual. |
 | `FileUpload` | estable | La carga masiva de dispersión usa el componente para seleccionar/soltar CSV único. | Adoptado con aceptación de CSV y error localizado por archivo rechazado; `FileReader`, parseo, plantilla y validación de filas permanecen propios del producto. |
@@ -626,7 +627,7 @@ denominador de primitives.
 | `Dialog` | Estable | Sin adopción directa; los diálogos del producto usan `Modal` con `OverlayShell`. | No duplicar la migración del shell; evaluar la composición antes de reemplazarla. |
 | `InputAmount` | Estable | `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/OverrideDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/toll/TollAmountDialog.tsx`, `components/toll/TollPolicyDialog.tsx`. | Adoptado; mantiene límites de moneda y formato vía la API publicada. |
 | `Select` | Estable | Formularios, filtros y páginas de Reportes, Flota, Medios de pago, Facturas, Usuarios y reglas. | Adoptado; no quedan elementos `<select>` nativos en TSX/JSX y `value`/`onChange(string)` siguen controlados. |
-| `Tabs` / `TabPanel` | Estable | `pages/ReportsPage.tsx`. | Adoptado en Reportes; revisar las otras tablists locales por pantalla antes de migrarlas. |
+| `Tabs` / `TabPanel` | Estable | `pages/ReportsPage.tsx`, `pages/MaintenancePage.tsx`, `components/dispersion/ActivitySection.tsx`, `pages/intelligence/InsightsPage.tsx` y `pages/intelligence/GasOptimizerPage.tsx`. | Adoptado en las cinco superficies identificadas; paneles asociados y navegación por teclado verificados. |
 
 Los usos existentes beta se conservan considerando su madurez publicada. La
 medición estática del estado actual encuentra cero
