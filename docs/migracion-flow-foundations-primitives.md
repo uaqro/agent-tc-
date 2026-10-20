@@ -77,7 +77,8 @@ no prescribe una conversión mecánica por nombre.
   y cadencia; los importes usan `InputAmount`. El tope en litros conserva el
   input nativo con `min=50` y `step=50`, porque `Input` no declara esos
   atributos en su API pública; `Field` Flow mantiene la asociación accesible.
-  La selección de unidades mediante checkboxes permanece sin migrar.
+  La selección individual de unidades usa `Checkbox` de Flow; las cantidades
+  de alcance y los resúmenes mantienen su cálculo actual.
 - El formulario de órdenes de servicio usa `Select`, `DatePicker` de fecha
   única y `Textarea` de Flow, asociados con `Field`. La fecha promesa conserva
   el límite mínimo de la fecha de ingreso; la validación previa al envío
