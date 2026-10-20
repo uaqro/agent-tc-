@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Input, Select } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import type { LimitPolicy, UnitAssignment } from '../../types/limits';
 import { PERIOD_META, assignableGroups, effectiveLimit, formatMeasure, usedInMeasure } from '../../data/limits';
@@ -29,6 +30,14 @@ export function AssignmentsTable({
 }: AssignmentsTableProps) {
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('');
+  const groupOptions = [
+    { value: '', label: 'Todos los grupos' },
+    ...assignableGroups.map((candidate) => ({ value: candidate.label, label: candidate.label })),
+  ];
+  const policyOptions = [
+    { value: '', label: 'Sin política' },
+    ...policies.map((candidate) => ({ value: candidate.id, label: candidate.name })),
+  ];
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -49,27 +58,29 @@ export function AssignmentsTable({
           <ApiTag id="lim-assignments" />
         </h2>
         <div className="assignments__filters">
-          <label className="assignments__search">
-            <SearchIcon width={15} height={15} />
-            <span className="visually-hidden">Buscar unidad</span>
-            <input
+          <div className="assignments__search">
+            <Input
+              id="assignments-search"
               type="search"
+              icon="search"
+              ariaLabel="Buscar unidad"
               value={query}
               placeholder="Placa, dispositivo o conductor"
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={setQuery}
             />
-          </label>
-          <label>
-            <span className="visually-hidden">Filtrar por grupo</span>
-            <select value={group} onChange={(event) => setGroup(event.target.value)}>
-              <option value="">Todos los grupos</option>
-              {assignableGroups.map((candidate) => (
-                <option key={candidate.id} value={candidate.label}>
-                  {candidate.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          </div>
+          <Select
+            id="assignments-group-filter"
+            options={groupOptions}
+            value={group}
+            aria-labelledby="assignments-group-filter-label"
+            onChange={(value) => {
+              if (groupOptions.some((option) => option.value === value)) setGroup(value);
+            }}
+          />
+          <span id="assignments-group-filter-label" className="visually-hidden">
+            Filtrar por grupo
+          </span>
         </div>
       </header>
 
@@ -102,24 +113,24 @@ export function AssignmentsTable({
               return (
                 <tr key={vehicle.id}>
                   <td>
-                    <strong className="assignments__plate">{vehicle.plate}</strong>
+                    <strong id={`assignment-vehicle-${vehicle.id}`} className="assignments__plate">
+                      {vehicle.plate}
+                    </strong>
                     <span className="assignments__sub">{vehicle.driver}</span>
                   </td>
                   <td>{vehicle.group}</td>
                   <td>
                     <div className="assignments__policy">
-                      <select
+                      <Select
+                        options={policyOptions}
                         value={assignment.policyId ?? ''}
-                        aria-label={`Política de ${vehicle.plate}`}
-                        onChange={(event) => onReassign(vehicle.id, event.target.value || null)}
-                      >
-                        <option value="">Sin política</option>
-                        {policies.map((candidate) => (
-                          <option key={candidate.id} value={candidate.id}>
-                            {candidate.name}
-                          </option>
-                        ))}
-                      </select>
+                        aria-labelledby={`assignment-vehicle-${vehicle.id}`}
+                        onChange={(value) => {
+                          if (policyOptions.some((option) => option.value === value)) {
+                            onReassign(vehicle.id, value || null);
+                          }
+                        }}
+                      />
                       {assignment.individual && <span className="chip chip--info">Individual</span>}
                       {!policy && <span className="chip chip--danger">Sin candados</span>}
                       {policy && !enforced && <span className="chip chip--paused">Pausada</span>}

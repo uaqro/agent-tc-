@@ -92,6 +92,10 @@ no prescribe una conversión mecánica por nombre.
   intervalo y estaciones. Se conservan inputs nativos para litros y horarios,
   que requieren `min`/`step` o `type="time"`; checkboxes y botones de
   combustible/días permanecen como controles propios.
+- La tabla de asignación de unidades usa `Input` y `Select` Flow para la
+  búsqueda, el filtro por grupo y la asignación de política. Se conservan los
+  filtros y la opción «Sin política»; el resto de controles de la tabla no
+  cambia.
 - Los diálogos de catálogos de parámetros usan `Input`, `Select` y `Field` Flow
   para metadatos, campos definidos por catálogo y registros. Se preservan las
   opciones de referencia activa, la opción opcional «Sin asignar» y las

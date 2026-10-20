@@ -30,40 +30,8 @@
 }
 
 .assignments__search {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 10px;
-  border: 1px solid var(--tc-local-border);
-  border-radius: var(--tc-local-radius-sm);
-  color: var(--tc-local-text-muted);
-}
-
-.assignments__search input {
   width: 220px;
   max-width: 100%;
-  height: 32px;
-  border: none;
-  outline: none;
-  background: none;
-  font-size: 13px;
-  color: var(--tc-local-text-strong);
-}
-
-.assignments__search:focus-within {
-  border-color: var(--tc-local-brand-blue);
-}
-
-.assignments select {
-  height: 34px;
-  max-width: 100%;
-  padding: 0 8px;
-  border: 1px solid var(--tc-local-border);
-  border-radius: var(--tc-local-radius-sm);
-  background: var(--tc-local-surface);
-  font: inherit;
-  font-size: 13px;
-  color: var(--tc-local-text-strong);
 }
 
 .assignments__scroll {
