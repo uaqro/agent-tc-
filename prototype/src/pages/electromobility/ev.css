@@ -1,0 +1,313 @@
+/* Shared bits of the Electromovilidad pages; the page layout comes from TablePage.css. */
+.ev__dd-sub {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.ev__hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.ev__body {
+  padding: 16px 18px 18px;
+}
+
+/* Concept strip on Resumen: how the product works, in three statements. */
+.ev-concepts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ev-concepts li {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+
+.ev-concepts strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13.5px;
+  color: var(--text-strong);
+}
+
+.ev-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.ev-grid--even {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Daily bars, drawn with plain boxes: one per day, height relative to the busiest day. */
+.ev-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 160px;
+  padding-top: 8px;
+}
+
+.ev-bars__bar {
+  flex: 1;
+  min-width: 0;
+  border-radius: 3px 3px 0 0;
+  background: var(--accent-blue);
+  opacity: 0.85;
+}
+
+.ev-bars__bar:hover {
+  opacity: 1;
+}
+
+.ev-bars__axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Share meter: a single track split in two. */
+.ev-split {
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-sunken);
+}
+
+.ev-split span:first-child {
+  background: var(--accent-blue);
+}
+
+.ev-split span:last-child {
+  background: var(--accent-green);
+}
+
+.ev-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.ev-legend li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ev-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 3px;
+}
+
+.ev-rank {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ev-rank li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  font-size: 13px;
+}
+
+.ev-rank__track {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.ev-rank__track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-purple);
+}
+
+/* Funding simulator */
+.ev-quote {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.ev-quote dt {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ev-quote dd {
+  margin: 0;
+  text-align: right;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-strong);
+}
+
+.ev-quote .ev-quote__total {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-weight: 700;
+}
+
+.ev-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+/* Authorization check list */
+.ev-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ev-checks li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 2px 8px;
+  font-size: 13px;
+}
+
+.ev-checks__mark {
+  grid-row: span 2;
+  font-weight: 700;
+  color: var(--accent-green);
+}
+
+.ev-checks li.is-failed .ev-checks__mark {
+  color: var(--brand-red);
+}
+
+.ev-checks__detail {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ev-verdict {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  background: #e6f4ec;
+  color: var(--accent-green);
+}
+
+.ev-verdict.is-denied {
+  background: var(--brand-red-tint);
+  color: var(--brand-red);
+}
+
+.ev-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ev-tags span {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  font-size: 11.5px;
+  color: var(--text-body);
+  white-space: nowrap;
+}
+
+/* Charger request pipeline: one segment per stage. */
+.ev-pipeline {
+  display: flex;
+  gap: 3px;
+  width: 180px;
+  max-width: 100%;
+  margin-bottom: 5px;
+}
+
+.ev-pipeline span {
+  flex: 1;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--surface-sunken);
+}
+
+.ev-pipeline span.is-done {
+  background: var(--accent-green);
+}
+
+.ev-pipeline--stopped span.is-done {
+  background: var(--text-muted);
+}
+
+.ev-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.table-page__table select.ev-inline-select {
+  height: 30px;
+  max-width: 200px;
+  padding: 0 8px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 12.5px;
+  color: var(--text-strong);
+}
+
+@media (max-width: 1100px) {
+  .ev-grid,
+  .ev-grid--even {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .ev-concepts,
+  .ev-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { MenuGroup, MenuIconName } from '../../types';
 import {
+  BoltIcon,
   CardIcon,
   ChartBarIcon,
   ChatIcon,
@@ -11,6 +12,7 @@ import {
   LayoutIcon,
   LeafIcon,
   LockIcon,
+  MapPinIcon,
   PinIcon,
   SearchIcon,
   SparklesIcon,
@@ -45,6 +47,8 @@ const ICONS: Record<MenuIconName, typeof ChartBarIcon> = {
   receipt: ReceiptIcon,
   users: UsersIcon,
   code: CodeIcon,
+  bolt: BoltIcon,
+  pin: MapPinIcon,
 };
 
 interface SideMenuProps {

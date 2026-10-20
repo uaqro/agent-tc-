@@ -45,6 +45,12 @@ export type AppRoute =
   | 'toll-balances'
   | 'toll-rules'
   | 'toll-media'
+  | 'ev-summary'
+  | 'ev-account'
+  | 'ev-charging'
+  | 'ev-policies'
+  | 'ev-chargers'
+  | 'ev-fleet'
   | 'vehicles'
   | 'drivers'
   | 'insights'
@@ -70,7 +76,9 @@ export type MenuIconName =
   | 'sliders'
   | 'receipt'
   | 'users'
-  | 'code';
+  | 'code'
+  | 'bolt'
+  | 'pin';
 
 export interface MenuItem {
   id: string;
