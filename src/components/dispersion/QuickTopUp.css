@@ -74,9 +74,7 @@
 }
 
 .quick__results {
-  list-style: none;
   margin: 6px 0 0;
-  padding: 6px;
   border: 1px solid var(--tc-local-border);
   border-radius: var(--tc-local-radius-md);
   background: var(--tc-local-surface);

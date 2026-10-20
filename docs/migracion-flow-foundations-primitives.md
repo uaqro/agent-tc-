@@ -174,13 +174,13 @@ razón para adoptarlo, evaluarlo después o no incorporarlo.
 | `IconButton` | estable | Acciones solo-icono de barra, gráficas y controles flotantes. | En uso; nombre accesible y tamaño se declaran explícitamente. |
 | `InlineCode` | estable | IDs y métodos de API se presentan con `<code>`. | Oportunidad pequeña para identificadores inline; no usar en bloques de código ni texto normal. |
 | `Input` | beta | Búsquedas y campos de texto simples migrados. | En uso deliberado; se mantienen nativos los campos que requieren atributos no publicados o ARIA especializado. |
-| `LimitBar` | estable | Barras de uso de presupuesto/consumo hechas localmente. | Candidato directo para barras con current/max; validar límites, semántica y tonos de estado. |
-| `Listbox` | beta | `QuickTopUp` implementa un combobox/listbox de vehículos. | Oportunidad concreta, pero requiere verificar integración con `Input`, navegación actual y ARIA antes de reemplazar su implementación. |
+| `LimitBar` | estable | La tabla de políticas de peaje muestra gasto frente al tope con umbrales locales de aviso al 75% y peligro al 90%. | No adoptar en ese caso: la API solo cambia el estado al cruzar 100%, no representa los umbrales operativos actuales ni expone semántica accesible de progreso. Mantener la barra etiquetada hasta que Flow soporte ese contrato. |
+| `Listbox` | beta | `QuickTopUp` usa `Listbox` para renderizar las opciones del combobox de vehículos. | Adoptado como lista de opciones controlada; se conservan el filtro por placa/dispositivo/conductor, la navegación desde el input, la selección y las clases visuales de resultado. |
 | `OverlayScope` | beta | La app corre como pantalla completa, no como superficie embebida. | Sin necesidad actual; sirve para contener overlays dentro de un marco anfitrión embebido. |
 | `OverlayShell` | estable | Base del `Modal` compartido por 13 diálogos. | En uso; el shell se delega a Flow y el contenido/presentación sigue siendo del producto. |
 | `PageFrame` | deprecado | No importado. | No adoptar; el manifiesto indica que se retira en 4.0. |
 | `Popover` | beta | Hay paneles propios de solicitudes, Dev y menús/ayudas de gráfica. | Candidato por superficie flotante; migrar por caso después de comprobar anclaje, cierre, foco, clipping y estilos del producto. |
-| `Progress` | estable | Algunos indicadores de avance/uso se dibujan con barras CSS. | Evaluar junto con `LimitBar`; elegir por contrato (progreso general frente a límite current/max), no sustituir por nombre. |
+| `Progress` | estable | No hay progreso general de tarea o carga; el único medidor con cifras es gasto contra límite. | No adoptar: no hay un caso de progreso genérico y no cubre los umbrales semánticos del medidor de peaje. |
 | `Radio` | estable | Selección de rol en invitaciones. | En uso; se conserva la descripción de las opciones y la validación del grupo. |
 | `ScaleLegend` | estable | No se encontró leyenda de escala continua. | Sin caso actual; no equivale a leyendas categóricas de gráficas. |
 | `SectionBar` | estable | Secciones combinan título, filtros y tabs en layouts propios. | Evaluar si aparece un patrón sticky coincidente; no es sustituto general de encabezados de sección. |
@@ -254,10 +254,20 @@ del mismo manifiesto web.
 
 Este inventario prioriza encontrar la cobertura que falta, no maximizar el
 número de imports de Flow. Los siguientes candidatos para evaluar son
-`Listbox`, `LimitBar`/`Progress`,
 `Tooltip`/`Menu` y componentes de TED, uno por uno y contra sus contratos
 públicos y madurez; no se inicia la migración de tabs como bloque hasta
 terminar esa evaluación.
+
+### Adopción de Listbox y evaluación de barras de uso
+
+- `QuickTopUp` conserva su input de búsqueda porque el usuario filtra por placa,
+  dispositivo, conductor y grupo. `Listbox` reemplaza la estructura manual de
+  opciones y expone IDs estables, estado activo controlado y selección ARIA; el
+  input conserva el contrato de combobox y sus flechas/Enter/Escape existentes.
+- No se migra la barra de gasto de peaje a `LimitBar` ni a `Progress`: el
+  producto usa estados en 75% y 90%, mientras que `LimitBar` solo marca
+  sobrepaso al 100% y `Progress` no ofrece umbrales. Mantener la señal actual
+  evita degradar la anticipación de riesgo.
 
 ## Cómo leer la matriz
 
