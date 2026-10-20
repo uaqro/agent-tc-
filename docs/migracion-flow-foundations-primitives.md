@@ -142,6 +142,12 @@ siguen siendo beta y no se consideran una aprobación para reemplazo mecánico.
   conserva la separación de 8 px y `wrap` mantiene el salto de línea en
   ventanas estrechas. Se deja el resto de layouts flex/grid en CSS hasta
   evaluar cada composición y sus gaps; el conteo bruto no determina adopciones.
+- `Popover` reemplaza el panel flotante propio de `ApiTag`, el marcador
+  compartido de cobertura API. Flow ahora administra portal, anclaje inferior,
+  colisión con viewport, reposicionamiento en scroll/resize, cierre por clic
+  exterior/Escape y retorno del foco. Se conserva el trigger con estado API,
+  el nombre accesible, el detalle de cada capacidad y su piel local mediante
+  `surface="none"`; no se migran paneles que son diálogos.
 - El contenedor compartido de los 13 diálogos usa ahora `OverlayShell` de Flow.
   Se conservan el encabezado, subtítulo, pie, tamaños y contenido propios del
   producto; el shell aporta portal, bloqueo/restauración del scroll, cierre
@@ -180,7 +186,7 @@ cercana y la razón para adoptarlo, evaluarlo después o no incorporarlo.
 Con un criterio de caso de uso concreto (la app ya consume el primitive o
 tiene una función equivalente que merece una evaluación, aunque la API actual
 no cubra todos sus requisitos), **30 de los 55 primitives** tienen relación
-aplicable: 17 ya se consumen y 13 son candidatos aún no adoptados. Los 25
+aplicable: 18 ya se consumen y 12 son candidatos aún no adoptados. Los 25
 restantes no tienen un caso actual identificado. `Toast` se cuenta entre los
 adoptados porque `ToastHost` lo compone en la experiencia de avisos, aunque la
 app importa directamente el host y no `Toast`. Esta cifra no obliga a migrar
@@ -218,7 +224,7 @@ representa los umbrales operativos que exige el producto.
 | `OverlayScope` | beta | La app corre como pantalla completa, no como superficie embebida. | Sin necesidad actual; sirve para contener overlays dentro de un marco anfitrión embebido. |
 | `OverlayShell` | estable | Base del `Modal` compartido por 13 diálogos. | En uso; el shell se delega a Flow y el contenido/presentación sigue siendo del producto. |
 | `PageFrame` | deprecado | No importado. | No adoptar; el manifiesto indica que se retira en 4.0. |
-| `Popover` | beta | Hay 43 apariciones de `ApiTag` en 14 módulos TSX; cada tag abre el detalle de integración con popover propio. Además, hay dos paneles locales de mayor tamaño con semántica de diálogo. | Alta reutilización potencial al migrar la implementación compartida de `ApiTag`; verificar anclaje, cierre, foco, clipping y diferenciar diálogos de popovers. |
+| `Popover` | beta | `components/api/ApiCoverage.tsx` lo usa en el `ApiTag` compartido por 43 apariciones en 14 módulos TSX. | Adoptado en el detalle flotante API; Flow administra portal, posicionamiento, colisión, cierre y retorno del foco. Se conservan apariencia y contenido de producto. Los dos paneles de solicitudes/Dev son diálogos y no se migran como popovers. |
 | `Progress` | estable | No hay progreso general de tarea o carga; el único medidor con cifras es gasto contra límite. | No adoptar: no hay un caso de progreso genérico y no cubre los umbrales semánticos del medidor de peaje. |
 | `Radio` | estable | Selección de rol en invitaciones. | En uso; se conserva la descripción de las opciones y la validación del grupo. |
 | `ScaleLegend` | estable | No se encontró leyenda de escala continua. | Sin caso actual; no equivale a leyendas categóricas de gráficas. |
@@ -245,7 +251,7 @@ representa los umbrales operativos que exige el producto.
 | `NavCard` | estable | No hay navegación entre páginas con tarjeta prev/next. | Sin caso actual; el menú lateral y breadcrumbs cubren otras tareas. |
 | `TextAction` | beta | No se identificó una acción textual compacta con contrato coincidente en encabezados. | Evaluar solo donde una acción de baja jerarquía deba compartir el patrón; no es reemplazo universal de `Button`. |
 
-### Orden de prioridad e impacto de los 13 candidatos restantes
+### Orden de prioridad e impacto de los 12 candidatos restantes
 
 La prioridad combina alcance potencial en la app, centralidad del punto de
 cambio, valor de producto y viabilidad del contrato de Flow. No es un conteo de
@@ -255,26 +261,26 @@ investigar, no instancias equivalentes.
 
 | Prioridad | Primitive | Evidencia de uso | Impacto potencial | Acción y condición |
 |---:|---|---|---|---|
-| 1 | `Popover` | 43 apariciones de `ApiTag` en 14 módulos usan el mismo detalle flotante local. | Muy alto: un cambio en el wrapper compartido alcanza muchos contextos. | Migrar primero el detalle compartido de `ApiTag`; verificar anclaje, cierre, foco, clipping y contenido. No convertir los paneles de solicitudes/Dev, que tienen semántica de diálogo. |
-| 2 | `EmptyState` | 24 usos en 17 módulos consumidores. | Muy alto: patrón repetido y punto de integración central. | Evaluar el wrapper local contra acciones, variantes `card`/`compact` y densidad; migrar por lotes si el contrato coincide. |
-| 3 | `DetailRow` | 63 pares `<dt>/<dd>` distribuidos en 16 grupos `<dl>` y 15 módulos. | Alto: amplia presencia en detalles de producto. | Auditar por composición; empezar con pares de detalle simples y preservar la semántica `<dl>`. Excluir resúmenes KPI y estructuras que no sean filas de detalle. |
-| 4 | `Chip` | 9 etiquetas explícitas en 8 módulos, además de un grupo de filtros seleccionable en Insights. | Medio-alto: reutilización entre clasificación y filtros. | Pilotear etiquetas informativas y selección/remoción solo donde coincidan; excluir estados ya resueltos por `StatusPill`. |
-| 5 | `ChipGroup` | 6 grupos locales en 5 módulos. | Medio-alto: multiplica el alcance de una adopción correcta de `Chip`. | Evaluar en conjunto con `Chip`; comprobar si cada grupo es selección de chips o si requiere un control segmentado. |
-| 6 | `Badge` | 6 salidas de contador en 4 contextos. | Medio: alcance acotado pero fácil de reconocer y probar. | Migrar solo contadores; mantener separados estados y clasificaciones. |
-| 7 | `FlowChart` | 2 gráficas locales (barras y línea) en Dashboard. | Alto valor visual, baja extensión. | Hacer prueba de equivalencia con datos, tooltips, interacción, accesibilidad y salida antes de sustituir las gráficas locales. |
-| 8 | `ChartLegend` | 2 leyendas, una en cada gráfica de Dashboard. | Medio: pequeño en número, visible en una superficie principal. | Evaluar en el mismo piloto que `FlowChart`; comprobar categorías, valores, colores y densidad. |
-| 9 | `ChatMessage` | Una plantilla de render en TED; la lista de mensajes crece en runtime. | Medio y localizado: depende del uso de la conversación. | Comparar autor, estados y contenido enriquecido; medir la lista dinámica, no solo el sitio JSX. |
-| 10 | `InlineCode` | 5 sitios JSX `<code>` en 2 módulos de integración/API. | Bajo en alcance, con impacto localizado. | Adopción pequeña para identificadores y métodos inline; no aplicar a bloques de código. |
-| 11 | `LimitBar` | Un medidor de gasto frente a límite en políticas de peaje. | Alto para esa regla, pero el contrato actual no cubre el comportamiento requerido. | Bloqueado: no migrar hasta poder representar umbrales 75%/90% y conservar la semántica accesible. |
-| 12 | `Divider` | Cero separadores semánticos `<hr>`; los 41 bordes encontrados son mayormente decorativos. | Sin impacto de migración demostrado hoy. | No convertir bordes decorativos en separadores; reevaluar cuando exista una división semántica real. |
-| 13 | `SectionBar` | No hay barra sticky de sección equivalente; los 3 casos `sticky` son navegación o encabezado de tabla. | Sin impacto de migración demostrado hoy. | No adoptar por compartir el concepto de encabezado; esperar una superficie que coincida con el contrato sticky. |
+| 1 | `EmptyState` | 24 usos en 17 módulos consumidores. | Muy alto: patrón repetido y punto de integración central. | Evaluar el wrapper local contra acciones, variantes `card`/`compact` y densidad; migrar por lotes si el contrato coincide. |
+| 2 | `DetailRow` | 63 pares `<dt>/<dd>` distribuidos en 16 grupos `<dl>` y 15 módulos. | Alto: amplia presencia en detalles de producto. | Auditar por composición; empezar con pares de detalle simples y preservar la semántica `<dl>`. Excluir resúmenes KPI y estructuras que no sean filas de detalle. |
+| 3 | `Chip` | 9 etiquetas explícitas en 8 módulos, además de un grupo de filtros seleccionable en Insights. | Medio-alto: reutilización entre clasificación y filtros. | Pilotear etiquetas informativas y selección/remoción solo donde coincidan; excluir estados ya resueltos por `StatusPill`. |
+| 4 | `ChipGroup` | 6 grupos locales en 5 módulos. | Medio-alto: multiplica el alcance de una adopción correcta de `Chip`. | Evaluar en conjunto con `Chip`; comprobar si cada grupo es selección de chips o si requiere un control segmentado. |
+| 5 | `Badge` | 6 salidas de contador en 4 contextos. | Medio: alcance acotado pero fácil de reconocer y probar. | Migrar solo contadores; mantener separados estados y clasificaciones. |
+| 6 | `FlowChart` | 2 gráficas locales (barras y línea) en Dashboard. | Alto valor visual, baja extensión. | Hacer prueba de equivalencia con datos, tooltips, interacción, accesibilidad y salida antes de sustituir las gráficas locales. |
+| 7 | `ChartLegend` | 2 leyendas, una en cada gráfica de Dashboard. | Medio: pequeño en número, visible en una superficie principal. | Evaluar en el mismo piloto que `FlowChart`; comprobar categorías, valores, colores y densidad. |
+| 8 | `ChatMessage` | Una plantilla de render en TED; la lista de mensajes crece en runtime. | Medio y localizado: depende del uso de la conversación. | Comparar autor, estados y contenido enriquecido; medir la lista dinámica, no solo el sitio JSX. |
+| 9 | `InlineCode` | 5 sitios JSX `<code>` en 2 módulos de integración/API. | Bajo en alcance, con impacto localizado. | Adopción pequeña para identificadores y métodos inline; no aplicar a bloques de código. |
+| 10 | `LimitBar` | Un medidor de gasto frente a límite en políticas de peaje. | Alto para esa regla, pero el contrato actual no cubre el comportamiento requerido. | Bloqueado: no migrar hasta poder representar umbrales 75%/90% y conservar la semántica accesible. |
+| 11 | `Divider` | Cero separadores semánticos `<hr>`; los 41 bordes encontrados son mayormente decorativos. | Sin impacto de migración demostrado hoy. | No convertir bordes decorativos en separadores; reevaluar cuando exista una división semántica real. |
+| 12 | `SectionBar` | No hay barra sticky de sección equivalente; los 3 casos `sticky` son navegación o encabezado de tabla. | Sin impacto de migración demostrado hoy. | No adoptar por compartir el concepto de encabezado; esperar una superficie que coincida con el contrato sticky. |
 
-**Siguiente lote para escalar:** comenzar por el punto compartido de `ApiTag`
-(`Popover`) y el wrapper de `EmptyState`; después abordar `DetailRow` mediante
-un inventario de sus 15 módulos y un primer grupo homogéneo. Seguir ampliando
-`Stack` desde el piloto, y evaluar `Chip`/`ChipGroup` en conjunto. Mantener
-`FlowChart`/`ChartLegend` como un piloto acotado y no avanzar con `LimitBar`,
-`Divider` o `SectionBar` sin resolver primero sus brechas de contrato.
+**Siguiente lote para escalar:** evaluar el wrapper local de `EmptyState` en
+sus 17 módulos y definir un contrato de migración que preserve variantes y
+acciones; después abordar `DetailRow` mediante un inventario de sus módulos y
+un primer grupo homogéneo. Seguir ampliando `Stack` desde el piloto, y evaluar
+`Chip`/`ChipGroup` en conjunto. Mantener `FlowChart`/`ChartLegend` como un
+piloto acotado y no avanzar con `LimitBar`, `Divider` o `SectionBar` sin
+resolver primero sus brechas de contrato.
 
 ### Componentes y patterns: catálogo fuera de primitives
 
@@ -396,6 +402,18 @@ terminar esa evaluación.
 - Se mantienen los labels accesibles de los dos triggers y la alineación del
   menú al borde derecho de la tarjeta. No se migra otra superficie: estos son
   los únicos tooltip y menú contextuales propios identificados en el producto.
+
+### Adopción de Popover en ApiTag
+
+- El detalle de integración de `ApiTag` usa `Popover` de Flow en las 43
+  apariciones del marcador compartido. Se conserva el trigger inline propio y
+  se pasa como ancla externa (`anchorRef`) para que el wrapper de layout de
+  Flow no rompa los contextos existentes dentro de headings y texto.
+- Flow administra el portal, la colisión/reposicionamiento y el cierre por
+  clic exterior o Escape; el foco regresa al trigger al cerrar. La superficie
+  interna mantiene las clases visuales y los datos de estado, nota y métodos.
+- Los paneles de solicitudes/Dev son diálogos de producto, no popovers, y
+  quedan fuera de esta migración.
 
 ## Cómo leer la matriz
 

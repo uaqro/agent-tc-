@@ -64,12 +64,10 @@
 }
 
 .api-tag__popover {
-  position: fixed;
-  z-index: 60;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-width: calc(100vw - 32px);
+  width: min(320px, calc(100vw - 32px));
   padding: 12px 14px;
   background: var(--tc-local-surface);
   border: 1px solid var(--tc-local-border);

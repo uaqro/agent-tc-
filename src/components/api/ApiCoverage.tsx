@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import {
   API_NAME,
   API_STATUS_HINT,
@@ -13,7 +13,7 @@ import {
 } from '../../data/apiCoverage';
 import { useDevMode } from '../dev/DevMode';
 import { ChevronDownIcon } from '../icons/Icons';
-import { Button, Switch } from '@er-mobility-mx/design-system';
+import { Button, Popover, Switch } from '@er-mobility-mx/design-system';
 import './ApiCoverage.css';
 
 /** Coverage aids only exist in dev mode; `showCoverage` switches the markers on the pages. */
@@ -21,8 +21,6 @@ const useCoverage = () => {
   const { devMode, showCoverage, update } = useDevMode();
   return { visible: devMode, enabled: devMode && showCoverage, setEnabled: (value: boolean) => update({ showCoverage: value }) };
 };
-
-const POPOVER_WIDTH = 320;
 
 const STATUS_SHORT: Record<ApiStatus, string> = {
   available: 'API',
@@ -34,63 +32,39 @@ const STATUS_SHORT: Record<ApiStatus, string> = {
 export function ApiTag({ id }: { id: string }) {
   const { enabled } = useCoverage();
   const capability = capabilityById(id);
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
-  const ref = useRef<HTMLSpanElement>(null);
+  const [open, setOpen] = useState(false);
   const popoverId = useId();
-  const open = position !== null;
-  const setOpen = (next: boolean) => {
-    const rect = ref.current?.getBoundingClientRect();
-    // Fixed so cards and table scrollers with `overflow: hidden` don't clip it.
-    setPosition(next && rect ? { top: rect.bottom + 6, left: Math.max(16, Math.min(rect.left, window.innerWidth - POPOVER_WIDTH - 16)) } : null);
-  };
-
-  useEffect(() => {
-    if (!open) return;
-    const close = () => setPosition(null);
-    const handlePointerDown = (event: MouseEvent) => {
-      if (!ref.current?.contains(event.target as Node)) close();
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
-    };
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('scroll', close, true);
-    window.addEventListener('resize', close);
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('scroll', close, true);
-      window.removeEventListener('resize', close);
-    };
-  }, [open]);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   if (!enabled || !capability) return null;
 
   return (
-    <span className="api-tag" ref={ref}>
+    <span className="api-tag">
       <button
+        ref={triggerRef}
         type="button"
         className={`api-tag__pill api-tag__pill--${capability.status}`}
+        aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={popoverId}
         onClick={(event) => {
           event.stopPropagation();
-          setOpen(!open);
+          setOpen((value) => !value);
         }}
       >
         <span className="api-tag__dot" aria-hidden="true" />
         {STATUS_SHORT[capability.status]}
         <span className="visually-hidden">: {capability.label}. Ver detalle de la integración</span>
       </button>
-      {open && (
-        <span
-          className="api-tag__popover"
-          id={popoverId}
-          role="dialog"
-          aria-label={`Integración: ${capability.label}`}
-          style={{ top: position.top, left: position.left, width: POPOVER_WIDTH }}
-        >
+      <Popover
+        placement="bottom-start"
+        anchorRef={triggerRef}
+        returnFocusRef={triggerRef}
+        surface="none"
+        open={open}
+        onOpenChange={setOpen}
+      >
+        <div className="api-tag__popover" id={popoverId} role="dialog" aria-label={`Integración: ${capability.label}`}>
           <span className={`api-tag__status api-tag__status--${capability.status}`}>{API_STATUS_LABEL[capability.status]}</span>
           <strong className="api-tag__title">{capability.label}</strong>
           <span className="api-tag__note">{capability.note}</span>
@@ -103,8 +77,8 @@ export function ApiTag({ id }: { id: string }) {
           ) : (
             <span className="api-tag__no-method">Sin método en {API_NAME}</span>
           )}
-        </span>
-      )}
+        </div>
+      </Popover>
     </span>
   );
 }
