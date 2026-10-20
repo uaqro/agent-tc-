@@ -63,8 +63,8 @@ const ROUTES: Record<AppRoute, { menuItem: string; section: string; title: strin
   'station-networks': {
     menuItem: 'red-estaciones',
     section: 'Combustible',
-    title: 'Red de estaciones personalizadas',
-    subtitle: 'Redes de estaciones permitidas o no permitidas para las restricciones de tus políticas de uso',
+    title: 'Red de estaciones',
+    subtitle: 'Consulta estaciones afiliadas y administra tus redes personalizadas',
   },
   'toll-balances': {
     menuItem: 'peaje-saldos',
