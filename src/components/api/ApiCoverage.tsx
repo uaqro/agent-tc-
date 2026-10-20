@@ -12,7 +12,7 @@ import {
   type FuelPage,
 } from '../../data/apiCoverage';
 import { useDevMode } from '../dev/DevMode';
-import { Accordion, Popover, Switch } from '@er-mobility-mx/design-system';
+import { Accordion, Badge, Popover, Switch } from '@er-mobility-mx/design-system';
 import './ApiCoverage.css';
 
 /** Coverage aids only exist in dev mode; `showCoverage` switches the markers on the pages. */
@@ -25,6 +25,12 @@ const STATUS_SHORT: Record<ApiStatus, string> = {
   available: 'API',
   partial: 'API parcial',
   unavailable: 'Sin API',
+};
+
+const STATUS_TONE: Record<ApiStatus, 'success' | 'warning' | 'danger'> = {
+  available: 'success',
+  partial: 'warning',
+  unavailable: 'danger',
 };
 
 /** Inline marker next to a feature; hidden unless the highlight switch is on. */
@@ -42,7 +48,7 @@ export function ApiTag({ id }: { id: string }) {
       <button
         ref={triggerRef}
         type="button"
-        className={`api-tag__pill api-tag__pill--${capability.status}`}
+        className="api-tag__trigger"
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={popoverId}
@@ -51,8 +57,9 @@ export function ApiTag({ id }: { id: string }) {
           setOpen((value) => !value);
         }}
       >
-        <span className="api-tag__dot" aria-hidden="true" />
-        {STATUS_SHORT[capability.status]}
+        <Badge tone={STATUS_TONE[capability.status]} live style={{ border: '1px dashed currentColor', fontSize: 11, fontWeight: 700, padding: '2px 8px' }}>
+          {STATUS_SHORT[capability.status]}
+        </Badge>
         <span className="visually-hidden">: {capability.label}. Ver detalle de la integración</span>
       </button>
       <Popover
@@ -64,7 +71,7 @@ export function ApiTag({ id }: { id: string }) {
         onOpenChange={setOpen}
       >
         <div className="api-tag__popover" id={popoverId} role="dialog" aria-label={`Integración: ${capability.label}`}>
-          <span className={`api-tag__status api-tag__status--${capability.status}`}>{API_STATUS_LABEL[capability.status]}</span>
+          <Badge tone={STATUS_TONE[capability.status]}>{API_STATUS_LABEL[capability.status]}</Badge>
           <strong className="api-tag__title">{capability.label}</strong>
           <span className="api-tag__note">{capability.note}</span>
           {capability.methods.length > 0 ? (
@@ -122,8 +129,11 @@ export function ApiCoverageBanner({ page }: { page: FuelPage }) {
             {ORDER.map((status) => {
               const count = capabilities.filter((capability) => capability.status === status).length;
               return (
-                <li key={status} className={`api-banner__count api-banner__count--${status}`}>
-                  <strong>{count}</strong> {count === 1 ? COUNT_LABEL[status][0] : COUNT_LABEL[status][1]}
+                <li key={status}>
+                  <Badge tone={status === 'available' ? 'success' : status === 'partial' ? 'warning' : 'danger'}>
+                    {count}
+                  </Badge>
+                  {count === 1 ? COUNT_LABEL[status][0] : COUNT_LABEL[status][1]}
                 </li>
               );
             })}

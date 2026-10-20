@@ -108,7 +108,7 @@ export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
         {rows.length === 0 ? (
           <EmptyState
             compact
-            icon={<SearchIcon width={20} height={20} />}
+            icon="search"
             title="Ningún conductor coincide con los filtros"
             description="Revisa el nombre o el número de empleado, o cambia el grupo seleccionado."
             actions={

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button, Select, StatusPill } from '@er-mobility-mx/design-system';
-import { PauseIcon, PlayIcon, PlusIcon, RuleIcon } from '../../components/icons/Icons';
+import { PauseIcon, PlayIcon, PlusIcon } from '../../components/icons/Icons';
 import { TollPolicyDialog } from '../../components/toll/TollPolicyDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { fleetVehicles as vehicles } from '../../data/dispersion';
@@ -141,7 +141,7 @@ export function TollRulesPage({ onNotice, readOnly = false }: TollRulesPageProps
         {policies.length === 0 && (
           <EmptyState
             card
-            icon={<RuleIcon width={22} height={22} />}
+            icon="rule"
             title="Aún no hay políticas de peaje"
             description="Sin políticas, los TAGs cruzan cualquier caseta sin límite. Crea una para fijar gasto, cruces, autopistas y horarios de cada grupo."
           />

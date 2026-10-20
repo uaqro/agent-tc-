@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, StatusPill, Switch } from '@er-mobility-mx/design-system';
+import { Badge, Button, Input, StatusPill, Switch } from '@er-mobility-mx/design-system';
 import { ParameterCatalogDialog } from '../../components/company/ParameterCatalogDialog';
 import { ParameterRecordDialog } from '../../components/company/ParameterRecordDialog';
 import { ApiCoverageBanner, ApiTag } from '../../components/api/ApiCoverage';
@@ -126,7 +126,7 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
                     {candidate.label}
                     {candidate.custom && <small>Personalizado</small>}
                   </span>
-                  <span className="parameters__count">{candidate.records.filter((record) => record.active).length}</span>
+                  <Badge>{candidate.records.filter((record) => record.active).length}</Badge>
                 </button>
               </li>
             ))}
@@ -189,7 +189,7 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
 
           {catalog.records.length === 0 ? (
             <EmptyState
-              icon={<PlusIcon width={20} height={20} />}
+              icon="add"
               title={`${catalog.label} aún no tiene registros`}
               description="Agrega el primero; después podrás usarlo como referencia en otros catálogos."
               actions={
@@ -201,7 +201,7 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
           ) : rows.length === 0 ? (
             <EmptyState
               compact
-              icon={<SearchIcon width={20} height={20} />}
+              icon="search"
               title="Ningún registro coincide"
               description="Prueba con otro texto o incluye los registros inactivos."
               actions={

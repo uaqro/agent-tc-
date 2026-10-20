@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
-import { CardIcon, PlusIcon, SearchIcon } from '../components/icons/Icons';
+import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
 import { DevNote } from '../components/dev/DevNote';
@@ -142,7 +142,7 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
         {rows.length === 0 ? (
           <EmptyState
             compact
-            icon={<CardIcon width={20} height={20} />}
+            icon="credit_card"
             title={media.length === 0 ? 'Aún no tienes medios de pago' : 'Ningún medio de pago coincide con los filtros'}
             description="Revisa el número, la placa o el conductor, o cambia el tipo y el estado seleccionados."
             actions={

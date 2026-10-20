@@ -1,9 +1,15 @@
-import { Accordion, Button } from '@er-mobility-mx/design-system';
+import { Accordion, Button, DetailRow } from '@er-mobility-mx/design-system';
+import type { CSSProperties } from 'react';
 import type { RunSimulation } from '../../types/dispersion';
 import { Modal } from '../ui/Modal';
 import { AlertIcon, CheckCircleIcon } from '../icons/Icons';
 import { formatCount, formatDateLong, formatLiters, formatMoney, formatSignedPercent } from '../../utils/format';
 import './SimulationDialog.css';
+
+const budgetRowStyle: CSSProperties = {
+  alignItems: 'center',
+  padding: '3px 0',
+};
 
 interface SimulationDialogProps {
   open: boolean;
@@ -62,18 +68,26 @@ export function SimulationDialog({ open, mode, simulation, onClose, onConfirm }:
       </dl>
 
       <section className="sim__budget">
-        <div className="sim__budget-row">
-          <span>Disponible antes</span>
-          <strong>{formatMoney(simulation.availableBeforeMXN)}</strong>
-        </div>
-        <div className="sim__budget-row sim__budget-row--negative">
-          <span>Esta corrida</span>
-          <strong>− {formatMoney(simulation.totalMXN)}</strong>
-        </div>
-        <div className="sim__budget-row sim__budget-row--total">
-          <span>Disponible final</span>
-          <strong>{formatMoney(simulation.availableAfterMXN)}</strong>
-        </div>
+        <DetailRow
+          label="Disponible antes"
+          value={<strong>{formatMoney(simulation.availableBeforeMXN)}</strong>}
+          style={budgetRowStyle}
+        />
+        <DetailRow
+          label="Esta corrida"
+          value={<strong style={{ color: '#b4001a' }}>− {formatMoney(simulation.totalMXN)}</strong>}
+          style={budgetRowStyle}
+        />
+        <DetailRow
+          label="Disponible final"
+          value={<strong style={{ fontSize: 15 }}>{formatMoney(simulation.availableAfterMXN)}</strong>}
+          style={{
+            ...budgetRowStyle,
+            marginTop: 6,
+            paddingTop: 8,
+            borderTop: '1px solid var(--tc-local-border-subtle)',
+          }}
+        />
 
         <div
           className="sim__budget-bar"

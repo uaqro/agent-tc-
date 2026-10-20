@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Field, InputAmount } from '@er-mobility-mx/design-system';
+import { Button, Chip, ChipGroup, Field, InputAmount } from '@er-mobility-mx/design-system';
 import type { TollTag } from '../../types/toll';
 import { Modal } from '../ui/Modal';
 import { formatMoney } from '../../utils/format';
@@ -46,19 +46,17 @@ export function TollAmountDialog({ tag, mode, plate, availableMXN, onClose, onCo
       }
     >
       <p className="policy-form__label">Monto</p>
-      <div className="policy-form__pills">
+      <ChipGroup style={{ gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
         {(isTopUp ? PRESETS : [...new Set([Math.round(tag.balanceMXN / 2), tag.balanceMXN])].filter((value) => value > 0)).map((preset) => (
-          <button
-            type="button"
+          <Chip
             key={preset}
-            className={amount === preset ? 'is-active' : ''}
-            aria-pressed={amount === preset}
+            label={preset === tag.balanceMXN && !isTopUp ? `Todo · ${formatMoney(preset)}` : formatMoney(preset)}
+            size="sm"
+            selected={amount === preset}
             onClick={() => setAmountValue(String(preset))}
-          >
-            {preset === tag.balanceMXN && !isTopUp ? `Todo · ${formatMoney(preset)}` : formatMoney(preset)}
-          </button>
+          />
         ))}
-      </div>
+      </ChipGroup>
 
       <Field label="Otro monto (MXN)" htmlFor="toll-amount" required>
         <InputAmount id="toll-amount" value={amountValue} onChange={setAmountValue} required />

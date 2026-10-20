@@ -15,7 +15,6 @@ import {
 } from '../../data/reports';
 import { today as businessToday } from '../../domain/demo/clock';
 import { formatDateLong } from '../../utils/format';
-import { NoDataIcon, RuleIcon, SearchIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
 import './DynamicReportBuilder.css';
 
@@ -265,7 +264,7 @@ export function DynamicReportBuilder() {
             {visibleGroups.length === 0 && (
               <EmptyState
                 compact
-                icon={<SearchIcon width={20} height={20} />}
+                icon="search"
                 title={`Ninguna columna coincide con “${columnQuery.trim()}”`}
                 actions={
                   <Button variant="secondary" size="sm" onClick={() => setColumnQuery('')}>
@@ -314,14 +313,14 @@ export function DynamicReportBuilder() {
               </table>
             </div>
             <EmptyState
-              icon={<NoDataIcon width={24} height={24} />}
+              icon="query_stats"
               title="No hay transacciones que coincidan"
               description={`${generated.type} del ${formatDateLong(generated.from)} al ${formatDateLong(generated.to)}, agrupado por ${generated.grouper}. Amplía el período, cambia el estado de la transacción o quita filtros avanzados.`}
             />
           </>
         ) : (
           <EmptyState
-            icon={<RuleIcon width={22} height={22} />}
+            icon="rule"
             title="Aún no has generado el reporte"
             description="Define el período, los filtros, el agrupador y las columnas; al generar, las transacciones aparecen aquí."
           />

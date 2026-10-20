@@ -11,7 +11,6 @@ import {
   stationsLabel,
   validationLabel,
 } from '../../data/limits';
-import { RuleIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
 import { formatCount } from '../../utils/format';
 import { ApiTag } from '../api/ApiCoverage';

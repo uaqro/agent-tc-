@@ -1,7 +1,7 @@
 import type { FundingRule, RuleStatus, RuleType } from '../../types/dispersion';
-import { Button, SectionHeader, Stack, StatusPill } from '@er-mobility-mx/design-system';
+import { Button, Chip, SectionHeader, Stack, StatusPill } from '@er-mobility-mx/design-system';
 import { toLiters } from '../../data/dispersion';
-import { EyeIcon, PauseIcon, PlayIcon, PlusIcon, RuleIcon, UploadIcon } from '../icons/Icons';
+import { EyeIcon, PauseIcon, PlayIcon, PlusIcon, UploadIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
 import { formatCount, formatDateLong, formatLiters, formatMoney } from '../../utils/format';
 import { ApiTag } from '../api/ApiCoverage';
@@ -61,7 +61,7 @@ export function RulesSection({ rules, onSimulate, onToggleStatus, onCreate, onBu
       {rules.length === 0 && (
         <EmptyState
           card
-          icon={<RuleIcon width={22} height={22} />}
+          icon="rule"
           title="Aún no hay automatizaciones"
           description="Crea una regla para que el saldo se disperse solo: por calendario, a tope o cuando una unidad baje de cierto saldo. Si solo necesitas un envío único, carga un archivo."
           actions={
@@ -94,7 +94,7 @@ export function RulesSection({ rules, onSimulate, onToggleStatus, onCreate, onBu
               {rule.statusNote && <p className="rule-card__note">{rule.statusNote}</p>}
 
               <p className="rule-card__scope">
-                <span className="chip chip--info">{TYPE_LABEL[rule.type]}</span>
+                <Chip label={TYPE_LABEL[rule.type]} size="sm" />
                 {rule.scopeLabel} · {formatCount(rule.units)} unidades
               </p>
 

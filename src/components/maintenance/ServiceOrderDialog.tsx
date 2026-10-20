@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, DatePicker, Field, Select, Textarea } from '@er-mobility-mx/design-system';
+import { Button, Chip, ChipGroup, DatePicker, Field, Select, Textarea } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import {
   MAINTENANCE_SYSTEMS,
@@ -77,18 +77,18 @@ export function ServiceOrderDialog({ vehicles, initialVehicleId, nextFolio, onCl
       }
     >
       <div className="service-form">
-        <div className="policy-form__pills" role="group" aria-label="Tipo de servicio">
-          {(Object.keys(ORDER_KIND_LABEL) as OrderKind[]).map((option) => (
-            <button
-              type="button"
-              key={option}
-              className={kind === option ? 'is-active' : ''}
-              aria-pressed={kind === option}
-              onClick={() => setKind(option)}
-            >
-              {ORDER_KIND_LABEL[option]}
-            </button>
-          ))}
+        <div role="group" aria-label="Tipo de servicio">
+          <ChipGroup style={{ gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+            {(Object.keys(ORDER_KIND_LABEL) as OrderKind[]).map((option) => (
+              <Chip
+                key={option}
+                label={ORDER_KIND_LABEL[option]}
+                size="sm"
+                selected={kind === option}
+                onClick={() => setKind(option)}
+              />
+            ))}
+          </ChipGroup>
         </div>
 
         <div className="service-form__grid">

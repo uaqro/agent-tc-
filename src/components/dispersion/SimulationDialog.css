@@ -43,28 +43,6 @@
   border-radius: var(--tc-local-radius-md);
 }
 
-.sim__budget-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 13.5px;
-  padding: 3px 0;
-  color: var(--tc-local-text-body);
-}
-
-.sim__budget-row--negative strong {
-  color: #b4001a;
-}
-
-.sim__budget-row--total {
-  margin-top: 6px;
-  padding-top: 8px;
-  border-top: 1px solid var(--tc-local-border-subtle);
-  font-size: 15px;
-  color: var(--tc-local-text-strong);
-}
-
 .sim__budget-bar {
   height: 8px;
   margin-top: 12px;

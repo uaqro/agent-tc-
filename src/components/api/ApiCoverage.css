@@ -1,16 +1,3 @@
-/* Status palette for the API coverage markers. */
-:root {
-  --api-available-bg: #e1f4eb;
-  --api-available-fg: #065b33;
-  --api-available-dot: #16a34a;
-  --api-partial-bg: #fff4dc;
-  --api-partial-fg: #8a4b00;
-  --api-partial-dot: #e59500;
-  --api-unavailable-bg: #fde8e6;
-  --api-unavailable-fg: #a10b00;
-  --api-unavailable-dot: #ca0e00;
-}
-
 /* Inline tag */
 .api-tag {
   position: relative;
@@ -22,43 +9,15 @@
   text-transform: none;
 }
 
-.api-tag__pill {
+.api-tag__trigger {
   display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px dashed currentColor;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.5;
-  white-space: nowrap;
+  padding: 0;
+  border: 0;
+  background: transparent;
   cursor: pointer;
 }
 
-.api-tag__pill--available {
-  background: var(--api-available-bg);
-  color: var(--api-available-fg);
-}
-
-.api-tag__pill--partial {
-  background: var(--api-partial-bg);
-  color: var(--api-partial-fg);
-}
-
-.api-tag__pill--unavailable {
-  background: var(--api-unavailable-bg);
-  color: var(--api-unavailable-fg);
-}
-
-.api-tag__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.api-tag__pill:focus-visible {
+.api-tag__trigger:focus-visible {
   outline: 2px solid var(--tc-local-text-strong);
   outline-offset: 2px;
 }
@@ -79,29 +38,6 @@
   color: var(--tc-local-text-body);
   white-space: normal;
   text-align: left;
-}
-
-.api-tag__status {
-  align-self: flex-start;
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.api-tag__status--available {
-  background: var(--api-available-bg);
-  color: var(--api-available-fg);
-}
-
-.api-tag__status--partial {
-  background: var(--api-partial-bg);
-  color: var(--api-partial-fg);
-}
-
-.api-tag__status--unavailable {
-  background: var(--api-unavailable-bg);
-  color: var(--api-unavailable-fg);
 }
 
 .api-tag__title {
@@ -167,31 +103,17 @@
 .api-banner__counts {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.api-banner__count {
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-}
-
-.api-banner__count--available {
-  background: var(--api-available-bg);
-  color: var(--api-available-fg);
-}
-
-.api-banner__count--partial {
-  background: var(--api-partial-bg);
-  color: var(--api-partial-fg);
-}
-
-.api-banner__count--unavailable {
-  background: var(--api-unavailable-bg);
-  color: var(--api-unavailable-fg);
+.api-banner__counts li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .api-banner__actions {

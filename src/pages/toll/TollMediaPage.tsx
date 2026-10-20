@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
-import { CardIcon, PlusIcon, SearchIcon } from '../../components/icons/Icons';
+import { PlusIcon, SearchIcon } from '../../components/icons/Icons';
 import { TollAssignDialog } from '../../components/toll/TollAssignDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { fleetVehicles as vehicles } from '../../data/dispersion';
@@ -166,7 +166,7 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
         {rows.length === 0 ? (
           <EmptyState
             compact
-            icon={<CardIcon width={20} height={20} />}
+            icon="credit_card"
             title={tags.length === 0 ? 'Aún no tienes TAGs de telepeaje' : 'Ningún TAG coincide con los filtros'}
             description="Revisa el número, la placa o el conductor, o cambia el tipo y el estado seleccionados."
             actions={

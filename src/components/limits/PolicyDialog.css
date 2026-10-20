@@ -102,29 +102,6 @@
   color: #a85c02;
 }
 
-.policy-form__pills {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-
-.policy-form__pills button {
-  padding: 5px 12px;
-  border: 1px solid var(--tc-local-border);
-  border-radius: 999px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--tc-local-text-muted);
-  background: var(--tc-local-surface);
-}
-
-.policy-form__pills button.is-active {
-  border-color: var(--tc-local-brand-blue);
-  background: rgba(47, 107, 255, 0.09);
-  color: #1d55e0;
-}
-
 .policy-form__preview {
   margin: 0;
   padding: 12px 14px;

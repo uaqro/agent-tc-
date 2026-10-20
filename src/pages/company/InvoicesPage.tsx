@@ -149,7 +149,7 @@ export function InvoicesPage({ onNotice }: InvoicesPageProps) {
         {rows.length === 0 ? (
           <EmptyState
             compact
-            icon={<SearchIcon width={20} height={20} />}
+            icon="search"
             title="Ninguna factura coincide con los filtros"
             description="Revisa el folio o UUID, o cambia el grupo de facturación, el producto y el estado."
             actions={

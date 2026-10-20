@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button } from '@er-mobility-mx/design-system';
+import { Badge, Button } from '@er-mobility-mx/design-system';
 import type { AttentionItem, Receipt, Vehicle } from '../../types/dispersion';
 import { BellIcon } from '../icons/Icons';
 import { QuickTopUp } from './QuickTopUp';
@@ -60,7 +60,7 @@ export function RequestsPanel({
       >
         <BellIcon width={17} height={17} />
         Ver solicitudes
-        {requests.length > 0 && <span className="requests__badge">{requests.length}</span>}
+        {requests.length > 0 && <Badge tone="danger">{requests.length}</Badge>}
       </Button>
       <ApiTag id="disp-quick" />
 

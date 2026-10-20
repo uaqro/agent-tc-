@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Button, TabPanel, Tabs } from '@er-mobility-mx/design-system';
+import { useMemo, useState, type CSSProperties } from 'react';
+import { Badge, Button, Chip, ChipGroup, TabPanel, Tabs } from '@er-mobility-mx/design-system';
 import { AlertIcon, CheckCircleIcon, InfoIcon, SparklesIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import {
@@ -29,6 +29,20 @@ const SEVERITY_ICON: Record<Severity, typeof AlertIcon> = {
   success: CheckCircleIcon,
 };
 
+const SEVERITY_TONE: Record<Severity, 'danger' | 'warning' | 'info' | 'success'> = {
+  critical: 'danger',
+  warning: 'warning',
+  info: 'info',
+  success: 'success',
+};
+
+const SEVERITY_CHIP_STYLE: Record<Severity, CSSProperties> = {
+  critical: { color: 'var(--sev-critical)', backgroundColor: 'var(--sev-critical-bg)', borderColor: 'var(--sev-critical)' },
+  warning: { color: 'var(--sev-warning)', backgroundColor: 'var(--sev-warning-bg)', borderColor: 'var(--sev-warning-line)' },
+  info: { color: 'var(--sev-info)', backgroundColor: 'var(--sev-info-bg)', borderColor: 'var(--sev-info)' },
+  success: { color: 'var(--sev-success)', backgroundColor: 'var(--sev-success-bg)', borderColor: 'var(--sev-success)' },
+};
+
 const INSIGHTS_TABS_ID = 'insights-view-tabs';
 
 export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
@@ -51,25 +65,27 @@ export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
 
   return (
     <div className="intel insights">
-      <div className="insights__summary" role="group" aria-label="Filtrar por severidad">
-        {SEVERITIES.map((key) => (
-          <button
-            type="button"
-            key={key}
-            className={`insights__pill insights__pill--${key}${severity === key ? ' is-active' : ''}`}
-            aria-pressed={severity === key}
-            onClick={() => {
-              setTab('alerts');
-              setSeverity((current) => (current === key ? null : key));
-            }}
-          >
-            <span className="insights__dot" aria-hidden="true" />
-            {counts[key]} {counts[key] === 1 ? SEVERITY_META[key].label : SEVERITY_META[key].plural}
-          </button>
-        ))}
+      <div className="insights__summary">
+        <div role="group" aria-label="Filtrar por severidad">
+          <ChipGroup style={{ gap: 8, flexWrap: 'wrap' }}>
+            {SEVERITIES.map((key) => (
+              <Chip
+                key={key}
+                label={`${counts[key]} ${counts[key] === 1 ? SEVERITY_META[key].label : SEVERITY_META[key].plural}`}
+                size="sm"
+                icon="fiber_manual_record"
+                selected={severity === key}
+                style={SEVERITY_CHIP_STYLE[key]}
+                onClick={() => {
+                  setTab('alerts');
+                  setSeverity((current) => (current === key ? null : key));
+                }}
+              />
+            ))}
+          </ChipGroup>
+        </div>
         <span className="insights__status">
-          <span className="insights__live" aria-hidden="true" />
-          Motor TED activo · actualizado hoy 11:20
+          <Badge tone="success" live>Motor TED activo · actualizado hoy 11:20</Badge>
         </span>
       </div>
 
@@ -90,7 +106,7 @@ export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
         {visible.length === 0 ? (
           <EmptyState
             card
-            icon={<CheckCircleIcon width={22} height={22} />}
+            icon="check_circle"
             title={severity ? `Sin alertas de tipo ${SEVERITY_META[severity].label.toLowerCase()}` : 'Sin alertas activas'}
             description="TED revisa las cargas, los saldos y las políticas cada 15 minutos. Las alertas nuevas aparecerán aquí."
             actions={
@@ -114,7 +130,7 @@ export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
                     <h2 className="alert-card__title">{alert.title}</h2>
                     <p className="alert-card__detail">{alert.detail}</p>
                     <p className="alert-card__meta">
-                      <span className="alert-card__chip">{SEVERITY_META[alert.severity].label}</span>
+                      <Badge tone={SEVERITY_TONE[alert.severity]}>{SEVERITY_META[alert.severity].label}</Badge>
                       {alert.meta}
                     </p>
                   </div>
@@ -160,7 +176,7 @@ export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
               <li key={insight.id} className="insight-card intel-card">
                 <header className="insight-card__head">
                   <h2 className="insight-card__title">{insight.title}</h2>
-                  <span className="chip chip--info">Esfuerzo {insight.effort.toLowerCase()}</span>
+                  <Chip label={`Esfuerzo ${insight.effort.toLowerCase()}`} size="sm" />
                 </header>
                 <p className="insight-card__detail">{insight.detail}</p>
                 <footer className="insight-card__foot">

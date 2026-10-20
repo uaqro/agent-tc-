@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, StatusPill, TabPanel, Tabs } from '@er-mobility-mx/design-system';
+import { Badge, Button, Chip, Input, StatusPill, TabPanel, Tabs } from '@er-mobility-mx/design-system';
 import { ServiceOrderDialog } from '../components/maintenance/ServiceOrderDialog';
 import { AlertIcon, CalendarIcon, GearIcon, PlusIcon, SearchIcon, WalletIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -135,7 +135,7 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
           {resultCount === 0 ? (
             <EmptyState
               compact
-              icon={<SearchIcon width={20} height={20} />}
+              icon="search"
               title={mode === 'orders' ? 'Ninguna orden coincide con la búsqueda' : 'Ningún vehículo coincide con la búsqueda'}
               description={
                 mode === 'orders'
@@ -239,12 +239,12 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
         <section className="intel-card maintenance__panel" aria-labelledby="open-orders">
           <header className="maintenance__panel-head">
             <h2 id="open-orders">Órdenes abiertas</h2>
-            <span className="maintenance__panel-count">{openOrders.length}</span>
+            <Badge>{openOrders.length}</Badge>
           </header>
           {openOrders.length === 0 ? (
             <EmptyState
               compact
-              icon={<GearIcon width={20} height={20} />}
+              icon="build"
               title="Sin órdenes abiertas"
               description="Las órdenes programadas, en taller o esperando refacciones aparecen aquí."
             />
@@ -312,7 +312,7 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
                     </p>
                   </div>
                   {hasOrder ? (
-                    <span className="chip chip--info">Con orden</span>
+                    <Chip label="Con orden" size="sm" />
                   ) : (
                     <Button variant="secondary" size="sm" onClick={() => setDialog({ vehicleId: service.vehicleId })}>
                       Crear orden

@@ -176,7 +176,7 @@ export function ApiImprovementsPage({ onNotice }: ApiImprovementsPageProps) {
         {rows.length === 0 ? (
           <EmptyState
             compact
-            icon={<SearchIcon width={20} height={20} />}
+            icon="search"
             title="Ninguna mejora coincide con los filtros"
             description="Prueba con otro método o campo, o cambia la prioridad, el tipo y la página."
             actions={

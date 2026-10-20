@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { Button, SectionHeader, StatusPill, TabPanel, Tabs } from '@er-mobility-mx/design-system';
+import { Badge, Button, SectionHeader, StatusPill, TabPanel, Tabs } from '@er-mobility-mx/design-system';
 import type { FundingRule, Receipt, ReceiptKind } from '../../types/dispersion';
 import { CalendarIcon, ClockIcon, EyeIcon, PlayIcon } from '../icons/Icons';
 import { formatCount, formatDateLong, formatDateTime, formatMoney } from '../../utils/format';
@@ -21,11 +21,11 @@ interface ActivitySectionProps {
 
 const PAGE_SIZE = 6;
 
-const KIND_META: Record<ReceiptKind, { label: string; chip: string }> = {
-  rule: { label: 'Regla', chip: 'chip--info' },
-  'one-off': { label: 'Puntual', chip: 'chip--review' },
-  bulk: { label: 'Archivo', chip: 'chip--info' },
-  cut: { label: 'Recorte', chip: 'chip--danger' },
+const KIND_META: Record<ReceiptKind, { label: string; tone: 'info' | 'warning' | 'danger' }> = {
+  rule: { label: 'Regla', tone: 'info' },
+  'one-off': { label: 'Puntual', tone: 'warning' },
+  bulk: { label: 'Archivo', tone: 'info' },
+  cut: { label: 'Recorte', tone: 'danger' },
 };
 
 export function ActivitySection({
@@ -72,10 +72,9 @@ export function ActivitySection({
       </header>
 
       <TabPanel tabsId={tabsId} value={activeTab} active>
-        <div className="activity__scroll">
-        {activeTab === 'history' && receipts.length === 0 ? (
+        <div className="activity__scroll">{activeTab === 'history' && receipts.length === 0 ? (
           <EmptyState
-            icon={<ClockIcon width={22} height={22} />}
+            icon="history"
             title="Aún no hay dispersiones"
             description="Cada corrida, envío puntual, carga masiva o recorte queda registrado aquí con su comprobante."
             actions={
@@ -87,7 +86,7 @@ export function ActivitySection({
           />
         ) : activeTab === 'scheduled' && scheduled.length === 0 ? (
           <EmptyState
-            icon={<CalendarIcon width={22} height={22} />}
+            icon="calendar_month"
             title="No hay pagos programados"
             description="Las automatizaciones activas aparecen aquí con su fecha y monto proyectado. Crea una o reactiva las que estén pausadas."
           />
@@ -112,7 +111,7 @@ export function ActivitySection({
                   <tr key={receipt.folio}>
                     <td>{formatDateTime(new Date(receipt.issuedAt))}</td>
                     <td>
-                      <span className={`chip ${meta.chip}`}>{meta.label}</span>
+                      <Badge tone={meta.tone}>{meta.label}</Badge>
                     </td>
                     <td>
                       <span className="activity__source">{receipt.sourceLabel}</span>
@@ -183,30 +182,30 @@ export function ActivitySection({
             </tbody>
           </table>
         )}
-      </div>
+        </div>
 
-      <footer className="activity__foot">
-        {activeTab === 'history' ? (
-          <>
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={receipts.length <= PAGE_SIZE}
-              onClick={() => setExpanded((value) => !value)}
-            >
-              {expanded ? 'Ver menos' : `Ver más dispersiones (${receipts.length})`}
+        <footer className="activity__foot">
+          {activeTab === 'history' ? (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={receipts.length <= PAGE_SIZE}
+                onClick={() => setExpanded((value) => !value)}
+              >
+                {expanded ? 'Ver menos' : `Ver más dispersiones (${receipts.length})`}
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => onTabChange('scheduled')}>
+                <CalendarIcon width={14} height={14} />
+                Ver pagos programados
+              </Button>
+            </>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={() => onTabChange('history')}>
+              Ver últimas dispersiones
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => onTabChange('scheduled')}>
-              <CalendarIcon width={14} height={14} />
-              Ver pagos programados
-            </Button>
-          </>
-        ) : (
-          <Button variant="ghost" size="sm" onClick={() => onTabChange('history')}>
-            Ver últimas dispersiones
-          </Button>
-        )}
-      </footer>
+          )}
+        </footer>
       </TabPanel>
     </section>
   );

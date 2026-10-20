@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
+import { Badge, Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
 import { InviteUserDialog } from '../../components/company/InviteUserDialog';
 import { PlusIcon, SearchIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -122,7 +122,7 @@ export function UsersPage({ onNotice }: UsersPageProps) {
         {rows.length === 0 ? (
           <EmptyState
             compact
-            icon={<SearchIcon width={20} height={20} />}
+            icon="search"
             title="Ningún usuario coincide con los filtros"
             description="Revisa el nombre o el correo, o cambia el rol y el estado seleccionados."
             actions={
@@ -161,7 +161,7 @@ export function UsersPage({ onNotice }: UsersPageProps) {
                     <tr key={user.id}>
                       <td>
                         <span className="table-page__main">
-                          {user.name} {isSelf && <span className="chip chip--info">Tú</span>}
+                          {user.name} {isSelf && <Badge>Tú</Badge>}
                         </span>
                         <span className="table-page__sub">{user.email}</span>
                       </td>

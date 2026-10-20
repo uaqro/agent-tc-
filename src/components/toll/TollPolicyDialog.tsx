@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Checkbox, Field, Input, InputAmount, Select, Switch } from '@er-mobility-mx/design-system';
+import { Button, Checkbox, Chip, ChipGroup, Field, Input, InputAmount, Select, Switch } from '@er-mobility-mx/design-system';
 import type { TollPeriod, TollPolicy } from '../../types/toll';
 import { DAY_LABELS, fleetAssignableGroups as assignableGroups } from '../../data/limits';
 import { TOLL_PERIOD_META, emptyTollPolicy, tollRoads, tollScheduleLabel } from '../../data/toll';
@@ -160,19 +160,17 @@ export function TollPolicyDialog({ policy, policies, onClose, onSave }: TollPoli
       <fieldset className="policy-form__block">
         <legend>4 · Cuándo y con qué categoría</legend>
         <p className="policy-form__label">Días de cruce</p>
-        <div className="policy-form__pills">
+        <ChipGroup style={{ gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
           {DAY_LABELS.map((label, day) => (
-            <button
-              type="button"
+            <Chip
               key={label}
-              className={draft.days.includes(day) ? 'is-active' : ''}
-              aria-pressed={draft.days.includes(day)}
+              label={label}
+              size="sm"
+              selected={draft.days.includes(day)}
               onClick={() => patch({ days: toggle(draft.days, day) })}
-            >
-              {label}
-            </button>
+            />
           ))}
-        </div>
+        </ChipGroup>
         <div className="policy-form__fields">
           <Field label="Desde" htmlFor="toll-policy-time-from">
             <Input

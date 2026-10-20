@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Button, SectionHeader } from '@er-mobility-mx/design-system';
+import { Badge, Button, SectionHeader } from '@er-mobility-mx/design-system';
 import type { AttentionItem, AttentionKind, Vehicle } from '../../types/dispersion';
 import { toLiters } from '../../data/dispersion';
 import { AlertIcon, BoltIcon, CheckCircleIcon, RequestIcon, ScissorsIcon } from '../icons/Icons';
@@ -20,11 +20,11 @@ interface AttentionListProps {
   onDismiss: (item: AttentionItem) => void;
 }
 
-const KIND_META: Record<AttentionKind, { label: string; chip: string; Icon: typeof AlertIcon }> = {
-  'balance-request': { label: 'Solicitud de saldo', chip: 'chip--info', Icon: RequestIcon },
-  'zero-balance': { label: 'Saldo en cero', chip: 'chip--danger', Icon: BoltIcon },
-  'anomalous-consumption': { label: 'Consumo anómalo', chip: 'chip--review', Icon: AlertIcon },
-  'trapped-balance': { label: 'Saldo atrapado', chip: 'chip--info', Icon: ScissorsIcon },
+const KIND_META: Record<AttentionKind, { label: string; tone: 'info' | 'danger' | 'warning'; Icon: typeof AlertIcon }> = {
+  'balance-request': { label: 'Solicitud de saldo', tone: 'info', Icon: RequestIcon },
+  'zero-balance': { label: 'Saldo en cero', tone: 'danger', Icon: BoltIcon },
+  'anomalous-consumption': { label: 'Consumo anómalo', tone: 'warning', Icon: AlertIcon },
+  'trapped-balance': { label: 'Saldo atrapado', tone: 'info', Icon: ScissorsIcon },
 };
 
 function primaryAction(item: AttentionItem): AttentionAction {
@@ -103,7 +103,7 @@ export function AttentionList({ items, vehicles, headerSlot, onResolve, onDismis
                 <p className="attention__unit">
                   <strong>{vehicle?.plate}</strong>
                   <span className="attention__driver">{vehicle?.driver}</span>
-                  <span className={`chip ${meta.chip}`}>{meta.label}</span>
+                  <Badge tone={meta.tone}>{meta.label}</Badge>
                 </p>
                 <p className="attention__detail">{item.detail}</p>
                 <p className="attention__meta">

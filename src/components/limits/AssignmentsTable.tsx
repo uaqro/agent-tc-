@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, SectionHeader, Select, Stack, StatusPill } from '@er-mobility-mx/design-system';
+import { Badge, Button, Input, SectionHeader, Select, Stack, StatusPill } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import type { LimitPolicy, UnitAssignment } from '../../types/limits';
 import { PERIOD_META, assignableGroups, effectiveLimit, formatMeasure, usedInMeasure } from '../../data/limits';
-import { SearchIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
 import { formatDateLong, formatLiters } from '../../utils/format';
 import { ApiTag } from '../api/ApiCoverage';
@@ -139,7 +138,7 @@ export function AssignmentsTable({
                           }
                         }}
                       />
-                      {assignment.individual && <span className="chip chip--info">Individual</span>}
+                      {assignment.individual && <Badge>Individual</Badge>}
                       {!policy && <StatusPill label="Sin candados" tone="danger" />}
                       {policy && !enforced && <StatusPill label="Pausada" tone="neutral" />}
                     </Stack>
@@ -210,7 +209,7 @@ export function AssignmentsTable({
           ) : (
             <EmptyState
               compact
-              icon={<SearchIcon width={20} height={20} />}
+              icon="search"
               title="Ninguna unidad coincide con los filtros"
               description="Revisa la placa, el dispositivo o el conductor, o cambia el grupo seleccionado."
               actions={

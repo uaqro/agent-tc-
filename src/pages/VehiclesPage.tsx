@@ -144,7 +144,7 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
         {rows.length === 0 ? (
           <EmptyState
             compact
-            icon={<SearchIcon width={20} height={20} />}
+            icon="search"
             title="Ningún vehículo coincide con los filtros"
             description="Revisa la placa, la marca o el conductor, o cambia el grupo y el estado seleccionados."
             actions={
