@@ -91,8 +91,9 @@ no prescribe una conversión mecánica por nombre.
 - El formulario de políticas de límites usa `Input`, `InputAmount`, `Select` y
   `Field` para nombre, medida/periodo, límite monetario, número de cargas,
   intervalo y estaciones. Se conservan inputs nativos para litros y horarios,
-  que requieren `min`/`step` o `type="time"`; checkboxes y botones de
-  combustible/días permanecen como controles propios.
+  que requieren `min`/`step` o `type="time"`; los grupos de selección y
+  switches usan los primitives estables `Checkbox` y `Switch`. Los botones
+  segmentados de combustible/días permanecen como controles propios.
 - La tabla de asignación de unidades usa `Input` y `Select` Flow para la
   búsqueda, el filtro por grupo y la asignación de política. Se conservan los
   filtros y la opción «Sin política»; el resto de controles de la tabla no
@@ -289,23 +290,48 @@ validar que reglas globales existentes no anulen el foco de Flow.
   Symbols y sus licencias. Ubuntu e IBM Plex Mono también se sirven desde esos
   assets; no se carga una fuente de iconos de Google en paralelo.
 
-## Primitives: contrato y estado de adopción
+## Primitives: inventario de madurez y adopción
 
-Esta tabla documenta las APIs candidatas y el alcance que falta por migrar.
+La fuente de madurez es `items.*.maturity` en el manifiesto del paquete
+`@er-mobility-mx/design-system@3.0.0-beta.9`. El inventario siguiente mapea
+cada primitive de formulario marcado `stable` en ese manifiesto. Los paths son
+relativos al directorio `src/`.
 
-| Primitive Flow | Uso actual candidato | Diferencia/condición antes de adoptar |
+| Primitive | Madurez | Usos Flow actuales | Pendiente / decisión |
+|---|---|---|---|
+| `Checkbox` | Estable | `components/company/InviteUserDialog.tsx`, `components/company/ParameterCatalogDialog.tsx`, `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`, `components/toll/TollPolicyDialog.tsx`. | No quedan casillas nativas (`type="checkbox"`) en TSX/JSX. |
+| `Dialog` | Estable | Sin adopción directa. | Revisar contrato de foco, Escape, retorno de foco y capas antes de sustituir overlays locales. |
+| `Field` | Estable | `components/company/InviteUserDialog.tsx`, `components/company/ParameterCatalogDialog.tsx`, `components/company/ParameterRecordDialog.tsx`, `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/OverrideDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/maintenance/ServiceOrderDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`, `components/toll/TollAmountDialog.tsx`, `components/toll/TollAssignDialog.tsx`, `components/toll/TollPolicyDialog.tsx`. | En entradas numéricas nativas se conserva para etiqueta y descripción cuando Flow `Input` no publica `min`/`step`. |
+| `IconButton` | Estable | `components/layout/TopBar.tsx` (Ayuda y Notificaciones). | Sin otros botones solo-icono incorporados en este lote. |
+| `InputAmount` | Estable | `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/OverrideDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/toll/TollAmountDialog.tsx`, `components/toll/TollPolicyDialog.tsx`. | Mantener límites de moneda y formato vía la API publicada. |
+| `InputPhone` | Estable | Sin uso actual. | No hay flujo de teléfono equivalente identificado. |
+| `OtpInput` | Estable | Sin uso actual. | No hay flujo OTP equivalente identificado. |
+| `Radio` | Estable | `components/company/InviteUserDialog.tsx` (selección de rol). | No quedan otros grupos de radio nativos mapeados. |
+| `Select` | Estable | `components/company/ParameterCatalogDialog.tsx`, `components/company/ParameterRecordDialog.tsx`, `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/AssignmentsTable.tsx`, `components/limits/OverrideDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/maintenance/ServiceOrderDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`, `components/toll/TollAssignDialog.tsx`, `components/toll/TollPolicyDialog.tsx`, `pages/DriversPage.tsx`, `pages/PaymentMediaPage.tsx`, `pages/ReportsPage.tsx`, `pages/VehiclesPage.tsx`, `pages/company/InvoicesPage.tsx`, `pages/company/UsersPage.tsx`, `pages/dev/ApiImprovementsPage.tsx`, `pages/toll/TollMediaPage.tsx`, `pages/toll/TollRulesPage.tsx`. | No quedan elementos `<select>` nativos en TSX/JSX. `value` y `onChange(string)` se mantienen controlados. |
+| `Switch` | Estable | `components/api/ApiCoverage.tsx`, `components/dev/DevMode.tsx`, `components/limits/PolicyDialog.tsx`, `components/toll/TollPolicyDialog.tsx`, `pages/company/ParametersPage.tsx`, `pages/toll/TollBalancesPage.tsx`. | No quedan switches nativos (`role="switch"`) en TSX/JSX; los callbacks reciben booleano. |
+| `Tabs` | Estable | `pages/ReportsPage.tsx` (`Tabs` y `TabPanel`). | No hay otra tablist identificada en el inventario actual. |
+| `Textarea` | Estable | `components/maintenance/ServiceOrderDialog.tsx`. | Sin otro textarea candidato. |
+
+Primitives que actualmente se usan, pero **no** figuran como estables en el
+mismo manifiesto:
+
+| Primitive | Madurez | Usos actuales |
 |---|---|---|
-| `Button` | Decenas de `.btn` y botones de acción. | Integrado para regresar al resumen en `PageHeader` y acciones de Reportes (limpiar filtros; agregar/quitar columnas y filtros; generar/restablecer el reporte). Faltan otras acciones. Usa API de `variant`, `size`, `icon` (ligadura) y target Flow, sin adaptar su CSS al botón local. |
-| `IconButton` | Botones solo-icono de TopBar, chart y acciones. | Integrado para Ayuda/Notificaciones de TopBar; faltan chart y demás acciones. Usa `icon`, `ariaLabel`, target Flow y badge booleano, sin CSS local. |
-| `Input` + `Field` | Inputs de búsqueda y controles etiquetados. | TopBar y búsqueda de columnas usan `Input` Flow con `onChange` de tipo `string`. `Field` etiqueta los controles del reporte dinámico, invitación de usuario y política de peaje. Montos de TAG y política usan `InputAmount` Flow con `Field`. |
-| `Select` | Select nativo de filtros/catálogos. | Los filtros y catálogos del Reporte dinámico, asignación de TAG y política de peaje usan `Select` Flow controlado; faltan otros formularios y catálogos por evaluar. |
-| `DatePicker` | Campos de fecha y rango. | El rango del Reporte dinámico usa `DatePicker mode="range"` de Flow, controlado por las fechas ISO inicial/final y asociado a `Field`; falta evaluar otros formularios de fechas. |
-| `Tabs` + `TabPanel` | Tablist de Reportes. | Integrado en Reportes con IDs enlazados, `tabpanel` y navegación de teclado Flow; validar de nuevo al migrar otras tablists. |
-| `ControlShell` | CSS local de inputs u otros controles personalizados. | Primitive beta y carcasa de forms; no aplicarlo para construir un control propio si ya existe `Input`, `Select` u otro primitive Flow que cumpla el contrato. |
-| `Stack` | Layouts flex con gap/márgenes entre hermanos. | Acepta roles `inline`/`stack` o pasos de espacio, no un número arbitrario. Adoptar solo donde corresponda la composición simple; no cambiar el layout de negocio. |
-| `Card` | Paneles con fondo, borde, radio y sombra locales. | Flow es dueño de la superficie, padding, elevación y hover. No trasladar reglas CSS existentes a `style` para conservar el mismo aspecto. Asegurar que el contenido puede acomodarse al token. |
-| `EmptyState` | Estado local con icono, título, texto y acciones. | Flow recibe nombre de ligadura y una única ranura `action`; no tiene las props `compact`/`card` actuales. Para filtros sin resultados, mantener una acción de limpiar (criterio `emp-1`). |
-| Overlays | `Modal` local usado por diálogos de producto. | El modal actual gestiona Escape y overlay, pero no implementa foco atrapado/retorno como contrato. Revisar `Dialog`/`Drawer` de Flow y el orden de overlays; no migrar copiando estilos de `.modal`. |
+| `Button` | Beta | `components/layout/PageHeader.tsx`, `components/limits/AssignmentsTable.tsx`, `components/limits/PoliciesSection.tsx`, `components/reports/DynamicReportBuilder.tsx`, `pages/ReportsPage.tsx`. |
+| `DatePicker` | Beta | `components/maintenance/ServiceOrderDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`. |
+| `Input` | Beta | `components/company/InviteUserDialog.tsx`, `components/company/ParameterCatalogDialog.tsx`, `components/company/ParameterRecordDialog.tsx`, `components/layout/TopBar.tsx`, `components/limits/AssignmentsTable.tsx`, `components/limits/PolicyDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`, `components/toll/TollPolicyDialog.tsx`. |
+
+Los usos existentes beta se conservan para no ampliar el alcance de madurez
+de este lote. La medición estática del estado actual encuentra cero
+`<select>`, `type="checkbox"` y `role="switch"` nativos en los TSX/JSX de
+`src/`; los inputs numéricos nativos con restricciones `min`/`step` o
+`type="time"` se mantienen donde la API pública de `Input` no cubre el
+comportamiento requerido.
+
+Otros componentes y patrones siguen evaluándose por separado: `ControlShell`
+(beta), `Stack`, `Card`, `EmptyState`, charts y overlays. Compartir apariencia
+o nombre no implica equivalencia de contrato; revisar interacción, accesibilidad
+y API pública antes de migrarlos.
 
 El shell de navegación y los charts se mantienen fuera de esta primera tabla de
 adopción: el sidebar actual combina búsqueda, pin, filtrado, navegación y
@@ -334,10 +360,11 @@ un nombre o una función superficial.
 5. **Instalación reproducible**: completada con el artefacto local versionado y
    dependencia `file:`. La publicación/instalación desde GitHub Packages queda
    como mejora posterior cuando el acceso de registry esté disponible.
-6. **Primitives, en orden**: completar IconButton y Button en acciones
-   restantes; seguir con Field en formularios, catálogos Select, superficies y estados
-   vacíos; después overlays. Cada grupo debe pasar build, contratos de
-   interacción/teclado y revisión visual antes del siguiente.
+6. **Primitives, en orden**: continuar con Button/Input/DatePicker beta con
+   adopción deliberada y validación de los contratos no cubiertos; después
+   evaluar `Dialog`/overlays y restantes patrones de superficie. Cada grupo
+   debe pasar build, contratos de interacción/teclado y revisión visual antes
+   del siguiente.
 7. **Components y patrones**: shell, tablas y patrones solo tras verificar sus
    dependencias inferiores. Charts conservan una decisión independiente
    basada en comparación de capacidades y accesibilidad.

@@ -82,17 +82,7 @@
 
 .report-builder__check {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--tc-local-text-body);
-  cursor: pointer;
-}
-
-.report-builder__check input {
-  flex-shrink: 0;
-  margin: 2px 0 0;
-  accent-color: var(--tc-local-brand-blue);
+  align-items: center;
 }
 
 .report-builder__columns {

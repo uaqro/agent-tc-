@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Select } from '@er-mobility-mx/design-system';
 import { CardIcon, PlusIcon, SearchIcon } from '../../components/icons/Icons';
 import { TollAssignDialog } from '../../components/toll/TollAssignDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -36,6 +37,16 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
   const [status, setStatus] = useState<TollTagStatus | ''>('');
   const [type, setType] = useState<TollTagType | ''>('');
   const [assigning, setAssigning] = useState<TollTag | null>(null);
+  const typeKeys = Object.keys(TOLL_TAG_TYPE_LABEL) as TollTagType[];
+  const statusKeys = Object.keys(TOLL_TAG_STATUS_LABEL) as TollTagStatus[];
+  const typeOptions = [
+    { value: '', label: 'Todos los tipos' },
+    ...typeKeys.map((key) => ({ value: key, label: TOLL_TAG_TYPE_LABEL[key] })),
+  ];
+  const statusOptions = [
+    { value: '', label: 'Todos los estados' },
+    ...statusKeys.map((key) => ({ value: key, label: TOLL_TAG_STATUS_LABEL[key] })),
+  ];
 
   const vehicleOf = (id: string | null) => vehicles.find((vehicle) => vehicle.id === id);
 

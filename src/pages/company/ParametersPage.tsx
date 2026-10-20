@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Switch } from '@er-mobility-mx/design-system';
 import { ParameterCatalogDialog } from '../../components/company/ParameterCatalogDialog';
 import { ParameterRecordDialog } from '../../components/company/ParameterRecordDialog';
 import { ApiCoverageBanner, ApiTag } from '../../components/api/ApiCoverage';
@@ -173,10 +174,9 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
                 <span className="visually-hidden">Buscar en {catalog.label}</span>
                 <input type="search" value={query} placeholder={`Buscar en ${catalog.label.toLowerCase()}`} onChange={(event) => setQuery(event.target.value)} />
               </label>
-              <label className="parameters__toggle">
-                <input type="checkbox" checked={showInactive} onChange={(event) => setShowInactive(event.target.checked)} />
-                Mostrar inactivos
-              </label>
+              <div className="parameters__toggle">
+                <Switch checked={showInactive} label="Mostrar inactivos" onChange={setShowInactive} />
+              </div>
             </div>
           )}
 

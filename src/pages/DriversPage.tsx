@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Select } from '@er-mobility-mx/design-system';
 import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -25,6 +26,10 @@ const licenseDate = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 's
 export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('');
+  const groupOptions = [
+    { value: '', label: 'Todos los grupos' },
+    ...assignableGroups.map((candidate) => ({ value: candidate.label, label: candidate.label })),
+  ];
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();

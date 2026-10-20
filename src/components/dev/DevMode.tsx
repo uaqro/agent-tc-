@@ -60,15 +60,22 @@ interface DevSwitchProps {
 }
 
 function DevSwitch({ checked, disabled, label, description, onChange }: DevSwitchProps) {
+  const id = useId();
+
   return (
-    <label className={`dev-switch${disabled ? ' is-disabled' : ''}`}>
+    <div className={`dev-switch${disabled ? ' is-disabled' : ''}`}>
       <span className="dev-switch__text">
-        <strong>{label}</strong>
-        <small>{description}</small>
+        <strong id={`${id}-label`}>{label}</strong>
+        <small id={`${id}-description`}>{description}</small>
       </span>
-      <input type="checkbox" role="switch" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
-      <span className="dev-switch__track" aria-hidden="true" />
-    </label>
+      <Switch
+        checked={checked}
+        disabled={disabled}
+        aria-labelledby={`${id}-label`}
+        aria-describedby={`${id}-description`}
+        onChange={onChange}
+      />
+    </div>
   );
 }
 

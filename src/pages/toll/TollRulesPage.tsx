@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Select } from '@er-mobility-mx/design-system';
 import { PauseIcon, PlayIcon, PlusIcon, RuleIcon } from '../../components/icons/Icons';
 import { TollPolicyDialog } from '../../components/toll/TollPolicyDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -33,6 +34,10 @@ export function TollRulesPage({ onNotice, readOnly = false }: TollRulesPageProps
   const [policies, setPolicies] = useState<TollPolicy[]>(seedPolicies);
   const [tags, setTags] = useState<TollTag[]>(seedTags);
   const [editor, setEditor] = useState<{ policy: TollPolicy | null } | null>(null);
+  const policyOptions = [
+    { value: '', label: 'Sin política' },
+    ...policies.map((policy) => ({ value: policy.id, label: policy.name })),
+  ];
 
   const vehicleOf = (id: string | null) => vehicles.find((vehicle) => vehicle.id === id);
   const groupIdOfTag = (tag: TollTag) =>
@@ -225,18 +230,19 @@ export function TollRulesPage({ onNotice, readOnly = false }: TollRulesPageProps
                     </td>
                     <td className="table-page__nowrap">{TOLL_CATEGORY_LABEL[tag.category]}</td>
                     <td>
-                      <select
+                      <span id={`toll-policy-${tag.id}-label`} className="visually-hidden">
+                        Política de peaje de {vehicle?.plate ?? tag.number}
+                      </span>
+                      <Select
+                        options={policyOptions}
                         value={tag.policyId ?? ''}
-                        aria-label={`Política de peaje de ${vehicle?.plate}`}
-                        onChange={(event) => reassign(tag, event.target.value || null)}
-                      >
-                        <option value="">Sin política</option>
-                        {policies.map((candidate) => (
-                          <option key={candidate.id} value={candidate.id}>
-                            {candidate.name}
-                          </option>
-                        ))}
-                      </select>
+                        aria-labelledby={`toll-policy-${tag.id}-label`}
+                        onChange={(value) => {
+                          if (policyOptions.some((option) => option.value === value)) {
+                            reassign(tag, value || null);
+                          }
+                        }}
+                      />
                       {policy?.status === 'paused' && <span className="table-page__sub">Política pausada</span>}
                       {!policy && <span className="table-page__sub table-page__warn">Cruza sin candados</span>}
                     </td>

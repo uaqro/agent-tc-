@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, DatePicker, Field, Input, Select } from '@er-mobility-mx/design-system';
+import { Button, Checkbox, DatePicker, Field, Input, Select } from '@er-mobility-mx/design-system';
 import {
   ADVANCED_FILTER_FIELDS,
   DEFAULT_YIELD_UNIT,
@@ -227,14 +227,13 @@ export function DynamicReportBuilder() {
                 style={{ width: '100%' }}
               />
             </div>
-            <label className="report-builder__check">
-              <input
-                type="checkbox"
+            <div className="report-builder__check">
+              <Checkbox
                 checked={allSelected}
-                onChange={(event) => setColumns(allReportColumns, event.target.checked)}
+                label="Seleccionar todo"
+                onChange={(checked) => setColumns(allReportColumns, checked)}
               />
-              Seleccionar todo
-            </label>
+            </div>
           </div>
 
           <div className="report-builder__columns">
@@ -250,14 +249,13 @@ export function DynamicReportBuilder() {
                   </header>
                   <div className="report-builder__group-grid">
                     {group.columns.map((column) => (
-                      <label className="report-builder__check" key={column}>
-                        <input
-                          type="checkbox"
+                      <div className="report-builder__check" key={column}>
+                        <Checkbox
                           checked={selected.includes(column)}
-                          onChange={(event) => setColumns([column], event.target.checked)}
+                          label={column}
+                          onChange={(checked) => setColumns([column], checked)}
                         />
-                        {column}
-                      </label>
+                      </div>
                     ))}
                   </div>
                 </section>

@@ -32,20 +32,11 @@
   border-top: 1px solid var(--tc-local-border-subtle);
 }
 
-.toll-auto__row--off .toll-auto__toggle span {
-  color: var(--tc-local-text-muted);
-}
-
 .toll-auto__toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
   min-width: 170px;
   height: 34px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--tc-local-text-strong);
-  cursor: pointer;
 }
 
 .toll-auto__field {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Field, Input, Select } from '@er-mobility-mx/design-system';
+import { Checkbox, Field, Input, Select } from '@er-mobility-mx/design-system';
 import type { ParameterCatalog, ParameterField } from '../../data/company';
 import { CloseIcon, PlusIcon } from '../icons/Icons';
 import { Modal } from '../ui/Modal';
@@ -135,15 +135,14 @@ export function ParameterCatalogDialog({ catalogs, onClose, onCreate }: Paramete
                   }}
                 />
               </Field>
-              <label className="company-form__check">
-                <input
-                  type="checkbox"
+              <div className="company-form__check">
+                <Checkbox
                   checked={index === 0 || field.required}
                   disabled={index === 0}
-                  onChange={(event) => updateField(index, { required: event.target.checked })}
+                  label="Obligatorio"
+                  onChange={(required) => updateField(index, { required })}
                 />
-                Obligatorio
-              </label>
+              </div>
               <button
                 type="button"
                 className="company-form__remove"

@@ -13,6 +13,7 @@ import {
 } from '../../data/apiCoverage';
 import { useDevMode } from '../dev/DevMode';
 import { ChevronDownIcon } from '../icons/Icons';
+import { Switch } from '@er-mobility-mx/design-system';
 import './ApiCoverage.css';
 
 /** Coverage aids only exist in dev mode; `showCoverage` switches the markers on the pages. */
@@ -158,11 +159,9 @@ export function ApiCoverageBanner({ page }: { page: FuelPage }) {
           </ul>
         </div>
         <div className="api-banner__actions">
-          <label className="api-banner__switch">
-            <input type="checkbox" role="switch" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} />
-            <span className="api-banner__track" aria-hidden="true" />
-            Marcar en la página
-          </label>
+          <div className="api-banner__switch">
+            <Switch checked={enabled} label="Marcar en la página" onChange={setEnabled} />
+          </div>
           <button type="button" className="btn btn--secondary btn--sm" aria-expanded={expanded} aria-controls={detailId} onClick={() => setExpanded((value) => !value)}>
             {expanded ? 'Ocultar detalle' : 'Ver detalle'}
             <ChevronDownIcon width={14} height={14} className={expanded ? 'api-banner__chevron is-open' : 'api-banner__chevron'} />

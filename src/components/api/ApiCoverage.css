@@ -204,56 +204,8 @@
 }
 
 .api-banner__switch {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--tc-local-text-body);
-  cursor: pointer;
-}
-
-.api-banner__switch input {
-  position: absolute;
-  opacity: 0;
-  width: 1px;
-  height: 1px;
-}
-
-.api-banner__track {
-  position: relative;
-  width: 34px;
-  height: 20px;
-  border-radius: 999px;
-  background: var(--tc-local-border-control);
-  transition: background 0.15s ease;
-}
-
-.api-banner__track::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.25);
-  transition: transform 0.15s ease;
-}
-
-.api-banner__switch input:checked + .api-banner__track {
-  background: var(--tc-local-text-strong);
-}
-
-.api-banner__switch input:checked + .api-banner__track::after {
-  transform: translateX(14px);
-}
-
-.api-banner__switch input:focus-visible + .api-banner__track {
-  outline: 2px solid var(--tc-local-text-strong);
-  outline-offset: 2px;
 }
 
 .api-banner__chevron {

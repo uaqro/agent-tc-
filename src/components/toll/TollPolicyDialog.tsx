@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Field, Input, InputAmount, Select } from '@er-mobility-mx/design-system';
+import { Checkbox, Field, Input, InputAmount, Select, Switch } from '@er-mobility-mx/design-system';
 import type { TollPeriod, TollPolicy } from '../../types/toll';
 import { DAY_LABELS, fleetAssignableGroups as assignableGroups } from '../../data/limits';
 import { TOLL_PERIOD_META, emptyTollPolicy, tollRoads, tollScheduleLabel } from '../../data/toll';
@@ -82,14 +82,12 @@ export function TollPolicyDialog({ policy, policies, onClose, onSave }: TollPoli
         </Field>
         <div className="policy-form__checks">
           {assignableGroups.map((group) => (
-            <label key={group.id}>
-              <input
-                type="checkbox"
-                checked={draft.groupIds.includes(group.id)}
-                onChange={() => patch({ groupIds: toggle(draft.groupIds, group.id) })}
-              />
-              {group.label} · {formatCount(group.units)} unidades
-            </label>
+            <Checkbox
+              key={group.id}
+              label={`${group.label} · ${formatCount(group.units)} unidades`}
+              checked={draft.groupIds.includes(group.id)}
+              onChange={() => patch({ groupIds: toggle(draft.groupIds, group.id) })}
+            />
           ))}
         </div>
         {takenOver.map(({ group, from }) => (
@@ -137,32 +135,28 @@ export function TollPolicyDialog({ policy, policies, onClose, onSave }: TollPoli
 
       <fieldset className="policy-form__block">
         <legend>3 · Autopistas autorizadas</legend>
-        <label className="policy-form__switch">
-          <input type="checkbox" checked={wholeNetwork} onChange={(event) => setWholeNetwork(event.target.checked)} />
-          Toda la red de autopistas
-        </label>
+        <div className="policy-form__switch">
+          <Switch checked={wholeNetwork} label="Toda la red de autopistas" onChange={setWholeNetwork} />
+        </div>
         {!wholeNetwork && (
           <div className="policy-form__checks">
             {tollRoads.map((road) => (
-              <label key={road.id}>
-                <input
-                  type="checkbox"
-                  checked={draft.roadIds.includes(road.id)}
-                  onChange={() => patch({ roadIds: toggle(draft.roadIds, road.id) })}
-                />
-                {road.label} · {road.plazas} plazas
-              </label>
+              <Checkbox
+                key={road.id}
+                label={`${road.label} · ${road.plazas} plazas`}
+                checked={draft.roadIds.includes(road.id)}
+                onChange={() => patch({ roadIds: toggle(draft.roadIds, road.id) })}
+              />
             ))}
           </div>
         )}
-        <label className="policy-form__switch">
-          <input
-            type="checkbox"
+        <div className="policy-form__switch">
+          <Switch
             checked={draft.allowUrbanHighways}
-            onChange={(event) => patch({ allowUrbanHighways: event.target.checked })}
+            label="Permitir segundos pisos y vías urbanas de cuota"
+            onChange={(allowUrbanHighways) => patch({ allowUrbanHighways })}
           />
-          Permitir segundos pisos y vías urbanas de cuota
-        </label>
+        </div>
       </fieldset>
 
       <fieldset className="policy-form__block">
@@ -199,14 +193,13 @@ export function TollPolicyDialog({ policy, policies, onClose, onSave }: TollPoli
             />
           </Field>
         </div>
-        <label className="policy-form__switch">
-          <input
-            type="checkbox"
+        <div className="policy-form__switch">
+          <Switch
             checked={draft.categoryLock}
-            onChange={(event) => patch({ categoryLock: event.target.checked })}
+            label="Rechazar cruces cobrados con una categoría distinta a la registrada en el TAG"
+            onChange={(categoryLock) => patch({ categoryLock })}
           />
-          Rechazar cruces cobrados con una categoría distinta a la registrada en el TAG
-        </label>
+        </div>
       </fieldset>
 
       <p className="policy-form__preview">

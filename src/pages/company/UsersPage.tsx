@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Select } from '@er-mobility-mx/design-system';
 import { InviteUserDialog } from '../../components/company/InviteUserDialog';
 import { PlusIcon, SearchIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -31,6 +32,16 @@ export function UsersPage({ onNotice }: UsersPageProps) {
   const [role, setRole] = useState<UserRole | ''>('');
   const [status, setStatus] = useState<UserStatus | ''>('');
   const [inviteOpen, setInviteOpen] = useState(false);
+  const roleKeys = Object.keys(USER_ROLE_LABEL) as UserRole[];
+  const statusKeys = Object.keys(USER_STATUS_LABEL) as UserStatus[];
+  const roleOptions = [
+    { value: '', label: 'Todos los roles' },
+    ...roleKeys.map((key) => ({ value: key, label: USER_ROLE_LABEL[key] })),
+  ];
+  const statusOptions = [
+    { value: '', label: 'Todos los estados' },
+    ...statusKeys.map((key) => ({ value: key, label: USER_STATUS_LABEL[key] })),
+  ];
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -82,28 +93,26 @@ export function UsersPage({ onNotice }: UsersPageProps) {
               <span className="visually-hidden">Buscar usuario</span>
               <input type="search" value={query} placeholder="Nombre o correo" onChange={(event) => setQuery(event.target.value)} />
             </label>
-            <label>
-              <span className="visually-hidden">Filtrar por rol</span>
-              <select value={role} onChange={(event) => setRole(event.target.value as UserRole | '')}>
-                <option value="">Todos los roles</option>
-                {(Object.keys(USER_ROLE_LABEL) as UserRole[]).map((key) => (
-                  <option key={key} value={key}>
-                    {USER_ROLE_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por estado</span>
-              <select value={status} onChange={(event) => setStatus(event.target.value as UserStatus | '')}>
-                <option value="">Todos los estados</option>
-                {(Object.keys(USER_STATUS_LABEL) as UserStatus[]).map((key) => (
-                  <option key={key} value={key}>
-                    {USER_STATUS_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <span id="users-role-filter-label" className="visually-hidden">Filtrar por rol</span>
+            <Select
+              options={roleOptions}
+              value={role}
+              aria-labelledby="users-role-filter-label"
+              onChange={(value) => {
+                const selected = roleKeys.find((key) => key === value);
+                if (selected || value === '') setRole(selected ?? '');
+              }}
+            />
+            <span id="users-status-filter-label" className="visually-hidden">Filtrar por estado</span>
+            <Select
+              options={statusOptions}
+              value={status}
+              aria-labelledby="users-status-filter-label"
+              onChange={(value) => {
+                const selected = statusKeys.find((key) => key === value);
+                if (selected || value === '') setStatus(selected ?? '');
+              }}
+            />
             <button type="button" className="btn btn--primary btn--sm" onClick={() => setInviteOpen(true)}>
               <PlusIcon width={14} height={14} />
               Invitar usuario

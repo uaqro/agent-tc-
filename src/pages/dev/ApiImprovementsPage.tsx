@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Select } from '@er-mobility-mx/design-system';
 import { CopyIcon, SearchIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { API_STATUS_LABEL, PAGE_LABEL, apiCapabilities, capabilityById, type FuelPage } from '../../data/apiCoverage';
@@ -45,6 +46,20 @@ export function ApiImprovementsPage({ onNotice }: ApiImprovementsPageProps) {
   const [priority, setPriority] = useState<ImprovementPriority | ''>('');
   const [kind, setKind] = useState<ImprovementKind | ''>('');
   const [page, setPage] = useState<FuelPage | ''>('');
+  const kindKeys = Object.keys(IMPROVEMENT_KIND_LABEL) as ImprovementKind[];
+  const pageKeys = Object.keys(PAGE_LABEL) as FuelPage[];
+  const priorityOptions = [
+    { value: '', label: 'Todas las prioridades' },
+    ...PRIORITIES.map((key) => ({ value: key, label: IMPROVEMENT_PRIORITY_LABEL[key] })),
+  ];
+  const kindOptions = [
+    { value: '', label: 'Todos los tipos' },
+    ...kindKeys.map((key) => ({ value: key, label: IMPROVEMENT_KIND_LABEL[key] })),
+  ];
+  const pageOptions = [
+    { value: '', label: 'Todas las páginas' },
+    ...pageKeys.map((key) => ({ value: key, label: PAGE_LABEL[key] })),
+  ];
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -122,39 +137,36 @@ export function ApiImprovementsPage({ onNotice }: ApiImprovementsPageProps) {
               <span className="visually-hidden">Buscar mejora</span>
               <input type="search" value={query} placeholder="Método, campo o tema" onChange={(event) => setQuery(event.target.value)} />
             </label>
-            <label>
-              <span className="visually-hidden">Filtrar por prioridad</span>
-              <select value={priority} onChange={(event) => setPriority(event.target.value as ImprovementPriority | '')}>
-                <option value="">Todas las prioridades</option>
-                {PRIORITIES.map((key) => (
-                  <option key={key} value={key}>
-                    {IMPROVEMENT_PRIORITY_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por tipo</span>
-              <select value={kind} onChange={(event) => setKind(event.target.value as ImprovementKind | '')}>
-                <option value="">Todos los tipos</option>
-                {(Object.keys(IMPROVEMENT_KIND_LABEL) as ImprovementKind[]).map((key) => (
-                  <option key={key} value={key}>
-                    {IMPROVEMENT_KIND_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por página</span>
-              <select value={page} onChange={(event) => setPage(event.target.value as FuelPage | '')}>
-                <option value="">Todas las páginas</option>
-                {(Object.keys(PAGE_LABEL) as FuelPage[]).map((key) => (
-                  <option key={key} value={key}>
-                    {PAGE_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <span id="improvements-priority-filter-label" className="visually-hidden">Filtrar por prioridad</span>
+            <Select
+              options={priorityOptions}
+              value={priority}
+              aria-labelledby="improvements-priority-filter-label"
+              onChange={(value) => {
+                const selected = PRIORITIES.find((key) => key === value);
+                if (selected || value === '') setPriority(selected ?? '');
+              }}
+            />
+            <span id="improvements-kind-filter-label" className="visually-hidden">Filtrar por tipo</span>
+            <Select
+              options={kindOptions}
+              value={kind}
+              aria-labelledby="improvements-kind-filter-label"
+              onChange={(value) => {
+                const selected = kindKeys.find((key) => key === value);
+                if (selected || value === '') setKind(selected ?? '');
+              }}
+            />
+            <span id="improvements-page-filter-label" className="visually-hidden">Filtrar por página</span>
+            <Select
+              options={pageOptions}
+              value={page}
+              aria-labelledby="improvements-page-filter-label"
+              onChange={(value) => {
+                const selected = pageKeys.find((key) => key === value);
+                if (selected || value === '') setPage(selected ?? '');
+              }}
+            />
             <button type="button" className="btn btn--secondary btn--sm" disabled={rows.length === 0} onClick={copyBacklog}>
               <CopyIcon width={14} height={14} />
               Copiar como Markdown

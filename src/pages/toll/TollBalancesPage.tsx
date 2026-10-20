@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Switch } from '@er-mobility-mx/design-system';
 import { CardIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { TollAmountDialog, type TollAmountMode } from '../../components/toll/TollAmountDialog';
@@ -220,22 +221,20 @@ export function TollBalancesPage({ onNotice, readOnly = false }: TollBalancesPag
 
             return (
               <li className={`toll-auto__row${config.enabled ? '' : ' toll-auto__row--off'}`} key={config.groupId}>
-                <label className="toll-auto__toggle">
-                  <input
-                    type="checkbox"
+                <div className="toll-auto__toggle">
+                  <Switch
                     checked={config.enabled}
                     disabled={readOnly}
                     onChange={(event) => {
                       patchAutoTopUp(config.groupId, { enabled: event.target.checked });
                       onNotice(
-                        event.target.checked
+                        enabled
                           ? `Recarga automática activada para ${group?.label}.`
                           : `Recarga automática desactivada para ${group?.label}.`,
                       );
                     }}
                   />
-                  <span>{group?.label}</span>
-                </label>
+                </div>
                 <label className="toll-auto__field">
                   <span>Si baja de</span>
                   <input

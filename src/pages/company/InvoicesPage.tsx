@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Select } from '@er-mobility-mx/design-system';
 import { DownloadIcon, SearchIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import {
@@ -33,6 +34,20 @@ export function InvoicesPage({ onNotice }: InvoicesPageProps) {
   const [group, setGroup] = useState('');
   const [product, setProduct] = useState<InvoiceProduct | ''>('');
   const [status, setStatus] = useState<InvoiceStatus | ''>('');
+  const productKeys = Object.keys(INVOICE_PRODUCT_LABEL) as InvoiceProduct[];
+  const statusKeys = Object.keys(INVOICE_STATUS_LABEL) as InvoiceStatus[];
+  const groupOptions = [
+    { value: '', label: 'Todos los grupos de facturación' },
+    ...billingGroups.map((name) => ({ value: name, label: name })),
+  ];
+  const productOptions = [
+    { value: '', label: 'Todos los productos' },
+    ...productKeys.map((key) => ({ value: key, label: INVOICE_PRODUCT_LABEL[key] })),
+  ];
+  const statusOptions = [
+    { value: '', label: 'Todos los estados' },
+    ...statusKeys.map((key) => ({ value: key, label: INVOICE_STATUS_LABEL[key] })),
+  ];
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -91,37 +106,35 @@ export function InvoicesPage({ onNotice }: InvoicesPageProps) {
               <span className="visually-hidden">Buscar factura</span>
               <input type="search" value={query} placeholder="Folio o UUID" onChange={(event) => setQuery(event.target.value)} />
             </label>
-            <label>
-              <span className="visually-hidden">Filtrar por grupo de facturación</span>
-              <select value={group} onChange={(event) => setGroup(event.target.value)}>
-                <option value="">Todos los grupos de facturación</option>
-                {billingGroups.map((name) => (
-                  <option key={name}>{name}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por producto</span>
-              <select value={product} onChange={(event) => setProduct(event.target.value as InvoiceProduct | '')}>
-                <option value="">Todos los productos</option>
-                {(Object.keys(INVOICE_PRODUCT_LABEL) as InvoiceProduct[]).map((key) => (
-                  <option key={key} value={key}>
-                    {INVOICE_PRODUCT_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por estado</span>
-              <select value={status} onChange={(event) => setStatus(event.target.value as InvoiceStatus | '')}>
-                <option value="">Todos los estados</option>
-                {(Object.keys(INVOICE_STATUS_LABEL) as InvoiceStatus[]).map((key) => (
-                  <option key={key} value={key}>
-                    {INVOICE_STATUS_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <span id="invoices-group-filter-label" className="visually-hidden">Filtrar por grupo de facturación</span>
+            <Select
+              options={groupOptions}
+              value={group}
+              aria-labelledby="invoices-group-filter-label"
+              onChange={(value) => {
+                if (groupOptions.some((option) => option.value === value)) setGroup(value);
+              }}
+            />
+            <span id="invoices-product-filter-label" className="visually-hidden">Filtrar por producto</span>
+            <Select
+              options={productOptions}
+              value={product}
+              aria-labelledby="invoices-product-filter-label"
+              onChange={(value) => {
+                const selected = productKeys.find((key) => key === value);
+                if (selected || value === '') setProduct(selected ?? '');
+              }}
+            />
+            <span id="invoices-status-filter-label" className="visually-hidden">Filtrar por estado</span>
+            <Select
+              options={statusOptions}
+              value={status}
+              aria-labelledby="invoices-status-filter-label"
+              onChange={(value) => {
+                const selected = statusKeys.find((key) => key === value);
+                if (selected || value === '') setStatus(selected ?? '');
+              }}
+            />
             <button
               type="button"
               className="btn btn--secondary btn--sm"

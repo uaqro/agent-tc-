@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Select } from '@er-mobility-mx/design-system';
 import { CardIcon, PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
@@ -32,6 +33,16 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<PaymentMediumStatus | ''>('');
   const [type, setType] = useState<PaymentMediumType | ''>('');
+  const typeKeys = Object.keys(PAYMENT_TYPE_LABEL) as PaymentMediumType[];
+  const statusKeys = Object.keys(PAYMENT_STATUS_LABEL) as PaymentMediumStatus[];
+  const typeOptions = [
+    { value: '', label: 'Todos los tipos' },
+    ...typeKeys.map((key) => ({ value: key, label: PAYMENT_TYPE_LABEL[key] })),
+  ];
+  const statusOptions = [
+    { value: '', label: 'Todos los estados' },
+    ...statusKeys.map((key) => ({ value: key, label: PAYMENT_STATUS_LABEL[key] })),
+  ];
 
   const vehicleById = useMemo(() => new Map(vehicles.map((vehicle) => [vehicle.id, vehicle])), []);
   const detailById = useMemo(() => new Map(vehicleDetails.map((detail) => [detail.vehicleId, detail])), []);
@@ -100,28 +111,26 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
                 onChange={(event) => setQuery(event.target.value)}
               />
             </label>
-            <label>
-              <span className="visually-hidden">Filtrar por tipo</span>
-              <select value={type} onChange={(event) => setType(event.target.value as PaymentMediumType | '')}>
-                <option value="">Todos los tipos</option>
-                {(Object.keys(PAYMENT_TYPE_LABEL) as PaymentMediumType[]).map((key) => (
-                  <option key={key} value={key}>
-                    {PAYMENT_TYPE_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por estado</span>
-              <select value={status} onChange={(event) => setStatus(event.target.value as PaymentMediumStatus | '')}>
-                <option value="">Todos los estados</option>
-                {(Object.keys(PAYMENT_STATUS_LABEL) as PaymentMediumStatus[]).map((key) => (
-                  <option key={key} value={key}>
-                    {PAYMENT_STATUS_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <span id="payment-media-type-filter-label" className="visually-hidden">Filtrar por tipo</span>
+            <Select
+              options={typeOptions}
+              value={type}
+              aria-labelledby="payment-media-type-filter-label"
+              onChange={(value) => {
+                const selected = typeKeys.find((key) => key === value);
+                if (selected || value === '') setType(selected ?? '');
+              }}
+            />
+            <span id="payment-media-status-filter-label" className="visually-hidden">Filtrar por estado</span>
+            <Select
+              options={statusOptions}
+              value={status}
+              aria-labelledby="payment-media-status-filter-label"
+              onChange={(value) => {
+                const selected = statusKeys.find((key) => key === value);
+                if (selected || value === '') setStatus(selected ?? '');
+              }}
+            />
             <button type="button" className="btn btn--primary btn--sm" onClick={() => onNotice('Solicitud de nuevos medios de pago abierta.')}>
               <PlusIcon width={14} height={14} />
               Solicitar medios
