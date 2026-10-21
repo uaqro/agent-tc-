@@ -101,6 +101,22 @@ export function ApiTagRow({ id, label }: { id: string; label: string }) {
   );
 }
 
+/** Keeps column-level API markers accessible when a table renderer requires text-only headers. */
+export function ApiTagGroup({ items }: { items: { id: string; label: string }[] }) {
+  const { enabled } = useCoverage();
+  if (!enabled) return null;
+  return (
+    <div className="api-tag-group" aria-label="Cobertura de las columnas">
+      {items.map(({ id, label }) => (
+        <span className="api-tag-group__item" key={id}>
+          <span>{label}</span>
+          <ApiTag id={id} />
+        </span>
+      ))}
+    </div>
+  );
+}
+
 const COUNT_LABEL: Record<ApiStatus, [string, string]> = {
   available: ['disponible', 'disponibles'],
   partial: ['parcial', 'parciales'],

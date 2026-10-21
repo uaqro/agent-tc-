@@ -236,3 +236,19 @@
   text-transform: uppercase;
   color: var(--tc-local-text-muted);
 }
+
+.api-tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: var(--border-width) solid var(--border-subtle);
+}
+
+.api-tag-group__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--type-label-sm);
+  color: var(--text-secondary);
+}

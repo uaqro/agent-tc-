@@ -38,7 +38,15 @@ export function useSearchDestination(
       setPage(targetPage);
       return;
     }
-    const row = [...(rootRef.current?.querySelectorAll<HTMLTableRowElement>('[data-entity-id]') ?? [])]
+    const root = rootRef.current;
+    const visibleIds = rowIds.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+    const tableRows = root?.querySelectorAll<HTMLTableRowElement>('tbody > tr') ?? [];
+    tableRows.forEach((element, visibleIndex) => {
+      if (element.dataset.entityId || !visibleIds[visibleIndex]) return;
+      element.dataset.entityId = visibleIds[visibleIndex];
+      element.tabIndex = -1;
+    });
+    const row = [...(root?.querySelectorAll<HTMLTableRowElement>('[data-entity-id]') ?? [])]
       .find((element) => element.dataset.entityId === pending.entityId);
     if (row) {
       row.focus();

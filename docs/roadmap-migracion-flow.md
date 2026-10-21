@@ -7,9 +7,9 @@ Plan de ejecución del 21-oct-2026 para Ticket Car+, basado en la
 No es una propuesta de rediseño de Flow ni una autorización para cambiar
 comportamientos del producto.
 
-- Base publicada del producto: `a78465c`; el cierre posterior de líneas
-  sigue local. No se considera terminada una entrega solo por estar publicada,
-  ni se publica sin solicitud.
+- Base publicada del producto: `261d499`. Navegación, líneas y tablas de
+  Administración ya están publicadas; el lote E2.2 descrito abajo permanece
+  local hasta que se solicite publicarlo.
 - Dependencia instalada: Flow `3.0.0-beta.10`, artefacto local
   `vendor/flow/er-mobility-mx-design-system-3.0.0-beta.10-line-charts.tgz`.
   Incluye las correcciones previas de selección/densidad y el cierre de líneas
@@ -17,19 +17,26 @@ comportamientos del producto.
   permanece local en el repositorio del canon.
 - Integración base, fuentes, múltiples primitives, Tabs y Accordion ya tienen
   adopción. No se reinician como tareas pendientes.
-- Tablas: 23 instancias identificadas; Facturas usa Table, BulkBar y FilterSet;
-  22 estructuras locales continúan pendientes de evaluación por familia.
+- Tablas: 23 instancias identificadas originalmente; Facturas, las dos tablas
+  de Administración y las tres de listados paginados usan Table. Quedan 17
+  instancias de ese inventario por evaluar. Las siete tablas desplegables de
+  datos de charts son adiciones, no parte del conteo original.
 - Charts: las siete gráficas usan FlowChart: cuatro barras y tres líneas.
   Los siete marcos usan WidgetFrame; vacíos y leyendas consumen Flow. Las líneas
   y barras añaden datos exactos mediante Accordion + Table, sin ordenamiento
   nuevo. Comparten la composición local ChartDataTable, no un renderer nuevo.
-- Adopción directa por tipo: 26/57 primitives, 10/66 components y 1/64 patterns.
-  Estos porcentajes no son una medida de finalización ni el objetivo del plan.
+- Adopción directa por tipo (corte actual contra el manifiesto beta.10):
+  27/57 primitives, 16/66 components y 2/64 patterns. Estos porcentajes no son
+  una medida de finalización ni el objetivo del plan; el inventario explica el
+  alcance del escaneo CSS y las limitaciones de interpretar estos conteos.
 
-**Implementación actual: E0/E1 completadas localmente en Facturas**, con las
-limitaciones de validación registradas abajo. Siguiente puerta: revisión visual
-del piloto antes de ampliar a E2. No activar compact global, sustituir todo
-por DataTable ni modificar Flow sin una necesidad transversal comprobada.
+**Implementación actual:** E0/E1 de Facturas y E2.1 de Administración están
+publicadas. E2.2 queda cerrada visual y funcionalmente en local para Vehículos,
+Conductores y Medios de pago: Table, tarjetas y controles Flow, roles de datos
+y composición de la banda Dev revisados; filtros y layout responsive validados.
+El lote permanece sin commit ni publicación. E2.3 sigue pendiente; no activar
+compact global, sustituir todo por DataTable ni modificar Flow sin una
+necesidad transversal comprobada.
 
 ### Corrección posterior: alturas gobernadas por density
 
@@ -378,14 +385,15 @@ por defecto.
 
 ## E2 — Escalar tablas por familias, no por reemplazo masivo
 
-**Estado:** pendiente. **Dependencia:** E1 aceptada.
+**Estado:** E2.1 publicado; E2.2 migrado estructuralmente, validado en
+comportamiento y con auditoría visual pendiente de cierre.
 **Método:** una pantalla representativa, validación y después su familia.
 El orden de candidatos puede ajustarse si el contrato medido revela riesgos.
 
 | Lote | Superficies candidatas | Implementación y comportamiento a preservar | Puerta de salida |
 |---|---|---|---|
-| E2.1 Administración | Usuarios y Parámetros | Table para estructura/estilo si hay equivalencia; conservar invitaciones, permisos, catálogos, switches, validaciones y edición de registros. Sin selección masiva nueva. | Datos/acciones y nombres accesibles iguales; abrir, confirmar y cancelar edición sin regresión. |
-| E2.2 Listados paginados | Conductores, Vehículos y Medios de pago | Mantener búsqueda, filtros, página, tamaño de página y acciones existentes. Comparar Pagination y DataTable con el flujo real; no sustituir la paginación sin equivalencia. | Probar filtro desde una página posterior, resultado vacío, última página y acción sobre la fila correcta. |
+| E2.1 Administración · publicado en `261d499` | Usuarios y Parámetros | Table para estructura/estilo; conserva invitaciones, permisos, catálogos, switches, validaciones y edición de registros. Sin selección masiva nueva. | Datos/acciones y nombres accesibles iguales; abrir, confirmar y cancelar edición sin regresión. |
+| E2.2 Listados paginados · local | Conductores, Vehículos y Medios de pago | Table recibe solo las filas de la página actual; el producto conserva búsqueda, filtros, `usePagination` y `Pagination` existentes. No se activa sorting, selección ni paginación interna. | Probar filtro desde una página posterior, resultado vacío, última página y acción sobre la fila correcta. |
 | E2.3 Peaje y mantenimiento | TAGs, reglas, saldos y órdenes | Conservar estados, asignaciones, topes, edición/activación y transiciones de servicio. Mapear importes/IDs/estados a roles. | Pruebas de las operaciones de dominio afectadas y comprobación visual por estado. |
 | E2.4 Asignación y optimizador | AssignmentsTable, dos tablas de GasOptimizerPage y tablas de LoadDetail | Preservar Select por unidad, medidores, recomendaciones, detalles y paginación. Evaluar DataTable solo donde coordine un flujo ya existente. | Edición/acción no dispara otra interacción de fila; cifras y recomendación intactas. |
 | E2.5 Actividad e historial | ActivitySection, movimientos de peaje e historial de envíos | Mantener comparación por columnas y «Ver más/menos» donde exista. No convertir un historial tabular en feed por nombre de pattern. | Mismo alcance temporal, agrupación, expansión e identidad de registros. |
@@ -403,6 +411,25 @@ equivalentes ni añaden instancias al conteo de 23.
   defecto. El comportamiento remoto, si aparece, requiere evaluación propia.
 - Extraer una composición compartida solo tras demostrar equivalencia en dos
   usos. Mantener lógica financiera, de permisos y de operación fuera del DS.
+- En E2.2 se eligió Table sobre DataTable: los tres listados ya coordinan filtros
+  facetados, búsqueda contextual, PAGE_SIZE=25 y navegación; reutilizar el
+  paginador de DataTable duplicaría o alteraría ese contrato. El `rowKey`
+  conserva la identidad; `useSearchDestination` asigna identidad DOM a las filas
+  visibles para preservar foco y navegación desde búsqueda global.
+- E2.2: 3 pruebas SSR cubren estructura, orden inicial, datos y ausencia de
+  sorting/selección nuevos. Build y regresiones de Facturas/Administración
+  pasan. En navegador, las tres rutas se probaron con filtros desde páginas
+  posteriores, vacío y última página; se probó además la acción exacta de
+  expediente de conductor y bloqueo/desbloqueo de un medio concreto. A 320,
+  390, 768 y 1280 px la tabla mantiene scroll local sin overflow global, y
+  Flow responde a `default` (16/14/12px texto/celdaY/headerY), `compact`
+  (14/10/8px) y `comfortable` (18/16/16px). No es una suite E2E persistente.
+  La auditoría posterior confirma que esto verifica la tabla Flow, no la
+  cascada visual completa de la familia: `.table-page__card`, `.table-page__main`,
+  `.table-page__sub`, `.table-page__warn` y la banda nueva de etiquetas API aún
+  usan roles/medidas locales; además, los datos numéricos/placas/IDs no marcan
+  `mono` para activar `--type-data` donde corresponde. Cerrar estos puntos y
+  validar densidad/lectura antes de declarar terminada E2.2.
 
 ## E3 — Completar barras y composición del dashboard
 

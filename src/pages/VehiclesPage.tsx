@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Button, StatusPill } from '@er-mobility-mx/design-system';
-import { PlusIcon, SearchIcon } from '../components/icons/Icons';
-import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
+import { Button, Card, Input, Select, StatusPill, Table, type GridColumn } from '@er-mobility-mx/design-system';
+import { PlusIcon } from '../components/icons/Icons';
+import { ApiCoverageBanner, ApiTag, ApiTagGroup } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
 import {
@@ -46,6 +46,20 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false, searc
   // A role without access to the VIN equivalence does not learn which VINs are missing either (ADR-TCP-001).
   const gapsOf = (detail: VehicleDetail): RegistryGap[] => detail.gaps.filter((gap) => gap !== 'vin' || showVin);
   const gapKinds = (Object.keys(REGISTRY_GAP_LABEL) as RegistryGap[]).filter((gap) => gap !== 'vin' || showVin);
+  const vehicleStatuses = Object.keys(VEHICLE_STATUS_LABEL) as VehicleStatus[];
+  const groupOptions = [
+    { value: '', label: 'Todos los grupos' },
+    ...assignableGroups.map((candidate) => ({ value: candidate.label, label: candidate.label })),
+  ];
+  const statusOptions = [
+    { value: '', label: 'Todos los estados' },
+    ...vehicleStatuses.map((key) => ({ value: key, label: VEHICLE_STATUS_LABEL[key] })),
+  ];
+  const recordOptions: { value: RecordFilter; label: string }[] = [
+    { value: '', label: 'Toda la ficha' },
+    { value: 'incomplete', label: 'Ficha incompleta' },
+    ...gapKinds.map((gap) => ({ value: gap, label: REGISTRY_GAP_LABEL[gap] })),
+  ];
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -63,32 +77,99 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false, searc
   const mediumByVehicle = useMemo(() => new Map(vehicleMedia.map((medium) => [medium.vehicleId, medium])), []);
 
   const count = (key: VehicleStatus) => vehicleDetails.filter((detail) => detail.status === key).length;
+  const columns: GridColumn<VehicleDetail>[] = [
+    {
+      key: 'vehicle',
+      label: 'Unidad',
+      render: (detail) => (
+        <>
+          <span className="table-page__main table-page__data">{detail.plate}</span>
+          <span className="table-page__sub">
+            <span className="table-page__data">{detail.vehicleId}</span> · {detail.brand} {detail.model} · {detail.year}
+          </span>
+          {showVin && (
+            <span className="table-page__sub table-page__nowrap">
+              {detail.vin === '' ? 'VIN pendiente' : <>VIN <span className="table-page__data">{detail.vin}</span></>}
+            </span>
+          )}
+          {gapsOf(detail).length > 0 && (
+            <span
+              className="chip chip--review table-page__gap"
+              title={`Ficha incompleta: ${gapsOf(detail).map((gap) => REGISTRY_GAP_LABEL[gap]).join(', ')}`}
+            >
+              {gapsOf(detail).map((gap) => REGISTRY_GAP_LABEL[gap]).join(' · ')}
+            </span>
+          )}
+        </>
+      ),
+    },
+    { key: 'group', label: 'Grupo', render: (detail) => detail.group },
+    {
+      key: 'fuel',
+      label: 'Combustible',
+      render: (detail) => (
+        <>
+          {detail.fuel}
+          <span className="table-page__sub table-page__nowrap">Tanque de <span className="table-page__data">{detail.tankLiters}</span> L</span>
+        </>
+      ),
+    },
+    { key: 'expectedKmPerLiter', label: 'Rendimiento esperado', mono: true, render: (detail) => `${detail.expectedKmPerLiter} km/L` },
+    {
+      key: 'odometerKm',
+      label: 'Odómetro',
+      mono: true,
+      render: (detail) =>
+        detail.odometerKm === null ? <span className="table-page__sub">Sin lectura</span> : `${formatCount(detail.odometerKm)} km`,
+    },
+    { key: 'driver', label: 'Conductor', render: (detail) => detail.driver },
+    {
+      key: 'paymentMedium',
+      label: 'Medio de pago',
+      render: (detail) => {
+        const medium = mediumByVehicle.get(detail.vehicleId);
+        return medium ? (
+          <>
+            <span className="table-page__nowrap table-page__data">{medium.number}</span>
+            <span className="table-page__sub">{PAYMENT_TYPE_LABEL[medium.type]}</span>
+          </>
+        ) : (
+          <span className="table-page__sub">Sin medio</span>
+        );
+      },
+    },
+    {
+      key: 'status',
+      label: 'Estado',
+      render: (detail) => <StatusPill tone={STATUS_TONE[detail.status]} label={VEHICLE_STATUS_LABEL[detail.status]} />,
+    },
+  ];
 
   return (
-    <div className="table-page" ref={searchRoot}>
+    <div className="table-page table-page--catalog" ref={searchRoot}>
       <ApiCoverageBanner page="vehicles" />
 
       <dl className="table-page__summary">
-        <div>
+        <Card padding="sm" surface="outlined">
           <dt>Vehículos registrados</dt>
           <dd>{formatCount(vehicleDetails.length)}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>Activos</dt>
           <dd>{count('active')}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>En taller</dt>
           <dd>{count('maintenance')}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>Inactivos</dt>
           <dd>{count('inactive')}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>Ficha incompleta</dt>
           <dd>{vehicleDetails.filter((detail) => gapsOf(detail).length > 0).length}</dd>
-        </div>
+        </Card>
       </dl>
 
       <section className="table-page__card" aria-labelledby="vehicles-title">
@@ -98,54 +179,59 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false, searc
             <ApiTag id="veh-list" />
           </h2>
           <div className="table-page__filters">
-            <label className="table-page__search">
-              <SearchIcon width={15} height={15} />
-              <span className="visually-hidden">Buscar vehículo</span>
-              <input type="search" value={query} placeholder="Unidad, placa, marca o conductor" onChange={(event) => setQuery(event.target.value)} />
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por grupo</span>
-              <select value={group} onChange={(event) => setGroup(event.target.value)}>
-                <option value="">Todos los grupos</option>
-                {assignableGroups.map((candidate) => (
-                  <option key={candidate.id} value={candidate.label}>
-                    {candidate.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por estado</span>
-              <select value={status} onChange={(event) => setStatus(event.target.value as VehicleStatus | '')}>
-                <option value="">Todos los estados</option>
-                {(Object.keys(VEHICLE_STATUS_LABEL) as VehicleStatus[]).map((key) => (
-                  <option key={key} value={key}>
-                    {VEHICLE_STATUS_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por ficha</span>
-              <select value={record} onChange={(event) => setRecord(event.target.value as RecordFilter)}>
-                <option value="">Toda la ficha</option>
-                <option value="incomplete">Ficha incompleta</option>
-                {gapKinds.map((gap) => (
-                  <option key={gap} value={gap}>
-                    {REGISTRY_GAP_LABEL[gap]}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="table-page__flow-search">
+              <Input
+                type="search"
+                icon="search"
+                ariaLabel="Buscar vehículo"
+                value={query}
+                placeholder="Unidad, placa, marca o conductor"
+                onChange={setQuery}
+              />
+            </div>
+            <span id="vehicles-group-filter-label" className="visually-hidden">Filtrar por grupo</span>
+            <Select options={groupOptions} value={group} aria-labelledby="vehicles-group-filter-label" onChange={setGroup} />
+            <span id="vehicles-status-filter-label" className="visually-hidden">Filtrar por estado</span>
+            <Select
+              options={statusOptions}
+              value={status}
+              aria-labelledby="vehicles-status-filter-label"
+              onChange={(value) => {
+                const selected = vehicleStatuses.find((key) => key === value);
+                if (selected || value === '') setStatus(selected ?? '');
+              }}
+            />
+            <span id="vehicles-record-filter-label" className="visually-hidden">Filtrar por ficha</span>
+            <Select
+              options={recordOptions}
+              value={record}
+              aria-labelledby="vehicles-record-filter-label"
+              onChange={(value) => {
+                const selected = recordOptions.find((option) => option.value === value);
+                if (selected) setRecord(selected.value);
+              }}
+            />
             {canEdit && (
-              <button type="button" className="btn btn--primary btn--sm" onClick={() => onNotice('Alta de vehículo abierta.')}>
+              <Button size="sm" onClick={() => onNotice('Alta de vehículo abierta.')}>
                 <PlusIcon width={14} height={14} />
                 Alta de vehículo
-              </button>
+              </Button>
             )}
             <ApiTag id="veh-create" />
           </div>
         </header>
+
+        <ApiTagGroup
+          items={[
+            { id: 'veh-specs', label: 'Unidad' },
+            { id: 'veh-group', label: 'Grupo' },
+            { id: 'veh-performance', label: 'Rendimiento esperado' },
+            { id: 'veh-odometer', label: 'Odómetro' },
+            { id: 'veh-driver', label: 'Conductor' },
+            { id: 'veh-media', label: 'Medio de pago' },
+            { id: 'veh-status', label: 'Estado' },
+          ]}
+        />
 
         {rows.length === 0 ? (
           <EmptyState
@@ -169,96 +255,7 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false, searc
             }
           />
         ) : (
-          <div className="table-page__scroll">
-            <table className="table-page__table">
-              <thead>
-                <tr>
-                  <th scope="col">
-                    Unidad
-                    <ApiTag id="veh-specs" />
-                  </th>
-                  <th scope="col">
-                    Grupo
-                    <ApiTag id="veh-group" />
-                  </th>
-                  <th scope="col">Combustible</th>
-                  <th scope="col">
-                    Rendimiento esperado
-                    <ApiTag id="veh-performance" />
-                  </th>
-                  <th scope="col">
-                    Odómetro
-                    <ApiTag id="veh-odometer" />
-                  </th>
-                  <th scope="col">
-                    Conductor
-                    <ApiTag id="veh-driver" />
-                  </th>
-                  <th scope="col">
-                    Medio de pago
-                    <ApiTag id="veh-media" />
-                  </th>
-                  <th scope="col">
-                    Estado
-                    <ApiTag id="veh-status" />
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {pagination.pageRows.map((detail) => {
-                  const medium = mediumByVehicle.get(detail.vehicleId);
-                  const gaps = gapsOf(detail);
-                  return (
-                    <tr key={detail.vehicleId} data-entity-id={detail.vehicleId} tabIndex={-1}>
-                      <td>
-                        <span className="table-page__main">{detail.plate}</span>
-                        <span className="table-page__sub">
-                          {detail.vehicleId} · {detail.brand} {detail.model} · {detail.year}
-                        </span>
-                        {showVin && (
-                          <span className="table-page__sub table-page__nowrap">
-                            {detail.vin === '' ? 'VIN pendiente' : `VIN ${detail.vin}`}
-                          </span>
-                        )}
-                        {gaps.length > 0 && (
-                          <span className="chip chip--review table-page__gap" title={`Ficha incompleta: ${gaps.map((gap) => REGISTRY_GAP_LABEL[gap]).join(', ')}`}>
-                            {gaps.map((gap) => REGISTRY_GAP_LABEL[gap]).join(' · ')}
-                          </span>
-                        )}
-                      </td>
-                      <td>{detail.group}</td>
-                      <td>
-                        {detail.fuel}
-                        <span className="table-page__sub table-page__nowrap">Tanque de {detail.tankLiters} L</span>
-                      </td>
-                      <td>{detail.expectedKmPerLiter} km/L</td>
-                      <td>
-                        {detail.odometerKm === null ? (
-                          <span className="table-page__sub">Sin lectura</span>
-                        ) : (
-                          `${formatCount(detail.odometerKm)} km`
-                        )}
-                      </td>
-                      <td>{detail.driver}</td>
-                      <td>
-                        {medium ? (
-                          <>
-                            <span className="table-page__nowrap">{medium.number}</span>
-                            <span className="table-page__sub">{PAYMENT_TYPE_LABEL[medium.type]}</span>
-                          </>
-                        ) : (
-                          <span className="table-page__sub">Sin medio</span>
-                        )}
-                      </td>
-                      <td>
-                        <StatusPill tone={STATUS_TONE[detail.status]} label={VEHICLE_STATUS_LABEL[detail.status]} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <Table caption="Vehículos" columns={columns} rows={pagination.pageRows} rowKey="vehicleId" surface="none" sortable={false} />
         )}
         <Pagination {...pagination} noun="vehículos" onPage={pagination.setPage} />
       </section>

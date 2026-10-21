@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
+import { Button, Card, Input, Select, StatusPill, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import { PlusIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
@@ -15,7 +15,7 @@ import {
   vehicleDetails,
 } from '../data/fleet';
 import { formatCount, formatDateTime, formatMoney } from '../utils/format';
-import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
+import { ApiCoverageBanner, ApiTag, ApiTagGroup } from '../components/api/ApiCoverage';
 import './TablePage.css';
 import type { SearchDestination } from '../data/globalSearch';
 import { useSearchDestination } from '../components/ui/useSearchDestination';
@@ -73,8 +73,93 @@ export function PaymentMediaPage({ onNotice, searchDestination }: PaymentMediaPa
     onNotice(next === 'blocked' ? `Medio ${medium.number} bloqueado${plate ? ` · ${plate}` : ''}.` : `Medio ${medium.number} desbloqueado.`);
   };
 
+  const columns: GridColumn<PaymentMedium>[] = [
+    {
+      key: 'medium',
+      label: 'Medio',
+      render: (medium) => (
+        <>
+          <span className="table-page__main table-page__data">{medium.number}</span>
+          <span className="table-page__sub">{PAYMENT_TYPE_LABEL[medium.type]}</span>
+        </>
+      ),
+    },
+    {
+      key: 'vehicle',
+      label: 'Unidad asignada',
+      render: (medium) => {
+        const detail = detailOf(medium.vehicleId);
+        return detail ? (
+          <>
+            <span className="table-page__main table-page__data">{detail.plate}</span>
+            <span className="table-page__sub">
+              {detail.driver} · {detail.group}
+            </span>
+          </>
+        ) : (
+          <span className="table-page__sub">Sin unidad</span>
+        );
+      },
+    },
+    {
+      key: 'status',
+      label: 'Estado',
+      render: (medium) => <StatusPill label={PAYMENT_STATUS_LABEL[medium.status]} tone={STATUS_TONE[medium.status]} />,
+    },
+    {
+      key: 'balance',
+      label: 'Saldo · Vence',
+      render: (medium) => {
+        const vehicle = vehicleOf(medium.vehicleId);
+        return (
+          <>
+            <span className="table-page__nowrap table-page__data">{vehicle ? formatMoney(vehicle.balanceMXN, true) : '—'}</span>
+            <span className="table-page__sub">Vence {medium.expires.split('-').reverse().join('/')}</span>
+          </>
+        );
+      },
+    },
+    {
+      key: 'lastUse',
+      label: 'Último uso',
+      render: (medium) =>
+        medium.lastUse ? (
+          <>
+            {formatDateTime(new Date(medium.lastUse))}
+            <span className="table-page__sub">{medium.lastStation}</span>
+          </>
+        ) : (
+          <span className="table-page__sub">Sin uso</span>
+        ),
+    },
+    {
+      key: 'actions',
+      label: 'Acciones',
+      align: 'right',
+      render: (medium) => (
+        <div className="table-page__row-actions">
+          {medium.status === 'active' && (
+            <Button variant="ghost" size="sm" onClick={() => setMediumStatus(medium, 'blocked')}>
+              Bloquear
+            </Button>
+          )}
+          {medium.status === 'blocked' && (
+            <Button variant="secondary" size="sm" onClick={() => setMediumStatus(medium, 'active')}>
+              Desbloquear
+            </Button>
+          )}
+          {medium.status === 'unassigned' && (
+            <Button variant="secondary" size="sm" onClick={() => onNotice(`Asignando ${medium.number} a una unidad.`)}>
+              Asignar
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="table-page" ref={searchRoot}>
+    <div className="table-page table-page--catalog" ref={searchRoot}>
       <ApiCoverageBanner page="payment-media" />
       <DevNote label="Pregunta de producto">
         ¿Autoconsumo tiene límites propios? Hasta decidirlo, Medios de pago no muestra los tags de las{' '}
@@ -82,22 +167,22 @@ export function PaymentMediaPage({ onNotice, searchDestination }: PaymentMediaPa
       </DevNote>
 
       <dl className="table-page__summary">
-        <div>
+        <Card padding="sm" surface="outlined">
           <dt>Medios activos</dt>
           <dd>{formatCount(count('active'))}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>Bloqueados</dt>
           <dd className={count('blocked') > 0 ? 'is-alert' : undefined}>{count('blocked')}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>Sin asignar</dt>
           <dd>{count('unassigned')}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>Tags y virtuales</dt>
           <dd>{media.filter((medium) => medium.type !== 'chip-card').length}</dd>
-        </div>
+        </Card>
       </dl>
 
       <section className="table-page__card" aria-labelledby="media-title">
@@ -145,6 +230,15 @@ export function PaymentMediaPage({ onNotice, searchDestination }: PaymentMediaPa
           </div>
         </header>
 
+        <ApiTagGroup
+          items={[
+            { id: 'media-assign', label: 'Unidad asignada' },
+            { id: 'media-balance', label: 'Saldo · Vence' },
+            { id: 'media-last-use', label: 'Último uso' },
+            { id: 'media-block', label: 'Acciones' },
+          ]}
+        />
+
         {rows.length === 0 ? (
           <EmptyState
             compact
@@ -166,92 +260,7 @@ export function PaymentMediaPage({ onNotice, searchDestination }: PaymentMediaPa
             }
           />
         ) : (
-          <div className="table-page__scroll">
-            <table className="table-page__table">
-              <thead>
-                <tr>
-                  <th scope="col">Medio</th>
-                  <th scope="col">
-                    Unidad asignada
-                    <ApiTag id="media-assign" />
-                  </th>
-                  <th scope="col">Estado</th>
-                  <th scope="col">
-                    Saldo · Vence
-                    <ApiTag id="media-balance" />
-                  </th>
-                  <th scope="col">
-                    Último uso
-                    <ApiTag id="media-last-use" />
-                  </th>
-                  <th scope="col" className="table-page__action">
-                    <span className="visually-hidden">Acciones</span>
-                    <ApiTag id="media-block" />
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {pagination.pageRows.map((medium) => {
-                  const vehicle = vehicleOf(medium.vehicleId);
-                  const detail = detailOf(medium.vehicleId);
-                  return (
-                    <tr key={medium.id} data-entity-id={medium.id} tabIndex={-1}>
-                      <td>
-                        <span className="table-page__main">{medium.number}</span>
-                        <span className="table-page__sub">{PAYMENT_TYPE_LABEL[medium.type]}</span>
-                      </td>
-                      <td>
-                        {detail ? (
-                          <>
-                            <span className="table-page__main">{detail.plate}</span>
-                            <span className="table-page__sub">
-                              {detail.driver} · {detail.group}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="table-page__sub">Sin unidad</span>
-                        )}
-                      </td>
-                      <td>
-                        <StatusPill label={PAYMENT_STATUS_LABEL[medium.status]} tone={STATUS_TONE[medium.status]} />
-                      </td>
-                      <td>
-                        <span className="table-page__nowrap">{vehicle ? formatMoney(vehicle.balanceMXN, true) : '—'}</span>
-                        <span className="table-page__sub">Vence {medium.expires.split('-').reverse().join('/')}</span>
-                      </td>
-                      <td>
-                        {medium.lastUse ? (
-                          <>
-                            {formatDateTime(new Date(medium.lastUse))}
-                            <span className="table-page__sub">{medium.lastStation}</span>
-                          </>
-                        ) : (
-                          <span className="table-page__sub">Sin uso</span>
-                        )}
-                      </td>
-                      <td className="table-page__action">
-                        {medium.status === 'active' && (
-                          <Button variant="ghost" size="sm" onClick={() => setMediumStatus(medium, 'blocked')}>
-                            Bloquear
-                          </Button>
-                        )}
-                        {medium.status === 'blocked' && (
-                          <Button variant="secondary" size="sm" onClick={() => setMediumStatus(medium, 'active')}>
-                            Desbloquear
-                          </Button>
-                        )}
-                        {medium.status === 'unassigned' && (
-                          <Button variant="secondary" size="sm" onClick={() => onNotice(`Asignando ${medium.number} a una unidad.`)}>
-                            Asignar
-                          </Button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <Table caption="Medios de pago" columns={columns} rows={pagination.pageRows} rowKey="id" surface="none" sortable={false} />
         )}
         <Pagination {...pagination} noun="medios" onPage={pagination.setPage} />
       </section>

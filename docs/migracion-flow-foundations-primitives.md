@@ -11,6 +11,65 @@ auditoría inicial. El estado vigente de charts está en el cierre de líneas
 incluido más abajo y en E4 del roadmap; la dependencia actual es el artefacto
 local Flow beta.10 con las correcciones de líneas.
 
+## Auditoría transversal del árbol actual
+
+Recuento estático del producto local contra el paquete instalado
+`@er-mobility-mx/design-system@3.0.0-beta.10`. La matriz y las auditorías por
+familia que siguen conservan evidencias y decisiones previas; este corte
+actualiza las métricas globales, no sustituye la revisión visual por pantalla.
+
+| Capa | Catálogo beta.10 | Tipos importados directamente por `src/` | Cobertura por tipo |
+|---|---:|---:|---:|
+| Primitives | 57 | 27 | 47.4% |
+| Components | 66 | 16 | 24.2% |
+| Patterns | 64 | 2 | 3.1% |
+
+El conteo incluye imports de componentes de producción, incluyendo aliases;
+excluye tests, tipos, hooks y providers. Los 16 components son `Accordion`,
+`BulkBar`, `DatePicker`, `Dialog`, `FileUpload`, `GlobalSearch`, `InputAmount`,
+`ListRow`, `Menu`, `NotificationCenter`, `Sidebar`, `TabPanel`, `Table`,
+`Tabs`, `Tooltip` y `WidgetFrame`. Los dos patterns son `FilterSet` y
+`PageHeader`. Los 26 primitives se listan en la tabla de adopción abajo.
+Importar un tipo no demuestra que todas sus instancias equivalentes estén
+migradas, ni que la composición consuma todos los roles de foundations.
+
+En las 51 hojas CSS de `src/`, un escaneo léxico encuentra 29 aliases
+`--tc-local-*` declarados y 460 referencias a ellos en 34 archivos. Encuentra
+también 162 declaraciones con uno o más colores literales (166 ocurrencias,
+74 valores distintos contando `transparent`). Es una señal de deuda distribuida
+en composición y estilos locales, no un porcentaje de conformidad: el conteo no
+decide semántica, alcance de runtime, excepciones de Dev ni si cada declaración
+es visualmente visible. Tampoco es comparable directamente con el inventario
+histórico de 124 archivos, que usó otro alcance.
+
+### Lectura de cobertura por la cascada
+
+- **Foundations / diccionario:** fuentes, modo claro, orden de carga y aliases
+  ya están integrados; siguen 29 aliases locales, y el inventario de colores,
+  espacio, forma, tipografía, foco y movimiento conserva decisiones por
+  contexto. El uso de un token en un alias no cierra la migración de los estilos
+  que lo consumen.
+- **Primitives:** 27/57 tipos tienen import directo. Este denominador incluye
+  piezas sin caso de producto y no es una meta de adopción; el trabajo relevante
+  sigue siendo cobertura de instancias y uso de roles dentro de primitivas ya
+  adoptadas, especialmente `Button`, `Input` y los contenidos de tablas.
+- **Components / patterns:** la revisión detecta 16/66 y 2/64 imports directos.
+  En tablas, seis de 23 instancias originales ya usan `Table`; 17 permanecen
+  por evaluar. En charts, siete gráficas usan `FlowChart` y sus siete tablas de
+  datos son una composición de producto. No se debe traducir la baja proporción
+  de imports de patterns a deuda sin comprobar que exista un flujo equivalente.
+- **Composición de producto:** la estructura Flow puede coexistir con
+  contenido, carcasas, espaciado y estados CSS locales. E2.2 quedó cerrada
+  visualmente en Vehículos, Conductores y Medios de pago: tabla, tarjetas,
+  controles, roles de datos y banda Dev revisados; la comprobación funcional y
+  responsive queda registrada en la validación local de este corte.
+- **Excepciones y confianza:** las superficies de Dev/API, restricciones de
+  negocio no cubiertas por la API y piezas sin caso de uso se separan de deuda
+  de producto. Los conteos de manifiesto/import son exactos para el paquete y
+  el árbol escaneados; el CSS es una medición léxica. La conformidad final
+  requiere revisión semántica, contraste, densidad, teclado y visual por
+  superficie.
+
 - Prototipo: `b27d056` (`feat/migracion-flow`), sin cambios de interfaz pendientes.
 - Flow: `ER-Mobility-MX/FlowHANA`, `main` en `214f69b`.
 - Canon usado por Flow: `ER-Mobility-MX/Flow-DesignData-HANA`, `97a1d43`.
@@ -132,7 +191,8 @@ En Facturas, además, los filtros y la búsqueda están en zonas separadas.
 
 1. **Componentes de producto:** completar consumo de roles en el contenido y
    las carcasas locales de la familia piloto; separar ajustes de layout de
-   decisiones visuales y no afectar por cascada a las otras 22 tablas.
+   decisiones visuales y no afectar por cascada a las 17 instancias originales
+   que aún permanecen por evaluar.
 2. **Patterns/composición:** decidir el ámbito de densidad del flujo, no una
    altura por control. Conservar los estados de negocio de Facturas y evaluar
    DataTable solo donde sus funciones realmente correspondan.
@@ -192,9 +252,11 @@ separa lo comprobado en navegador de las pruebas SSR persistentes.
   botones de Reporte dinámico también se verificaron para agregar/quitar
   filtros, seleccionar columnas, generar y restablecer. La acción para quitar
   filtros muestra texto e icono para no depender de reconocer un glifo aislado.
-  Los 13 diálogos del producto comparten `Modal`, que delega el portal, backdrop,
-  foco inicial, trampa de Tab, Escape y restauración de foco a `OverlayShell`
-  de Flow; la composición visual del diálogo sigue siendo propia del producto.
+  Diecisiete superficies del producto comparten `Modal`, que delega el portal,
+  backdrop, foco inicial, trampa de Tab, Escape y restauración de foco a
+  `OverlayShell` de Flow. Otras cuatro superficies importan directamente el
+  `Dialog` de Flow. La composición visual y el contenido siguen siendo del
+  producto.
 - El constructor de automatizaciones de dispersión usa `Field` y `Select` Flow
   para grupo de unidades, umbral, modo de recarga, ventana de consumo, colchón
   y cadencia; los importes usan `InputAmount`. El tope en litros conserva el
@@ -235,33 +297,33 @@ separa lo comprobado en navegador de las pruebas SSR persistentes.
 
 ## Adopción de primitives Button/Input y component DatePicker
 
-Esta pasada amplía la adopción de estos primitives de Flow `3.0.0-beta.9`;
-siguen siendo beta y no se consideran una aprobación para reemplazo mecánico.
+La adopción de estos primitives comenzó con Flow `3.0.0-beta.9`; el corte
+actual consume el paquete local `3.0.0-beta.10`. Su madurez no se considera una
+aprobación para reemplazo mecánico.
 
 - `Button` reemplaza las acciones comunes de producto en dispersión, límites,
   mantenimiento, peajes, flota, administración, cobertura API, TED, solicitudes
   y simulación; también el cierre de los diálogos. `IconButton` cubre los
   controles de información/opciones de las tarjetas del dashboard y las
   acciones flotantes. Se preservan callbacks, estados y nombres accesibles.
-  La adopción es parcial: tras migrar las cuatro tablists locales, el barrido
-  encuentra 14 sitios JSX de `<button>` nativo en 9 archivos. Seis son acciones
-  y ocho son navegación o selección; su CSS local es una pista para rastrear la
-  cascada, no una razón automática para pedir `className` ni para reemplazar el
-  control por `Button`. Se evalúan abajo desde los tokens y el contrato de la
-  capa correcta.
+  La adopción es parcial: el escaneo actual encuentra 82 elementos JSX
+  `<button>` nativos en 25 módulos. Es una cuenta bruta sin clasificación
+  semántica; acciones, navegación, selección y triggers pueden requerir piezas
+  distintas. Se evalúan abajo desde los tokens y el contrato de la capa
+  correcta, no por la clase CSS local.
 - `Input` cubre búsquedas simples de flota, mantenimiento, medios de pago,
   facturas, usuarios, parámetros, mejoras API, medios de peaje y menú; también
   búsqueda global, asignaciones, formularios de catálogos/invitación, campos
-  de política y composición de TED. Quedan 11 inputs nativos en cinco módulos:
-  ocho numéricos que necesitan restricciones `min`/`step`, dos horarios que
-  usan `type="time"` con una carcasa local y un combobox enlazado a `Listbox`.
-  La implementación de `Input` reenvía las props HTML restantes al `<input>`
-  nativo y convierte `onChange` a `string`; su declaración beta.9 no tipa
-  `min`/`step` ni los atributos ARIA del combobox. La carga de archivos usa el
-  component `FileUpload`.
+  de política y composición de TED. El escaneo actual encuentra 49 `<input>`
+  nativos en 14 módulos, incluidos 11 numéricos, 2 horarios, 2 fechas, 4 de
+  texto, 3 de búsqueda, 25 casillas y 2 radios; también hay 31 `<select>`
+  nativos en 12 módulos. Estos números requieren clasificación por caso antes
+  de considerarse trabajo de migración. La API `InputProps` del paquete beta.10
+  no declara `min`/`step` ni varias relaciones ARIA; no forzar casts. La carga
+  de archivos usa el component `FileUpload`.
 - `DatePicker` ya está en uso en órdenes de servicio y en el constructor de
-  reportes. No se encontraron inputs nativos `type="date"` pendientes; se
-  conservan los límites de fecha y la validación actuales.
+  reportes. El escaneo aún encuentra dos inputs nativos `type="date"` en otras
+  superficies; revisar límites y validación antes de sustituirlos.
 - `SectionHeader` se adoptó en `ChartCard`, `ActivitySection`,
   `AttentionList`, `RulesSection`, `PoliciesSection` y `AssignmentsTable`.
   La adopción cubre cinco tarjetas de gráficas y los encabezados de esas
@@ -293,7 +355,8 @@ siguen siendo beta y no se consideran una aprobación para reemplazo mecánico.
 - No se sustituyen los tablists ni el recuadro cuadrado del icono de dispersión
   puntual: son navegación y decoración, respectivamente, no etiquetas, estados,
   contadores ni opciones tipo pill.
-- El contenedor compartido de los 13 diálogos usa ahora `OverlayShell` de Flow.
+- El contenedor compartido de 17 superficies usa ahora `OverlayShell` de Flow;
+  cuatro superficies adicionales usan directamente el `Dialog` de Flow.
   Se conservan el encabezado, subtítulo, pie, tamaños y contenido propios del
   producto; el shell aporta portal, bloqueo/restauración del scroll, cierre
   con Escape o backdrop, foco inicial, trampa de Tab y retorno del foco al
@@ -312,7 +375,7 @@ components. La composición con carcasas es una excepción prevista del grafo,
 no una razón para promover Select de capa.
 
 Revisión del catálogo exportado por el paquete instalado
-`@er-mobility-mx/design-system` `3.0.0-beta.9`: el manifiesto contiene 57
+`@er-mobility-mx/design-system` `3.0.0-beta.10`: el manifiesto contiene 57
 entradas marcadas `primitives`, 66 `components` y 64 `patterns`. La matriz
 detallada incluye las 57 entradas de primitives; components y patterns no
 forman parte de su denominador de avance. `ToastStack` es un export auxiliar
@@ -322,7 +385,7 @@ manifiesto y los imports de `src/`. "No usado" describe el estado del código,
 no implica que todo primitive deba adoptarse. Se registra la oportunidad más
 cercana y la razón para adoptarlo, evaluarlo después o no incorporarlo.
 
-Hay **26 primitives con import directo de componente: 26/57 = 45.6%**.
+Hay **27 primitives con import directo de componente: 27/57 = 47.4%**.
 Se excluyen imports de tipos, tests y hooks como `useToast`; `ToastHost`
 cuenta como pieza propia, y Toast compuesto no se suma como import directo.
 La evaluación anterior de “30 aplicables” no se conserva como porcentaje:
@@ -340,14 +403,15 @@ primitives aplicables que todavía no tienen adopción:
 
 | Área | Evidencia actual | Trabajo pendiente |
 |---|---|---|
-| `Button` | 14 sitios JSX de `<button>` nativo en 9 archivos: 6 acciones y 8 controles de selección/navegación. | Distinguir `ChatComposer`/`Conversation`, `IconButton`, `Sidebar`/navegación, `Radio` y `Chip` antes de considerar `Button`. No pedir `className`: el estilo de Flow se aplica por variante y tokens. Los únicos huecos de API a validar son atributos de relación como `aria-controls` en triggers que sí se compongan con Button/IconButton; `ref` solo si el trigger necesita anclaje o gestión de foco desde Flow. |
+| `Button` | El escaneo JSX actual encuentra 82 elementos `<button>` nativos en 25 módulos de producción. | Es un universo bruto, no 82 migraciones: clasificar cada uso como acción, navegación, selección, trigger de diálogo, control de mapa u otro contrato antes de asignarlo a `Button`, `IconButton`, `Chip` o una pieza compuesta. No pedir `className`: el estilo de Flow se aplica por variante y tokens. Validar atributos ARIA y foco en los triggers que sí correspondan. |
 | `Tabs` (component) | `ReportsPage` y las cuatro tablists locales usan `Tabs`/`TabPanel`. | Migración completada en `MaintenancePage`, `ActivitySection`, `InsightsPage` y `GasOptimizerPage`, conservando selección controlada, asociación tab/panel, IDs y navegación por teclado. |
-| `Chip` / `ChipGroup` / `Radio` / `SegmentedControl` | Seis grupos de chips ya migrados; quedan tres grupos de elección (monto, tipo y alcance), distribuidos en cinco sitios JSX de selección. | `Chip` aplica selección como filtro/toggle y `SegmentedControl` renderiza `role="tablist"`; ninguno se elige por la forma de píldora. Los importes, tipos y alcances del formulario son elecciones exclusivas: comparar `Radio` (y una composición de tarjeta cuando haga falta contenido enriquecido). |
-| `Input` | Búsquedas y campos simples usan Flow; el barrido residual anterior registró 11 `<input>` nativos en `TollBalancesPage`, `RuleBuilderDialog`, `PolicyDialog`, `OverrideDialog` y `QuickTopUp`. | El runtime reenvía atributos, pero el producto usa TypeScript: un atributo no declarado por `InputProps` sí bloquea su uso tipado. Contrastar cada restricción numérica/ARIA con el paquete antes de migrar; no forzar casts. `type="time"` está admitido, pero requiere validar el layout. Ningún caso requiere `className` para heredar el diccionario. |
+| `Chip` / `ChipGroup` / `Radio` / `SegmentedControl` | El escaneo encuentra 25 `input[type=checkbox]` y 2 `input[type=radio]` nativos en producción, aunque Chip/ChipGroup, Checkbox y Radio ya tienen adopción directa. | Clasificar los controles por semántica, estado y API; no inferir que todo input booleano es Checkbox ni que toda selección exclusiva es Radio. Comprobar en particular las opciones enriquecidas y selecciones de tablas antes de elegir primitive. |
+| `Input` / `Select` | El escaneo encuentra 49 `<input>` nativos en 14 módulos: 11 `number`, 2 `time`, 4 `text`, 3 `search`, 2 `date`, además de las 25 casillas y 2 radios contabilizadas arriba. Hay 31 `<select>` nativos en 12 módulos y ningún `<textarea>` nativo. | Esta es una cuenta estática de elementos, no un inventario de brechas equivalentes. Revisar por caso el contrato tipado (`min`/`step`, fechas, ARIA), el estilo y las interacciones; Flow Input/Select ya se usan en otras superficies. No forzar casts ni clases para conservar la apariencia local. |
 
-Los conteos de botones son sitios JSX, no cantidad de botones renderizados: los
-sitios dentro de `.map()` pueden producir varias instancias en tiempo de
-ejecución. Los componentes y patterns se registran en sus tablas de capa y no
+Los números anteriores son sitios JSX/elementos declarados en TSX/JSX de
+producción, no instancias renderizadas; los elementos en `.map()` pueden
+producir muchas instancias. El escaneo excluye tests y no asigna equivalencia
+semántica. Los componentes y patterns se registran en sus tablas de capa y no
 se suman al denominador de 57 primitives.
 
 #### Trazabilidad del diccionario a los controles residuales
@@ -384,6 +448,13 @@ medido, y no a la rampa de referencia directamente.
 
 #### Casos residuales de Button e Input
 
+El escaneo actual encuentra 82 `<button>`, 49 `<input>` y 31 `<select>`
+nativos en los módulos de producción; la tabla siguiente conserva una
+clasificación anterior de algunos casos y no cubre todavía todo ese inventario.
+No interpretar sus ejemplos como conteo exhaustivo ni como autorización para
+reemplazar controles en bloque. La clasificación completa pendiente debe
+identificar propietario, semántica, contrato de teclado/ARIA y estilo local.
+
 | Primitive / contrato | Casos identificados | Diferencia que impide o condiciona la migración |
 |---|---|---|
 | `Button` — acciones (6 sitios) | TED (preguntas sugeridas); `ApiTag` (trigger de `Popover`); `PageHeader` (toggle de menú); perfil de `TopBar`; «Cambiar» unidad en `QuickTopUp`; trigger del diálogo de `DevMode`. | TED debe usar `ChatComposer.suggestions`, que ya aplica los tokens y tiene la misma acción de envío inmediato. `ApiTag` debe conservar su botón nativo como trigger del `Popover` y `Badge` como presentación; no forzarlo al primitive de acción. Su foco local debe pasar a `--focus-ring`/`--border-focus`, no usar la tinta de texto como sustituto del rol de foco. Para `PageHeader`, preferir comparar el pattern `PageHeader` o `IconButton` ghost; el contrato instalado no declara `aria-controls`, así que habría que añadirlo si se migra. El perfil puede usar `TopBar` de Flow o `Button` secondary alrededor de `Avatar`; la etiqueta responsive puede seguir siendo layout local. «Cambiar» es mejor candidato para `TextAction` que para `Button link`: es una acción textual secundaria, no un enlace ni un CTA; validar que su objetivo de 44 px y la carcasa de búsqueda compongan bien. `DevMode` puede usar una acción secundaria con una etiqueta de estado Flow; su activo morado actual no es un token de acción, así que se debe retirar o mapear a un rol semántico (no reutilizar `viz-*`). |
@@ -400,7 +471,7 @@ medido, y no a la rampa de referencia directamente.
 | `Badge` | estable | Contadores de cobertura API, solicitudes, órdenes abiertas y catálogos; etiquetas informativas/semánticas y estado de cobertura API interactivo. | Adoptado en contadores y etiquetas de actividad, atención, movimientos, severidad, asignaciones y cobertura con tonos semánticos. En `ApiTag`, el botón/popover conserva su comportamiento y usa `Badge` como visual del estado. |
 | `Breadcrumb` | estable | `PageHeader` usa `Breadcrumb` para Ticket Car, sección y página actual. | Adoptado; se mantiene separado el botón de regreso. Flow fija el nombre accesible del landmark como “Breadcrumb”. |
 | `BrandCanvas` | beta | Sin superficie decorativa de marca equivalente. | Sin caso actual; es decorativo y no reemplaza canvas ni visualizaciones con datos. |
-| `Button` | beta | Acciones comunes en múltiples páginas y diálogos; quedan 14 sitios nativos en 9 archivos, con semántica de acción, navegación y elección. | Adoptado parcialmente. No exponer `className` para transportar estilos locales: sus variantes ya aplican roles del diccionario. `aria-controls` no está tipado en `Button`/`IconButton`; `IconButton selected` ya expresa `aria-pressed`. `aria-current` corresponde al contrato de navegación, no a un botón de acción genérico. Clasificar cada sitio con la tabla residual antes de proponer cambios de Flow. |
+| `Button` | beta | Acciones comunes en múltiples páginas y diálogos; el escaneo actual encuentra 82 elementos `<button>` nativos en 25 módulos, todavía sin clasificación completa. | Adoptado parcialmente. No exponer `className` para transportar estilos locales: sus variantes ya aplican roles del diccionario. `aria-controls` no está tipado en `Button`/`IconButton`; `IconButton selected` ya expresa `aria-pressed`. `aria-current` corresponde al contrato de navegación, no a un botón de acción genérico. |
 | `Calendar` | estable | Interno al `DatePicker`; la app no lo importa directamente. | No consumir por separado en formularios; usar el componente compuesto `DatePicker`. |
 | `Card` | estable | Carcasas locales en tablas y dashboards; sin import directo. | Comparar superficie, padding, contenido y semántica antes de migrar una familia. Es primitive; no promoverlo de capa ni adoptar por semejanza visual. |
 | `ChartLegend` | estable | `FuelDashboardPage` usa Flow `ChartLegend` bajo las barras multiserie de recargas/recortes; las líneas locales usan leyenda propia. | Adopción parcial; `BarChart` ya entrega `marks="fill"`. Revisar jerarquía `sm`/`md` según el rol de la leyenda y evaluar las líneas sin perder sus estados de dato. |
@@ -423,7 +494,7 @@ medido, y no a la rampa de referencia directamente.
 | `LimitBar` | estable | Un medidor de políticas de peaje compara gasto con tope y alerta al 75%/90%. | Hay un caso, pero no migrar: la API actual marca el cruce del 100% y no representa los umbrales operativos ni la semántica accesible necesaria. |
 | `Listbox` | beta | `QuickTopUp` usa `Listbox` para renderizar las opciones del combobox de vehículos. | Adoptado como lista de opciones controlada; se conservan el filtro por placa/dispositivo/conductor, la navegación desde el input, la selección y las clases visuales de resultado. |
 | `OverlayScope` | beta | La app corre como pantalla completa, no como superficie embebida. | Sin necesidad actual; sirve para contener overlays dentro de un marco anfitrión embebido. |
-| `OverlayShell` | estable | Base del `Modal` compartido por 13 diálogos. | En uso; el shell se delega a Flow y el contenido/presentación sigue siendo del producto. |
+| `OverlayShell` | estable | Base del `Modal` compartido por 17 superficies de diálogo. | En uso; el shell se delega a Flow y el contenido/presentación sigue siendo del producto. |
 | `PageFrame` | deprecado | No importado. | No adoptar; el manifiesto indica que se retira en 4.0. |
 | `Popover` | beta | `components/api/ApiCoverage.tsx` lo usa en el `ApiTag` compartido por 43 apariciones en 14 módulos TSX. | Adoptado en el detalle flotante API; Flow administra portal, posicionamiento, colisión, cierre y retorno del foco. Se conservan apariencia y contenido de producto. Los dos paneles de solicitudes/Dev son diálogos y no se migran como popovers. |
 | `Progress` | estable | No hay progreso general de tarea o carga; el único medidor con cifras es gasto contra límite. | No adoptar: no hay un caso de progreso genérico y no cubre los umbrales semánticos del medidor de peaje. |
@@ -527,21 +598,22 @@ con al menos un uso, no instancias ni sustitución completa de patrones locales.
 
 | Capa | Catálogo | Usados directamente | Avance por tipo | Lectura |
 |---|---:|---:|---:|---|
-| Primitives | 57 | 26 | 45.6% | `Card` y `Select` permanecen en su capa declarada. `Button` e `Input` tienen cobertura parcial. |
-| Components | 66 | 10 | 15.2% | Table y BulkBar ya tienen uso directo en el piloto; no implica que otras tablas estén migradas. |
-| Patterns | 64 | 1 | 1.6% | FilterSet ya está adoptado en Facturas; los otros patterns requieren casos concretos. |
+| Primitives | 57 | 27 | 47.4% | `Card` y `Select` permanecen en su capa declarada; ambos se usan ahora en los listados paginados. `Button` e `Input` tienen cobertura parcial. |
+| Components | 66 | 16 | 24.2% | La adopción directa creció; no implica que todas las superficies relacionadas estén migradas. |
+| Patterns | 64 | 2 | 3.1% | `FilterSet` y `PageHeader` se usan directamente; el resto requiere un flujo que coincida con su contrato. |
 
-Los 10 components con import directo actual son `Accordion`, `BulkBar`,
-`DatePicker`, `FileUpload`, `InputAmount`, `Menu`, `TabPanel`, `Table`,
-`Tabs` y `Tooltip`. `Select`, `StatusPill`, `Avatar` y `SectionHeader`
+Los 16 components con import directo actual son `Accordion`, `BulkBar`,
+`DatePicker`, `Dialog`, `FileUpload`, `GlobalSearch`, `InputAmount`, `ListRow`,
+`Menu`, `NotificationCenter`, `Sidebar`, `TabPanel`, `Table`, `Tabs`,
+`Tooltip` y `WidgetFrame`. `Select`, `StatusPill`, `Avatar` y `SectionHeader`
 son primitives y no se suman a components. El uso transitivo de ActiveFilters,
 FilterBar y SavedViews por FilterSet no se cuenta como import directo de la app.
 
 #### Patterns de Flow: oportunidades por mapear
 
-`FilterSet` es el pattern con import directo actual, en Facturas. La tabla
-distingue esa adopción de las superficies aún por comparar; no declara
-equivalencia ni que todos deban adoptarse:
+`FilterSet` se importa en Facturas y `PageHeader` en la composición de página.
+La tabla distingue esas adopciones de las superficies aún por comparar; no
+declara equivalencia ni que todos deban adoptarse:
 
 | Pattern de Flow | Superficie local relacionada | Pendiente / criterio |
 |---|---|---|
@@ -578,9 +650,9 @@ condicionadas, no deuda automática.
 | `Tooltip` | estable | `ChartCard`. | **En uso directo**; Flow gestiona hover/foco, relación accesible y posicionamiento adaptable. |
 | `StatTile` | estable | `SummaryCard` presenta KPI, periodo comparativo, delta favorable/desfavorable y unidad en `FuelDashboardPage`. | Candidato concreto; comparar el contrato de delta, estados sin datos, unidad y acentos de producto antes de migrar. |
 | `DateRangePicker` | deprecado | No se identificó caso separado; el alias está deprecado. | No adoptar; usar `DatePicker` en modo rango si surge el caso. |
-| `Dialog` | estable | Los 13 diálogos usan `Modal` con `OverlayShell`. | No importado directamente; no duplicar adopción del shell sin comparar estructura y presentación. |
+| `Dialog` | estable | Uso directo en HelpDialog, AccountDialog, NotificationInbox y DevMode; otras 17 superficies usan `Modal` con `OverlayShell`. | Ambas vías consumen piezas Flow; revisar el contrato por superficie y preservar la separación de Dev. |
 | `BottomSheet` / `Drawer` | estable | No hay flujo identificado que requiera sheet móvil o drawer de detalle. | Sin caso actual identificado. |
-| `Table` / `DataGrid` | beta | 23 instancias tabulares en 19 módulos: un piloto de `Table` en Facturas y 22 tablas locales. | Table aporta la piel sobre DataGrid y el piloto ya activa selección múltiple controlada por UUID, autorizada por producto. BulkBar ofrece PDF/XML/ambos. No se añade orden ni paginación. Ver auditoría por familia abajo. |
+| `Table` / `DataGrid` | beta | 23 instancias tabulares identificadas originalmente; seis ya usan `Table` y 17 permanecen por evaluar. | `Table` aporta la piel sobre DataGrid y Facturas activa selección múltiple controlada por UUID, autorizada por producto. BulkBar ofrece PDF/XML/ambos. No se añade orden ni paginación. Ver auditoría por familia abajo. |
 | `DataTable` | beta | Las superficies operativas tienen filtros externos; no se encontró paginación o selección múltiple en las tablas nativas. | Pattern de trabajo compuesto sobre `Table`, `Input`, `Pagination`, `EmptyState`, `StatusView` y `BulkBar`. Candidato donde exista una necesidad coordinada de buscar/filtrar/ordenar/paginar/seleccionar/editar; no envoltorio obligatorio de cada tabla. `searchable`, `sortable` y `paginated` se deben configurar para no añadir interacciones que la pantalla no tiene. |
 | `BulkActionsTable` / `FilterableEditableTable` | deprecated | No se consumen estos exports; existen controles editables de producto, por ejemplo en redes de estaciones, que no equivalen automáticamente al contrato integrado. | No adoptar. El RFC 0004 los retira en favor de `DataTable`; evaluar sus flujos explícitamente antes de cambiar la edición de producto. |
 | `TableTree` | beta | No se encontraron filas jerárquicas con hijos expandibles. | No aplica a los listados planos; solo usar si el modelo de datos es realmente arbóreo, no para agrupar filas por estilo. |
@@ -600,7 +672,7 @@ migración masiva ni implica que el candidato sea viable sin un piloto.
 
 | Prioridad | Componentes | Evidencia en la app | Impacto potencial | Siguiente paso / condición |
 |---:|---|---|---|---|
-| 1 | `Table` / `DataGrid` / `DataTable` | 23 instancias en 19 módulos; Facturas con multiselección y BulkBar, 22 tablas locales pendientes. | Muy alto por frecuencia e importancia; beta y diferencias de contrato impiden migración masiva. | Avanzar por familias preservando contratos; no extender selección ni flujos integrados sin requisito explícito. |
+| 1 | `Table` / `DataGrid` / `DataTable` | 23 instancias originales; seis usan `Table`, 17 permanecen por evaluar. | Muy alto por frecuencia e importancia; beta y diferencias de contrato impiden migración masiva. | Avanzar por familias preservando contratos; no extender selección ni flujos integrados sin requisito explícito. |
 | 2 | `Tabs` (completado) | Reportes y las cuatro tablists locales usan el component en cuatro módulos adicionales. | Alto: interacción repetida en cuatro superficies y contrato Flow estable. | Migración completada en Mantenimiento, ActivitySection, Insights y Optimizador; conservar las comprobaciones de teclado y panel/ID al modificar estas pantallas. |
 | 3 | `Accordion` | Detalle expandible en cobertura API y simulación; solicitudes y ajustes Dev son diálogos, no disclosures. | Medio: patrón localizado en dos superficies; Flow publica una API estable y gestiona la relación trigger/panel. | Migrado en ambas superficies, conservando el estado inicial cerrado y el contenido; no aplicar a popovers, diálogos ni acciones de «ver más». |
 | 4 | `ChatComposer` / `ChatThread` | TED conserva composer e hilo locales; `ChatMessage` ya está adoptado. | Medio: completa una experiencia importante, pero está concentrado en una sola pantalla. | Evaluar contrato de envío, teclado, sugerencias, contenido enriquecido, scroll y anuncio de estados; migrar solo las partes que coincidan. |
@@ -642,9 +714,9 @@ controlan el ancho/layout: no añaden borde, padding ni altura fija, ni
 sobrescriben el input interno de Flow. Los buscadores nativos de Vehículos
 y del editor de estaciones conservan `.table-page__search`.
 
-Revisión posterior al rebase, 21-oct-2026: **23 instancias tabulares en 19
-módulos**. Facturas inicia el piloto de `Table`; quedan **22 elementos
-`<table>` locales en 18 módulos**. No hay consumo directo de `DataGrid` ni
+Revisión inicial posterior al rebase, 21-oct-2026: **23 instancias tabulares
+en 19 módulos**. Facturas inicia el piloto de `Table`; en esa base quedaban
+**22 elementos `<table>` locales en 18 módulos**. No hay consumo directo de `DataGrid` ni
 `DataTable`. La selección por capa no es “HTML o Flow”:
 la estructura semántica de tabla es el primitive de plataforma (`table`,
 `thead`, `tbody`, `tr`, `th`, `td`); los controles dentro de las celdas pueden
@@ -672,6 +744,24 @@ necesita.
 | Listados operativos (15) | `DriversPage`, `VehiclesPage`, `PaymentMediaPage`, `InvoicesPage`, `UsersPage`, `ParametersPage`, `TollMediaPage`, `TollRulesPage`, saldo por TAG en `TollBalancesPage`, `MaintenancePage`, dos tablas de `GasOptimizerPage`, `AssignmentsTable`, `StationNetworkDialog` y cargas de `LoadDetail`. | Facturas usa Table con multiselección/BulkBar, sin orden ni paginación. Conductores, vehículos, medios de pago y cargas del optimizador tienen paginación local. Preservar filtros, acciones y controles, incluida la edición de redes; no asumir que todos son listados pasivos. `AssignmentsTable` conserva `Select`, medidor y acciones por unidad. |
 | Actividad e historial (4) | Dos tablas condicionales de `ActivitySection`, movimientos en `TollBalancesPage` y registro de envíos al conductor en `LoadDetail`. | `ActivitySection` conserva «Ver más»/«Ver menos», no páginas. Mantener ese flujo y la comparación por columnas; no sustituir por un feed automáticamente. |
 | Previsualización/detalle (4) | Filas importadas en `BulkUploadDialog`, líneas de `ReceiptDialog`, muestra de unidades en `SimulationDialog` y preview de columnas en `DynamicReportBuilder`. | Son tablas de lectura dentro de diálogos o una vista previa: sin búsqueda/orden/selección. El preview de reporte actualmente contiene cabecera sin filas y un `EmptyState`, por lo que no es una tabla de datos para migrar; `BulkUploadDialog` debe considerar tamaño máximo del CSV antes de cambiar a paginación. |
+
+**Actualización de adopción, 21-oct-2026:** `Table` ya reemplazó la estructura
+de Facturas, las dos tablas de Administración y los listados paginados de
+Conductores, Vehículos y Medios de pago (6 de las 23 instancias originales;
+17 permanecen por evaluar). Las siete tablas desplegables para datos de charts
+son adiciones, fuera de ese conteo. En E2.2, Table recibe solo la página actual;
+los filtros externos, `usePagination`, `Pagination` de 25 filas y callbacks
+siguen en producto. No se activa ordenamiento, selección ni paginación interna.
+La búsqueda global conserva foco y desplazamiento de la fila exacta: el hook
+completa en DOM la identidad de las filas visibles del Table, que no expone
+atributos de fila personalizados. Las pruebas SSR, recorridos de filtros,
+última página, acciones por fila, búsqueda global y anchos de 320–1280 px
+están documentados en el [roadmap](./roadmap-migracion-flow.md). Auditoría de
+cascada posterior: la tabla, cabeceras, celdas y scroll son de Flow; la familia
+no está visualmente cerrada porque su carcasa y contenido todavía heredan
+estilos/medidas locales de `TablePage.css`, hay cifras/placas/IDs sin `mono` y
+la banda dev de cobertura API también usa valores locales. El lote E2.2
+permanece local y sin publicar; completar esa revisión antes de pasar a E2.3.
 
 **Cascada visual y riesgos de equivalencia**
 
@@ -1201,7 +1291,7 @@ validar que reglas globales existentes no anulen el foco de Flow.
 ## Evidencia de uso por capa: formularios y navegación
 
 La madurez procede de `items.*.maturity` en el manifiesto del paquete
-`@er-mobility-mx/design-system@3.0.0-beta.9`; los paths son relativos a `src/`.
+`@er-mobility-mx/design-system@3.0.0-beta.10`; los paths son relativos a `src/`.
 Las tablas se separan por la capa declarada en el paquete. Esta selección
 no sustituye el inventario completo ni mezcla los componentes dentro del
 denominador de primitives.
@@ -1210,32 +1300,32 @@ denominador de primitives.
 
 | Primitive | Madurez | Usos Flow actuales | Pendiente / decisión |
 |---|---|---|---|
-| `Checkbox` | Estable | `components/company/InviteUserDialog.tsx`, `components/company/ParameterCatalogDialog.tsx`, `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`, `components/toll/TollPolicyDialog.tsx`. | No quedan casillas nativas (`type="checkbox"`) en TSX/JSX. |
+| `Checkbox` | Estable | `components/company/InviteUserDialog.tsx`, `components/company/ParameterCatalogDialog.tsx`, `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`, `components/toll/TollPolicyDialog.tsx`. | Adoptado en seis módulos; el escaneo aún encuentra 25 casillas nativas en otras composiciones o dentro de esos módulos. Clasificarlas por semántica antes de migrar. |
 | `Field` | Estable | `components/company/InviteUserDialog.tsx`, `components/company/ParameterCatalogDialog.tsx`, `components/company/ParameterRecordDialog.tsx`, `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/OverrideDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/maintenance/ServiceOrderDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`, `components/toll/TollAmountDialog.tsx`, `components/toll/TollAssignDialog.tsx`, `components/toll/TollPolicyDialog.tsx`. | Se conserva para etiqueta y descripción de los campos. `Input` reenvía `min`/`step` en runtime, pero faltan en el tipo público; se pueden componer juntos sin perder las restricciones. |
 | `IconButton` | Estable | `components/layout/TopBar.tsx`, `components/dashboard/ChartCard.tsx` y `components/layout/FloatingControls.tsx`. | Los triggers conservan nombres accesibles. |
-| `Radio` | Estable | `components/company/InviteUserDialog.tsx` (selección de rol). | No quedan otros grupos de radio nativos mapeados. |
+| `Radio` | Estable | `components/company/InviteUserDialog.tsx` (selección de rol). | Adoptado para el rol de invitación; el escaneo aún encuentra dos inputs nativos `type="radio"` por revisar. |
 | `Switch` | Estable | `components/api/ApiCoverage.tsx`, `components/dev/DevMode.tsx`, `components/limits/PolicyDialog.tsx`, `components/toll/TollPolicyDialog.tsx`, `pages/company/ParametersPage.tsx`, `pages/toll/TollBalancesPage.tsx`. | No quedan switches nativos (`role="switch"`) en TSX/JSX; los callbacks reciben booleano. |
 | `Textarea` | Estable | `components/maintenance/ServiceOrderDialog.tsx`. | Sin otro textarea candidato. |
 | `Button` | Beta | Usado en páginas y diálogos de producto. | Adoptado para acciones; se conserva el control local cuando tiene semántica distinta. |
-| `Input` | Beta | Búsquedas, formularios, asignaciones y navegación. | Adoptado para texto simple; permanecen ocho campos numéricos por `min`/`step` y un combobox por sus atributos ARIA. `type="time"` sí está aceptado por la API; evaluar migración de esos dos campos con revisión de estilo. |
-| `Select` | Estable | Formularios, filtros y páginas de Reportes, Flota, Medios de pago, Facturas, Usuarios y reglas. | Adoptado; selección y callbacks controlados. Es primitive y no se vuelve a contar en la tabla de components. |
+| `Input` | Beta | Búsquedas, formularios, asignaciones y navegación. | Adoptado para texto simple; el escaneo encuentra 11 campos numéricos, 2 horarios, 2 fechas y otros controles nativos, que requieren clasificación y cotejo de API antes de migrar. `type="time"` está aceptado por la API; revisar también la carcasa local. |
+| `Select` | Estable | Formularios, filtros y páginas de Reportes, Flota, Medios de pago, Facturas, Usuarios y reglas. | Adoptado parcialmente; el escaneo aún encuentra 31 `<select>` nativos en 12 módulos. Es primitive y no se vuelve a contar en la tabla de components. |
 
 ### Componentes usados en formularios y navegación
 
 | Componente | Madurez | Usos Flow actuales | Pendiente / decisión |
 |---|---|---|---|
-| `DatePicker` | Beta | `components/maintenance/ServiceOrderDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`. | Adoptado; no hay input nativo `type="date"` pendiente. |
-| `Dialog` | Estable | Sin adopción directa; los diálogos del producto usan `Modal` con `OverlayShell`. | No duplicar la migración del shell; evaluar la composición antes de reemplazarla. |
+| `DatePicker` | Beta | `components/maintenance/ServiceOrderDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`. | Adoptado; el escaneo todavía encuentra dos inputs nativos `type="date"` en otras superficies. Revisar límites y comportamiento antes de sustituirlos. |
+| `Dialog` | Estable | Uso directo en HelpDialog, AccountDialog, NotificationInbox y DevMode; 17 superficies adicionales usan `Modal` con `OverlayShell`. | Ambas vías consumen piezas Flow; revisar el contrato por superficie y preservar la separación de Dev. |
 | `InputAmount` | Estable | `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/OverrideDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/toll/TollAmountDialog.tsx`, `components/toll/TollPolicyDialog.tsx`. | Adoptado; mantiene límites de moneda y formato vía la API publicada. |
 | `Tabs` / `TabPanel` | Estable | `pages/ReportsPage.tsx`, `pages/MaintenancePage.tsx`, `components/dispersion/ActivitySection.tsx`, `pages/intelligence/InsightsPage.tsx` y `pages/intelligence/GasOptimizerPage.tsx`. | Adoptado en las cinco superficies identificadas; los paneles usan IDs asociados y conservan la navegación por teclado. |
 
-Los usos existentes beta se conservan considerando su madurez publicada. La
-medición estática del estado actual encuentra cero
-`<select>`, `type="checkbox"` y `role="switch"` nativos en los TSX/JSX de
-`src/`. Los ocho inputs numéricos nativos conservan `min`/`step`, que `Input`
-no publica; los dos `type="time"` son compatibles con el prop `type` de Flow,
-pero dependen de clases visuales locales no expuestas por su API. El campo de
-búsqueda combobox conserva roles y relaciones ARIA que `Input` tampoco publica.
+Los usos existentes beta se conservan considerando su madurez publicada. El
+escaneo estático actual encuentra en TSX de producción 31 `<select>` nativos,
+25 `input[type="checkbox"]`, 2 `input[type="radio"]`, 11 `input[type="number"]`,
+2 `input[type="time"]` y 2 `input[type="date"]`; no encuentra `<textarea>`
+nativo. `InputProps` beta.10 no publica `min`/`step` ni varias relaciones ARIA.
+La cuenta orienta el siguiente inventario por superficie, pero no clasifica
+qué controles son equivalentes o excepciones legítimas.
 
 Otros primitives y components se siguen evaluando por separado. Compartir
 apariencia o nombre no implica equivalencia de contrato; revisar interacción,
