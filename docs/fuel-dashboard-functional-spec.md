@@ -61,11 +61,12 @@ Each icon has an accessible name and a tooltip.
 
 | Group | Items |
 | --- | --- |
-| COMBUSTIBLE | Saldos · Reglas y límites · Medios de pago |
-| PEAJE | Saldos · Reglas y límites · Medios de pago |
+| COMBUSTIBLE | Saldos · Reglas y límites |
+| PEAJE | Saldos · Reglas y límites |
 | MANTENIMIENTO | Resumen |
+| ELECTROMOVILIDAD | Resumen · Cuenta y fondeo · Recargas · Restricciones de carga · Cargadores |
 | INTELIGENCIA | Reportes · Insights & Alertas · Optimizador de gasolineras · TED |
-| FLOTA | Vehículos · Conductores |
+| FLOTA | Vehículos · Medios de pago · Conductores |
 | EMPRESA | Parámetros · Facturas · Usuarios |
 
 - The selected item stays highlighted and carries `aria-current="page"`.

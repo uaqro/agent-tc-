@@ -14,7 +14,6 @@ export const menuGroups: MenuGroup[] = [
       { id: 'saldos', label: 'Saldos', icon: 'wallet' },
       { id: 'reglas-limites', label: 'Políticas de uso', icon: 'lock' },
       { id: 'red-estaciones', label: 'Red de estaciones', icon: 'compass' },
-      { id: 'medios-pago', label: 'Medios de pago', icon: 'card' },
     ],
   },
   {
@@ -23,7 +22,6 @@ export const menuGroups: MenuGroup[] = [
     items: [
       { id: 'peaje-saldos', label: 'Saldos', icon: 'wallet' },
       { id: 'peaje-reglas-limites', label: 'Reglas y límites', icon: 'lock' },
-      { id: 'peaje-medios-pago', label: 'Medios de pago', icon: 'card' },
     ],
   },
   {
@@ -40,7 +38,6 @@ export const menuGroups: MenuGroup[] = [
       { id: 'ev-recargas', label: 'Recargas', icon: 'clock' },
       { id: 'ev-restricciones', label: 'Restricciones de carga', icon: 'lock' },
       { id: 'ev-cargadores', label: 'Cargadores', icon: 'pin' },
-      { id: 'ev-flota', label: 'Unidades y tarjetas', icon: 'card' },
     ],
   },
   {
@@ -58,6 +55,7 @@ export const menuGroups: MenuGroup[] = [
     label: 'Flota',
     items: [
       { id: 'vehiculos', label: 'Vehículos', icon: 'truck' },
+      { id: 'flota-medios', label: 'Medios de pago', icon: 'card' },
       { id: 'conductores', label: 'Conductores', icon: 'user' },
     ],
   },

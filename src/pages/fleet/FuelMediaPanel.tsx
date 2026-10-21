@@ -1,24 +1,27 @@
 import { useMemo, useState } from 'react';
-import { CardIcon, PlusIcon, SearchIcon } from '../components/icons/Icons';
-import { EmptyState } from '../components/ui/EmptyState';
-import { Pagination, usePagination } from '../components/ui/Pagination';
-import { DevNote } from '../components/dev/DevNote';
-import { autoconsumoUnits, vehicles } from '../data/dispersion';
+import { CardIcon, PlusIcon, SearchIcon } from '../../components/icons/Icons';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { Pagination, usePagination } from '../../components/ui/Pagination';
+import { DevNote } from '../../components/dev/DevNote';
+import { autoconsumoUnits, vehicles } from '../../data/dispersion';
 import {
   PAYMENT_STATUS_LABEL,
   PAYMENT_TYPE_LABEL,
-  paymentMedia as seedMedia,
   type PaymentMedium,
   type PaymentMediumStatus,
   type PaymentMediumType,
   vehicleDetails,
-} from '../data/fleet';
-import { formatCount, formatDateTime, formatMoney } from '../utils/format';
-import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
-import './TablePage.css';
+} from '../../data/fleet';
+import { formatCount, formatDateTime, formatMoney } from '../../utils/format';
+import { ApiCoverageBanner, ApiTag } from '../../components/api/ApiCoverage';
+import { ReadOnlyNotice } from '../../components/ui/ReadOnlyNotice';
+import { useDevices } from '../../data/DevicesContext';
+import '../TablePage.css';
 
-interface PaymentMediaPageProps {
+interface FuelMediaPanelProps {
   onNotice: (message: string) => void;
+  /** The role sees the fuel media but can't request, block or assign them (ADR-TCP-001). */
+  readOnly?: boolean;
 }
 
 const STATUS_CHIP: Record<PaymentMediumStatus, string> = {
@@ -27,8 +30,9 @@ const STATUS_CHIP: Record<PaymentMediumStatus, string> = {
   unassigned: 'chip--paused',
 };
 
-export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
-  const [media, setMedia] = useState<PaymentMedium[]>(seedMedia);
+/** Fuel cards, tags and virtual cards, as Flota · Medios de pago shows them under Combustible. */
+export function FuelMediaPanel({ onNotice, readOnly = false }: FuelMediaPanelProps) {
+  const { fuelMedia: media, setFuelMedia: setMedia } = useDevices();
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<PaymentMediumStatus | ''>('');
   const [type, setType] = useState<PaymentMediumType | ''>('');
@@ -57,8 +61,9 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
   };
 
   return (
-    <div className="table-page">
+    <>
       <ApiCoverageBanner page="payment-media" />
+      {readOnly && <ReadOnlyNotice what="los medios de pago de combustible" />}
       <DevNote label="Pregunta de producto">
         ¿Autoconsumo tiene límites propios? Hasta decidirlo, Medios de pago no muestra los tags de las{' '}
         {formatCount(autoconsumoUnits)} unidades de Autoconsumo. Siguen visibles en Flota · Vehículos.
@@ -122,10 +127,12 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
                 ))}
               </select>
             </label>
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => onNotice('Solicitud de nuevos medios de pago abierta.')}>
-              <PlusIcon width={14} height={14} />
-              Solicitar medios
-            </button>
+            {!readOnly && (
+              <button type="button" className="btn btn--primary btn--sm" onClick={() => onNotice('Solicitud de nuevos medios de pago abierta.')}>
+                <PlusIcon width={14} height={14} />
+                Solicitar medios
+              </button>
+            )}
             <ApiTag id="media-request" />
           </div>
         </header>
@@ -215,17 +222,17 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
                         )}
                       </td>
                       <td className="table-page__action">
-                        {medium.status === 'active' && (
+                        {!readOnly && medium.status === 'active' && (
                           <button type="button" className="btn btn--ghost btn--sm" onClick={() => setMediumStatus(medium, 'blocked')}>
                             Bloquear
                           </button>
                         )}
-                        {medium.status === 'blocked' && (
+                        {!readOnly && medium.status === 'blocked' && (
                           <button type="button" className="btn btn--secondary btn--sm" onClick={() => setMediumStatus(medium, 'active')}>
                             Desbloquear
                           </button>
                         )}
-                        {medium.status === 'unassigned' && (
+                        {!readOnly && medium.status === 'unassigned' && (
                           <button type="button" className="btn btn--secondary btn--sm" onClick={() => onNotice(`Asignando ${medium.number} a una unidad.`)}>
                             Asignar
                           </button>
@@ -240,6 +247,6 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
         )}
         <Pagination {...pagination} noun="medios" onPage={pagination.setPage} />
       </section>
-    </div>
+    </>
   );
 }
