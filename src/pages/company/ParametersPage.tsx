@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Badge, Button, Input, StatusPill, Switch } from '@er-mobility-mx/design-system';
+import { Badge, Button, Input, StatusPill, Switch, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import { ParameterCatalogDialog } from '../../components/company/ParameterCatalogDialog';
 import { ParameterRecordDialog } from '../../components/company/ParameterRecordDialog';
 import { ApiCoverageBanner, ApiTag } from '../../components/api/ApiCoverage';
@@ -8,6 +8,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { parameterCatalogs, type ParameterCatalog, type ParameterRecord } from '../../data/company';
 import '../TablePage.css';
 import './ParametersPage.css';
+import './AdministrationTables.css';
 
 interface ParametersPageProps {
   onNotice: (message: string) => void;
@@ -104,7 +105,40 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
   };
 
   const activeCount = catalog.records.filter((record) => record.active).length;
-  const columns = catalog.fields.filter((field) => field.inTable !== false);
+  const columns: GridColumn<ParameterRecord>[] = [
+    ...catalog.fields.filter((field) => field.inTable !== false).map((field) => ({
+      key: field.key,
+      label: field.label,
+      render: (record: ParameterRecord) => (
+        <span
+          className={field.key === catalog.titleField ? 'admin-table__primary' : 'admin-table__value'}
+          data-inactive={!record.active || undefined}
+        >
+          {record.values[field.key] || <span className="admin-table__metadata">—</span>}
+        </span>
+      ),
+    })),
+    {
+      key: 'status',
+      label: 'Estado',
+      render: (record) => <StatusPill label={record.active ? 'Activo' : 'Inactivo'} tone={record.active ? 'success' : 'neutral'} />,
+    },
+    {
+      key: 'actions',
+      label: 'Acciones',
+      align: 'right',
+      render: (record) => (
+        <div className="admin-table__actions">
+          <Button variant="ghost" size="sm" onClick={() => setRecordDialog({ mode: 'edit', record })}>
+            Editar
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => toggleRecord(record)}>
+            {record.active ? 'Desactivar' : 'Activar'}
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="table-page">
@@ -218,49 +252,7 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
               }
             />
           ) : (
-            <div className="table-page__scroll">
-              <table className="table-page__table parameters__table">
-                <thead>
-                  <tr>
-                    {columns.map((field) => (
-                      <th key={field.key} scope="col">
-                        {field.label}
-                      </th>
-                    ))}
-                    <th scope="col">Estado</th>
-                    <th scope="col">
-                      <span className="visually-hidden">Acciones</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((record) => (
-                    <tr key={record.id} className={record.active ? '' : 'is-inactive'}>
-                      {columns.map((field) => (
-                        <td key={field.key}>
-                          {field.key === catalog.titleField ? (
-                            <span className="table-page__main">{record.values[field.key]}</span>
-                          ) : (
-                            record.values[field.key] || <span className="table-page__sub">—</span>
-                          )}
-                        </td>
-                      ))}
-                      <td>
-                        <StatusPill label={record.active ? 'Activo' : 'Inactivo'} tone={record.active ? 'success' : 'neutral'} />
-                      </td>
-                      <td className="table-page__action">
-                        <Button variant="ghost" size="sm" onClick={() => setRecordDialog({ mode: 'edit', record })}>
-                          Editar
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => toggleRecord(record)}>
-                          {record.active ? 'Desactivar' : 'Activar'}
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table caption={catalog.label} columns={columns} rows={rows} rowKey="id" surface="none" sortable={false} />
           )}
         </section>
       </div>

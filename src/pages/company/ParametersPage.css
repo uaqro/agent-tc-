@@ -99,16 +99,8 @@
   align-items: center;
 }
 
-.parameters__table {
-  min-width: 720px;
-}
-
-.parameters__table tr.is-inactive td {
-  color: var(--tc-local-text-muted);
-}
-
-.parameters__table tr.is-inactive .table-page__main {
-  color: var(--tc-local-text-muted);
+.parameters__main {
+  min-width: 0;
 }
 
 @media (max-width: 900px) {

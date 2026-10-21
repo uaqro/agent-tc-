@@ -1,0 +1,27 @@
+.admin-table__primary {
+  display: block;
+  font: var(--type-body-md-medium);
+  color: var(--text-primary);
+}
+
+.admin-table__metadata {
+  display: block;
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}
+
+.admin-table__primary[data-inactive],
+.admin-table__value[data-inactive] {
+  color: var(--text-secondary);
+}
+
+.admin-table__nowrap {
+  white-space: nowrap;
+}
+
+.admin-table__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--gap-inline);
+  white-space: nowrap;
+}

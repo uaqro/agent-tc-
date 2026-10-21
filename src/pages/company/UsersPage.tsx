@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Badge, Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
+import { Badge, Button, Input, Select, StatusPill, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import { InviteUserDialog } from '../../components/company/InviteUserDialog';
 import { PlusIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -15,6 +15,7 @@ import { scopeLabel } from '../../data/client';
 import { sessionPrincipal } from '../../data/session';
 import { formatDateTime } from '../../utils/format';
 import '../TablePage.css';
+import './AdministrationTables.css';
 
 interface UsersPageProps {
   onNotice: (message: string) => void;
@@ -60,6 +61,59 @@ export function UsersPage({ onNotice }: UsersPageProps) {
     setUsers((current) => current.map((user) => (user.id === target.id ? { ...user, status: next } : user)));
     onNotice(next === 'suspended' ? `${target.name} ya no puede entrar al portal.` : `${target.name} se reactivó.`);
   };
+
+  const columns: GridColumn<PlatformUser>[] = [
+    {
+      key: 'name',
+      label: 'Usuario',
+      render: (user) => (
+        <>
+          <span className="admin-table__primary">
+            {user.name} {user.id === sessionPrincipal().userId && <Badge>Tú</Badge>}
+          </span>
+          <span className="admin-table__metadata">{user.email}</span>
+        </>
+      ),
+    },
+    { key: 'role', label: 'Rol', render: (user) => USER_ROLE_LABEL[user.role] },
+    { key: 'scopeNodeId', label: 'Alcance', render: (user) => scopeLabel(user.scopeNodeId) },
+    {
+      key: 'lastAccess',
+      label: 'Último acceso',
+      render: (user) => user.lastAccess
+        ? <span className="admin-table__nowrap">{formatDateTime(new Date(user.lastAccess))}</span>
+        : <span className="admin-table__metadata">Nunca</span>,
+    },
+    {
+      key: 'status',
+      label: 'Estado',
+      render: (user) => <StatusPill label={USER_STATUS_LABEL[user.status]} tone={STATUS_TONE[user.status]} />,
+    },
+    {
+      key: 'actions',
+      label: 'Acciones',
+      align: 'right',
+      render: (user) => (
+        <div className="admin-table__actions">
+          {user.status === 'invited' && (
+            <Button variant="ghost" size="sm" onClick={() => onNotice(`Invitación reenviada a ${user.email}.`)}>
+              Reenviar invitación
+            </Button>
+          )}
+          {user.status === 'active' && user.id !== sessionPrincipal().userId && (
+            <Button variant="ghost" size="sm" onClick={() => setUserStatus(user, 'suspended')}>
+              Suspender
+            </Button>
+          )}
+          {user.status === 'suspended' && (
+            <Button variant="ghost" size="sm" onClick={() => setUserStatus(user, 'active')}>
+              Reactivar
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="table-page">
@@ -139,62 +193,7 @@ export function UsersPage({ onNotice }: UsersPageProps) {
             }
           />
         ) : (
-          <div className="table-page__scroll">
-            <table className="table-page__table">
-              <thead>
-                <tr>
-                  <th scope="col">Usuario</th>
-                  <th scope="col">Rol</th>
-                  <th scope="col">Alcance</th>
-                  <th scope="col">Último acceso</th>
-                  <th scope="col">Estado</th>
-                  <th scope="col">
-                    <span className="visually-hidden">Acciones</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((user) => {
-                  const isSelf = user.id === sessionPrincipal().userId;
-                  return (
-                    <tr key={user.id}>
-                      <td>
-                        <span className="table-page__main">
-                          {user.name} {isSelf && <Badge>Tú</Badge>}
-                        </span>
-                        <span className="table-page__sub">{user.email}</span>
-                      </td>
-                      <td>{USER_ROLE_LABEL[user.role]}</td>
-                      <td>{scopeLabel(user.scopeNodeId)}</td>
-                      <td className="table-page__nowrap">
-                        {user.lastAccess ? formatDateTime(new Date(user.lastAccess)) : <span className="table-page__sub">Nunca</span>}
-                      </td>
-                      <td>
-                        <StatusPill label={USER_STATUS_LABEL[user.status]} tone={STATUS_TONE[user.status]} />
-                      </td>
-                      <td className="table-page__action">
-                        {user.status === 'invited' && (
-                          <Button variant="ghost" size="sm" onClick={() => onNotice(`Invitación reenviada a ${user.email}.`)}>
-                            Reenviar invitación
-                          </Button>
-                        )}
-                        {user.status === 'active' && !isSelf && (
-                          <Button variant="ghost" size="sm" onClick={() => setUserStatus(user, 'suspended')}>
-                            Suspender
-                          </Button>
-                        )}
-                        {user.status === 'suspended' && (
-                          <Button variant="ghost" size="sm" onClick={() => setUserStatus(user, 'active')}>
-                            Reactivar
-                          </Button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <Table caption="Usuarios de la empresa" columns={columns} rows={rows} rowKey="id" surface="none" sortable={false} />
         )}
       </section>
 
