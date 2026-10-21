@@ -1,52 +1,26 @@
-import { useRef, useState } from 'react';
-import { Skeleton, Stack } from '@er-mobility-mx/design-system';
+import { ChartLegend, FlowChart, Skeleton, Stack } from '@er-mobility-mx/design-system';
 import type { GapSeries } from '../../types';
-import {
-  CHART_HEIGHT,
-  CHART_WIDTH,
-  PADDING,
-  PLOT_HEIGHT,
-  buildTicks,
-  formatTick,
-  scaleX,
-  scaleY,
-} from './geometry';
-import { ChartLegend } from './ChartLegend';
-import { ChartTooltip } from './ChartTooltip';
-import './charts.css';
+import { CHART_HEIGHT, CHART_WIDTH, formatTick } from './geometry';
+import { ChartDataTable } from './ChartDataTable';
 
 interface LineChartProps {
   labels: string[];
-  /** `null` values are gaps: the line breaks there and the tooltip says «Sin datos». */
   series: GapSeries[];
   yMin: number;
   yMax: number;
-  tickCount?: number;
   valueSuffix?: string;
   ariaLabel: string;
 }
 
+const plotStyle = { height: 'auto', aspectRatio: `${CHART_WIDTH} / ${CHART_HEIGHT}`, minHeight: 240 };
+
 export function LineChartSkeleton() {
   return (
     <Stack direction="column" gap="inline">
-      <Skeleton variant="card" height="auto" style={{ aspectRatio: `${CHART_WIDTH} / ${CHART_HEIGHT}` }} />
+      <Skeleton variant="card" height="auto" style={plotStyle} />
       <Skeleton width="40%" />
     </Stack>
   );
-}
-
-/** Runs of consecutive non-null points, one polyline each: a gap is never bridged. */
-function segmentsOf(values: (number | null)[]): { index: number; value: number }[][] {
-  const segments: { index: number; value: number }[][] = [];
-  let current: { index: number; value: number }[] = [];
-  values.forEach((value, index) => {
-    if (value === null) {
-      if (current.length > 0) segments.push(current);
-      current = [];
-    } else current.push({ index, value });
-  });
-  if (current.length > 0) segments.push(current);
-  return segments;
 }
 
 export function LineChart({
@@ -54,132 +28,35 @@ export function LineChart({
   series,
   yMin,
   yMax,
-  tickCount = 5,
   valueSuffix = '',
   ariaLabel,
 }: LineChartProps) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const ticks = buildTicks(yMin, yMax, tickCount);
-  const step = (CHART_WIDTH - PADDING.left - PADDING.right) / Math.max(labels.length - 1, 1);
-  const gapIndexes = labels.map((_, index) => index).filter((index) => series.some((item) => item.values[index] === null));
-
-  const handlePointer = (event: React.PointerEvent<SVGSVGElement>) => {
-    const rect = svgRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = ((event.clientX - rect.left) / rect.width) * CHART_WIDTH;
-    const step = (CHART_WIDTH - PADDING.left - PADDING.right) / Math.max(labels.length - 1, 1);
-    const index = Math.round((x - PADDING.left) / step);
-    setActiveIndex(Math.min(Math.max(index, 0), labels.length - 1));
-  };
+  const formatValue = (value: number) => `${value}${valueSuffix}`;
+  const chartSeries = series.map(({ name, ...item }) => ({ label: name, ...item }));
 
   return (
-    <div>
-      <svg
-        ref={svgRef}
-        className="chart"
-        viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-        role="img"
-        aria-label={ariaLabel}
-        onPointerMove={handlePointer}
-        onPointerLeave={() => setActiveIndex(null)}
-      >
-        {ticks.map((tick) => (
-          <g key={tick}>
-            <line
-              className="chart__grid-line"
-              x1={PADDING.left}
-              x2={CHART_WIDTH - PADDING.right}
-              y1={scaleY(tick, yMin, yMax)}
-              y2={scaleY(tick, yMin, yMax)}
-            />
-            <text
-              className="chart__axis-text"
-              x={PADDING.left - 10}
-              y={scaleY(tick, yMin, yMax)}
-              textAnchor="end"
-              dominantBaseline="middle"
-            >
-              {formatTick(tick)}
-            </text>
-          </g>
-        ))}
-
-        {labels.map((label, index) => (
-          <text
-            key={label}
-            className="chart__axis-text"
-            x={scaleX(index, labels.length)}
-            y={PADDING.top + PLOT_HEIGHT + 20}
-            textAnchor="middle"
-          >
-            {label}
-          </text>
-        ))}
-
-        {gapIndexes.map((index) => (
-          <rect
-            key={`gap-${index}`}
-            className="chart__gap"
-            x={Math.max(PADDING.left, scaleX(index, labels.length) - step / 2)}
-            y={PADDING.top}
-            width={Math.min(step, CHART_WIDTH - PADDING.right - Math.max(PADDING.left, scaleX(index, labels.length) - step / 2))}
-            height={PLOT_HEIGHT}
-          >
-            <title>Sin datos</title>
-          </rect>
-        ))}
-
-        {activeIndex !== null && (
-          <line
-            className="chart__guide"
-            x1={scaleX(activeIndex, labels.length)}
-            x2={scaleX(activeIndex, labels.length)}
-            y1={PADDING.top}
-            y2={PADDING.top + PLOT_HEIGHT}
-          />
-        )}
-
-        {series.map((item) =>
-          segmentsOf(item.values).map((segment) => (
-            <polyline
-              key={`${item.name}-${segment[0].index}`}
-              className="chart__line"
-              stroke={item.color}
-              points={segment.map(({ index, value }) => `${scaleX(index, labels.length)},${scaleY(value, yMin, yMax)}`).join(' ')}
-            />
-          )),
-        )}
-
-        {series.map((item) =>
-          item.values.map((value, index) =>
-            value === null ? null : (
-            <circle
-              key={`${item.name}-${index}`}
-              className="chart__dot"
-              cx={scaleX(index, labels.length)}
-              cy={scaleY(value, yMin, yMax)}
-              r={activeIndex === index ? 5.5 : 3.5}
-              fill={item.color}
-            />
-            ),
-          ),
-        )}
-
-        {activeIndex !== null && (
-          <ChartTooltip
-            x={scaleX(activeIndex, labels.length)}
-            y={PADDING.top + 8}
-            title={labels[activeIndex]}
-            rows={series.map((item) => ({
-              color: item.color,
-              label: item.name,
-              value: item.values[activeIndex] === null ? (item.gapLabel ?? 'Sin datos') : `${item.values[activeIndex]}${valueSuffix}`,
-            }))}
-          />
-        )}
-      </svg>
-      <ChartLegend series={series} />
-    </div>
+    <Stack direction="column" gap="stack">
+      <FlowChart
+        type="line"
+        height={CHART_HEIGHT}
+        style={plotStyle}
+        labels={labels}
+        series={chartSeries}
+        min={yMin}
+        max={yMax}
+        smooth={false}
+        format={formatValue}
+        axisFormat={formatTick}
+        gapLabel="Sin datos"
+        ariaLabel={ariaLabel}
+      />
+      <ChartLegend
+        items={chartSeries.map(({ label, color }) => ({ label, color }))}
+        size="md"
+        width="fill"
+        marks="line"
+      />
+      <ChartDataTable labels={labels} series={series} caption={ariaLabel} categoryLabel="Periodo" valueSuffix={valueSuffix} />
+    </Stack>
   );
 }

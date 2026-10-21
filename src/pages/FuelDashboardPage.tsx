@@ -92,6 +92,7 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
               yMin={performance.yMin}
               yMax={performance.yMax}
               ariaLabel={`Rendimiento real contra esperado de las ${performance.labels.length} unidades con más consumo`}
+              categoryLabel="Vehículo"
             />
           ) : (
             <EmptyChart hint="No hay cargas en el periodo para los filtros elegidos. Cambia el periodo o quita algún filtro." />
@@ -133,6 +134,7 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
               yMin={organization.yMin}
               yMax={organization.yMax}
               ariaLabel={`Litros por rama de ${organization.parentName}, periodo actual contra el anterior`}
+              categoryLabel="Rama del organigrama"
             />
           ) : (
             <EmptyChart
@@ -158,6 +160,7 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
               yMin={refillsAndCuts.yMin}
               yMax={refillsAndCuts.yMax}
               ariaLabel="Recargas y recortes de enero 2026 a julio 2026"
+              categoryLabel="Periodo"
             />
           ) : (
             <EmptyChart hint="No hay recargas ni recortes en el periodo. Aparecen cuando se dispersa o se recorta saldo desde Saldos." />

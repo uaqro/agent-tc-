@@ -6,6 +6,11 @@ Esta matriz precede a cualquier migración de componentes, patterns o templates.
 Relaciona el CSS actual del prototipo con las foundations y los contratos de Flow;
 no prescribe una conversión mecánica por nombre.
 
+**Lectura histórica:** los hashes y conteos de esta base corresponden a la
+auditoría inicial. El estado vigente de charts está en el cierre de líneas
+incluido más abajo y en E4 del roadmap; la dependencia actual es el artefacto
+local Flow beta.10 con las correcciones de líneas.
+
 - Prototipo: `b27d056` (`feat/migracion-flow`), sin cambios de interfaz pendientes.
 - Flow: `ER-Mobility-MX/FlowHANA`, `main` en `214f69b`.
 - Canon usado por Flow: `ER-Mobility-MX/Flow-DesignData-HANA`, `97a1d43`.
@@ -731,10 +736,63 @@ permitir el scroll.
 
 **Actualización del 21-oct-2026:** esta auditoría inicial se amplía con el
 Optimizador: hay siete gráficas, cuatro instancias de BarChart/FlowChart y tres
-de LineChart local. El lote de composición descrito a continuación sustituye
-las conclusiones iniciales de conservar las carcasas locales.
+de LineChart. El lote de composición sustituyó las carcasas locales; el cierre
+posterior de líneas sustituye también los tres renderers SVG.
 
-**Adopción de la cascada ya disponible**
+**Estado vigente: cierre de líneas (21-oct-2026)**
+
+- Canon: el contrato fuente incorpora valores `number | null`, `gapLabel` por
+  serie y por chart, y `axisFormat`. No se edita la copia `.canon`. Son cambios
+  locales del repositorio independiente; aún no están publicados.
+- Primitive: FlowChart conserva los huecos sin conectarlos ni pasarlos al
+  formateador numérico, mantiene el cero y muestra la causa aunque ECharts omita
+  el punto nulo del tooltip. Marca observaciones aisladas, distingue una serie
+  solo de huecos del cero y reconstruye el canvas al volver del vacío.
+- Diccionario: sin tokens nuevos. Canvas relee roles de sus ancestros al
+  cambiar `data-mode`/`data-density`; las medidas reales pasan de 14 a 16 a
+  18 px. Cambiar etiquetas, rango o formateadores también redibuja aunque no
+  cambie la serie.
+- Leyenda: el primer swatch sólido vuelve a usar el color de serie; los
+  discontinuos conservan transparente el espacio entre guiones.
+- Tooltip: la causa de fuente faltante usa tipografía de texto y una línea
+  completa bajo su categoría, con ancho máximo del host. No usa el rol mono
+  ni `nowrap` de los valores numéricos. Se comprobó contenido en el viewport
+  de 320 × 568 con densidad comfortable.
+- Producto: LineChart queda como adaptador de FlowChart + ChartLegend `md`,
+  `marks="line"` + Accordion/Table. Las tres vistas mantienen datos, filtros,
+  rangos, sufijos, trazos rectos y colores existentes. La tabla no recalcula ni
+  ordena; expone las mismas observaciones y causas con caption accesible.
+  Se retiran tooltip, leyenda, geometría SVG y CSS locales. La proporción
+  760/260 se conserva con mínimo de 240 px para plot y Skeleton en móvil.
+- Artefacto: dependencia local reproducible
+  `vendor/flow/er-mobility-mx-design-system-3.0.0-beta.10-line-charts.tgz`;
+  la integridad queda fijada en el lockfile. No implica publicar Flow o canon
+  ni superar sus puertas de release.
+- Validación: 82 pruebas en 10 archivos relacionados de Flow y typecheck de
+  librería/banco; 433 pruebas en 28 archivos del producto y build. Recorridos
+  de navegador de dos vistas × tres densidades × 320/390/768/1280 sin overflow
+  una vez completado el resize; hueco de febrero, cambio de producto y nodo
+  hoja; valores exactos por teclado, métrica y modo bruto/neto. Se conserva
+  movimiento reducido y se comprueba la carga final sin errores de página.
+- Cierre posterior de barras: las cuatro barras comparten con las líneas la
+  composición local ChartDataTable → Accordion + Table. Sus filas leen los
+  arrays originales, sin ordenar, seleccionar, redondear ni convertir unidades.
+  La categoría se rotula según la vista (vehículo, rama, periodo o distancia).
+  Se mantienen marcas, leyendas y la ausencia de leyenda de serie única.
+  Once pruebas relacionadas y build pasan; se cotejaron las tres tablas de
+  Resumen y ahorro bruto/neto con los datos del canvas. Rendimiento se verificó
+  en tres densidades y cuatro anchos, con scroll de tabla contenido y sin
+  overflow de página. Este cierre no requiere cambios adicionales de Flow.
+- Límites: `axisLabels` continúa siendo específico de scatter; no se necesita
+  para estas tres líneas. No se altera WidgetGrid/BulletChart, no se cambian
+  colores por aproximación. Con el canon local, inventory pasa; api-drift conserva nueve
+  divergencias ajenas a charts (FilterSet/PaymentCard). No se toca el bloqueo
+  previo de publicación Flutter.
+
+Los apartados siguientes documentan los lotes y hallazgos anteriores a este
+cierre; sus referencias a líneas locales y brechas abiertas son históricas.
+
+**Adopción anterior de la cascada ya disponible**
 
 - Las cinco tarjetas de Resumen delegan superficie, título h2, descripción,
   acciones y padding a WidgetFrame → Card + SectionHeader. ChartCard queda

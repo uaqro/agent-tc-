@@ -7,20 +7,22 @@ Plan de ejecución del 21-oct-2026 para Ticket Car+, basado en la
 No es una propuesta de rediseño de Flow ni una autorización para cambiar
 comportamientos del producto.
 
-- Base publicada del producto: `7dd74b1`; los ajustes posteriores del piloto
-  siguen locales. No se considera terminada una entrega solo por estar publicada,
+- Base publicada del producto: `a78465c`; el cierre posterior de líneas
+  sigue local. No se considera terminada una entrega solo por estar publicada,
   ni se publica sin solicitud.
-- Dependencia instalada: Flow `3.0.0-beta.9`, artefacto local versionado,
-  diccionario de 768 valores y canon declarado `97a1d43`. El ajuste de densidad
-  descrito abajo incorpora cambios locales de implementación, no de canon.
+- Dependencia instalada: Flow `3.0.0-beta.10`, artefacto local
+  `vendor/flow/er-mobility-mx-design-system-3.0.0-beta.10-line-charts.tgz`.
+  Incluye las correcciones previas de selección/densidad y el cierre de líneas
+  descrito en E4. No es una publicación oficial del DS; el contrato ampliado
+  permanece local en el repositorio del canon.
 - Integración base, fuentes, múltiples primitives, Tabs y Accordion ya tienen
   adopción. No se reinician como tareas pendientes.
 - Tablas: 23 instancias identificadas; Facturas usa Table, BulkBar y FilterSet;
   22 estructuras locales continúan pendientes de evaluación por familia.
-- Charts: en Resumen, tres barras usan Flow y dos líneas siguen locales; el
-  Optimizador añade una barra Flow y una línea local. Los siete marcos ya
-  usan WidgetFrame; vacíos y leyendas de barras consumen las piezas Flow.
-  Las diferencias de datos y formato de las líneas siguen pendientes.
+- Charts: las siete gráficas usan FlowChart: cuatro barras y tres líneas.
+  Los siete marcos usan WidgetFrame; vacíos y leyendas consumen Flow. Las líneas
+  y barras añaden datos exactos mediante Accordion + Table, sin ordenamiento
+  nuevo. Comparten la composición local ChartDataTable, no un renderer nuevo.
 - Adopción directa por tipo: 26/57 primitives, 10/66 components y 1/64 patterns.
   Estos porcentajes no son una medida de finalización ni el objetivo del plan.
 
@@ -404,11 +406,12 @@ equivalentes ni añaden instancias al conteo de 23.
 
 ## E3 — Completar barras y composición del dashboard
 
-**Estado:** parcial; roles de series y `marks="fill"` ya integrados.
+**Estado:** composición y consulta exacta sin puntero adoptadas y verificadas
+localmente. Roles de series y `marks="fill"` ya integrados.
 **Dependencia:** E0 no bloquea la investigación; cierre visual después de E1
 para reutilizar sus criterios de roles y densidad.
 **Archivos:** `src/components/charts/BarChart.tsx`,
-`src/components/dashboard/ChartCard.tsx`, su CSS,
+`src/components/dashboard/ChartCard.tsx`,
 `src/data/dashboardCharts.ts` y las pruebas existentes.
 
 1. Clasificar la leyenda como principal o metadato y contrastar la variante
@@ -423,24 +426,59 @@ para reutilizar sus criterios de roles y densidad.
 5. Revisar filtros de dashboard, vacío de negocio, resize y movimiento reducido.
    Comprobar tema en aislamiento no equivale a habilitar modo oscuro en la app.
 
+**Cierre de consulta exacta (21-oct-2026):** las cuatro barras incorporan
+«Ver datos de la gráfica». ChartDataTable extrae la composición ya usada por
+las líneas (Accordion + Table con caption, surface none y sortable false).
+Cada fila lee directamente el mismo array del chart, sin redondear, ordenar,
+convertir unidades ni recalcular. Las cabeceras de categoría identifican
+Vehículo, Rama del organigrama, Periodo o Distancia de desvío. Se conservan
+las leyendas multiserie y no se agrega una a la serie única del Optimizador.
+
+Validación del cierre: 11 pruebas relacionadas (barras, líneas y composición),
+build y diff-check. En navegador, coincidencia exacta de las tres tablas de
+Resumen y de ahorro bruto/neto del Optimizador con sus opciones ECharts;
+apertura/cierre por teclado. La tabla de rendimiento se verificó en las tres
+densidades y 320/390/768/1280: scroll local cuando hace falta, sin overflow de
+página. No se modificó el DS ni el artefacto en este cierre.
+
 **Salida:** las tres tarjetas de barras usan los roles del diccionario también
 en su composición; pruebas de datos/leyenda y build pasan.
 
 ## E4 — Líneas: cerrar equivalencias antes de sustituir
 
-**Estado:** bloqueada para sustitución completa, no para análisis.
+**Estado:** implementada y verificada localmente mediante un artefacto Flow
+reproducible; fuente y contrato aún sin publicar.
 **Dependencias:** E3 para composición; vía DS solo si el caso la demuestra.
-**Superficies:** consumo mensual de 12 meses y costo por kilómetro.
+**Superficies:** consumo mensual de 12 meses, costo por kilómetro y evolución
+diaria del Optimizador.
 
-1. Capturar fixtures con `null`, cero real, serie vacía, múltiples series y
-   unidades de eje/tooltip. Registrar alcance de filtros por tarjeta.
-2. Verificar capacidades en el paquete instalado, no solo en fuentes locales.
-3. Si la API actual cubre el caso, migrar sin casts ni `option` para esconder
-   una equivalencia inexistente.
-4. Si no lo cubre, mantener LineChart y mejorar sus roles semánticos donde sea
-   posible sin cambiar datos; tramitar únicamente la brecha transversal.
-5. Tras una resolución compatible de Flow, integrar el artefacto reproducible
-   y comprobar todos los fixtures antes de retirar el SVG local.
+1. Se reprodujeron con pruebas las brechas de tipo/tooltip de `null`, formatos
+   separados, swatch sólido y actualización de densidad/etiquetas/rangos.
+2. El canon local declara `ChartSeries.values: Array<number | null>`,
+   `ChartSeries.gapLabel`, `FlowChart.gapLabel` y `axisFormat`. La implementación
+   conserva `format` como default del eje para consumidores anteriores.
+3. FlowChart no conecta huecos, mantiene visibles observaciones aisladas, usa
+   vacío para series solo de huecos y reinicializa el canvas al volver a datos.
+   Relee tokens de sus ancestros al cambiar modo/densidad.
+4. Las tres líneas consumen FlowChart con `smooth={false}`, leyenda `md` con
+   `marks="line"` y la misma entrada de datos, unidades y límites. Se retiran
+   SVG, tooltip, leyenda y CSS locales. No se cambia la rejilla ni la paleta.
+5. Accordion + Table permiten consultar cada observación sin puntero, incluida
+   la causa de un hueco. `sortable={false}` conserva el orden temporal. El
+   Skeleton comparte proporción 760/260 y mínimo de 240 px con el plot para
+   mantener legibles los ejes en móvil.
+
+Validación: 82 pruebas relacionadas de Flow; typecheck de librería y banco;
+433 pruebas del producto y build. En navegador: 24 combinaciones de dos vistas,
+tres densidades y cuatro anchos, lectura de tamaños reales 14/16/18 en canvas,
+tooltip de hueco contenido a 320 × 568 en comfortable, apertura por teclado y
+equivalencia tabla/datos, filtros y métrica/bruto-neto.
+
+Límite de integración: `check:inventory` pasa con el canon local, pero
+`check:api-drift` informa nueve divergencias previas de FilterSet/PaymentCard.
+No hay hallazgos nuevos de charts ni se presenta esto como una release
+certificada. No se modifica el bloqueo previo de publicación relacionado con
+Flutter.
 
 **Salida:** huecos siguen siendo huecos, cero sigue siendo cero, tooltip y eje
 mantienen su significado y hay acceso a valores exactos. “Dos líneas migradas”

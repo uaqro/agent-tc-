@@ -307,6 +307,7 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
                 yMin={0}
                 yMax={niceMax(Math.max(0, ...bands.map((band) => band.saving)))}
                 ariaLabel="Ahorro por banda de distancia de desvío"
+                categoryLabel="Distancia de desvío"
               />
             ) : (
               <EmptyChart hint="No hay cargas redirigibles en el recorte." />
