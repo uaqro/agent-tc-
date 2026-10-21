@@ -9,7 +9,6 @@ import {
   EV_NETWORK_LABEL,
   EV_SCOPE_LABEL,
   evAuthorize,
-  evCards,
   evCostCenters,
   evGroups,
   evPolicies as seedPolicies,
@@ -23,6 +22,7 @@ import {
 } from '../../data/electromobility';
 import type { EvDay, EvNetwork, EvPolicy, EvPolicyRules, EvPolicyScope } from '../../types/electromobility';
 import { formatMoney } from '../../utils/format';
+import { useDevices } from '../../data/DevicesContext';
 import { useEvHistory } from './useEvHistory';
 import '../TablePage.css';
 import '../../components/limits/PolicyDialog.css';
@@ -47,6 +47,8 @@ let policySequence = 5;
 
 export function EvPoliciesPage({ onNotice, readOnly = false }: EvPoliciesPageProps) {
   const { now, sessions, totals } = useEvHistory();
+  // Cards live in Flota · Medios de pago: a card blocked there is denied here too.
+  const { evCards } = useDevices();
   const [policies, setPolicies] = useState<EvPolicy[]>(seedPolicies);
   const [creating, setCreating] = useState(false);
 
@@ -67,7 +69,7 @@ export function EvPoliciesPage({ onNotice, readOnly = false }: EvPoliciesPagePro
     const [hours, minutes] = test.time.split(':').map(Number);
     const at = new Date(base.getFullYear(), base.getMonth(), base.getDate() + offset, hours ?? 0, minutes ?? 0);
     return evAuthorize({ vehicle, station, at, energyKwh: test.energyKwh, policies, cards: evCards, sessions, availableBalance: totals.available });
-  }, [test, policies, sessions, totals.available, now]);
+  }, [test, policies, evCards, sessions, totals.available, now]);
 
   const toggle = (policy: EvPolicy) => {
     setPolicies((current) => current.map((candidate) => (candidate.id === policy.id ? { ...candidate, enabled: !candidate.enabled } : candidate)));

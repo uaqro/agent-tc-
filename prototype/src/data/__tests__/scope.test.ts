@@ -6,6 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DEFAULT_FILTERS } from '../../domain/filters/types';
 import { buildFilterOptions } from '../../domain/filters/options';
 import { scopeFilterOptions } from '../../domain/rbac/scope';
+import { canSession } from '../../domain/rbac/portal-roles';
 import { canAccessRoute, portalPrincipals } from '../access';
 import { CLIENT_ACCOUNT_ID, clientAccount, clientOrgTree, operatingUnits, orgPathOf } from '../client';
 import { attentionItems, vehicleGroups, vehicles } from '../dispersion';
@@ -116,17 +117,20 @@ describe('what each role opens', () => {
 
   it('finanzas opera saldos, medios de pago y facturas, pero no límites', () => {
     expect(canAccessRoute('finanzas', 'dispersion')).toBe(true);
-    expect(canAccessRoute('finanzas', 'payment-media')).toBe(true);
+    expect(canAccessRoute('finanzas', 'devices')).toBe(true);
+    expect(canSession('finanzas', 'tc.medios_pago', 'escribir')).toBe(true);
     expect(canAccessRoute('finanzas', 'company-invoices')).toBe(true);
     expect(canAccessRoute('finanzas', 'limits')).toBe(false);
   });
 
   it('consulta solo ve resumen, análisis e inventario', () => {
-    const open = (['dashboard', 'reports', 'insights', 'optimizer', 'ted', 'vehicles', 'drivers'] as const).every((route) =>
+    const open = (['dashboard', 'reports', 'insights', 'optimizer', 'ted', 'vehicles', 'drivers', 'devices'] as const).every((route) =>
       canAccessRoute('consulta', route),
     );
     expect(open).toBe(true);
-    for (const route of ['dispersion', 'limits', 'payment-media', 'maintenance', 'company-users', 'company-parameters'] as const) {
+    // Flota · Medios de pago opens for consulta, but without the fuel tab.
+    expect(canSession('consulta', 'tc.medios_pago', 'ver')).toBe(false);
+    for (const route of ['dispersion', 'limits', 'maintenance', 'company-users', 'company-parameters'] as const) {
       expect(canAccessRoute('consulta', route), route).toBe(false);
     }
   });

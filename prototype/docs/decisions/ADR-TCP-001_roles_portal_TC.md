@@ -80,17 +80,17 @@ Quedan fuera del portal, porque Ticket Car+ no tiene esos módulos:
 | --- | --- | --- | --- | --- |
 | `tc.saldos` · Saldos y reglas de fondeo | C | — | C | — |
 | `tc.limites` · Reglas y límites | C | C | — | — |
-| `tc.medios_pago` · Medios de pago | C | — | C | — |
+| `tc.medios_pago` · Flota · Medios de pago · Combustible | C | — | C | — |
 | `tc.peaje_saldos` · Peaje · Saldos y recargas | C | L | C | L |
 | `tc.peaje_reglas` · Peaje · Reglas y límites | C | C | L | L |
-| `tc.peaje_medios` · Peaje · TAGs (alta, baja, reasignación; saldo y consumo por TAG) | C | C | L | L |
+| `tc.peaje_medios` · Flota · Medios de pago · Peaje: TAGs (alta, baja, reasignación; saldo y consumo por TAG) | C | C | L | L |
 | `tc.conductores` · Conductores: alta, edición y baja (véase 5.5) | C | C | L | L |
 | `tc.mantenimiento` · Mantenimiento | C | C | — | — |
 | `tc.ev_cuenta` · Electromovilidad · Cuenta y fondeo | C | L | C | L |
 | `tc.ev_recargas` · Electromovilidad · Resumen y recargas | L | L | L | L |
 | `tc.ev_restricciones` · Electromovilidad · Restricciones de carga | C | C | L | L |
 | `tc.ev_cargadores` · Electromovilidad · Cargadores y solicitudes de instalación | C | C | L | L |
-| `tc.ev_flota` · Electromovilidad · Unidades y tarjetas de recarga | C | C | L | L |
+| `tc.ev_flota` · Flota · Medios de pago · Electromovilidad: tarjetas de recarga | C | C | L | L |
 | `tc.facturas` · Facturas | C | — | C | — |
 | `tc.parametros` · Parámetros | G | — | — | — |
 | `tc.asistente` · Asistente TED (nunca transaccional, véase 5.3) | L | L | L | L |

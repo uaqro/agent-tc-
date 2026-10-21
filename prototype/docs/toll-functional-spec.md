@@ -1,7 +1,7 @@
 # Functional Specification — Peaje
 
 Product: Ticket Car — Fleet Management
-Section: Peaje (Saldos · Reglas y límites · Medios de pago)
+Section: Peaje (Saldos · Reglas y límites). The TAGs live in Flota · Medios de pago, under the Peaje tab.
 Version: 1.0
 Language of the user interface: Spanish (Mexico)
 

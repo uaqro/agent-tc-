@@ -14,7 +14,10 @@ import {
   type VehicleStatus,
 } from '../data/fleet';
 import { assignableGroups } from '../data/limits';
+import { useDevices } from '../data/DevicesContext';
+import { TOLL_TAG_TYPE_LABEL } from '../data/toll';
 import { formatCount } from '../utils/format';
+import { EvUnitsSection } from './fleet/EvUnitsSection';
 import './TablePage.css';
 
 interface VehiclesPageProps {
@@ -53,7 +56,16 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
     });
   }, [query, group, status, record, showVin]);
   const pagination = usePagination(rows);
-  const mediumByVehicle = useMemo(() => new Map(vehicleMedia.map((medium) => [medium.vehicleId, medium])), []);
+  const { fuelMedia, tollTags } = useDevices();
+  // Ticket Car media follow Flota · Medios de pago; Autoconsumo tags are not managed there yet.
+  const mediumByVehicle = useMemo(
+    () => new Map([...vehicleMedia, ...fuelMedia].filter((medium) => medium.vehicleId).map((medium) => [medium.vehicleId, medium])),
+    [fuelMedia],
+  );
+  const tagByVehicle = useMemo(
+    () => new Map(tollTags.filter((tag) => tag.vehicleId && tag.status !== 'replacement').map((tag) => [tag.vehicleId, tag])),
+    [tollTags],
+  );
 
   const count = (key: VehicleStatus) => vehicleDetails.filter((detail) => detail.status === key).length;
 
@@ -188,7 +200,7 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
                     <ApiTag id="veh-driver" />
                   </th>
                   <th scope="col">
-                    Medio de pago
+                    Dispositivos
                     <ApiTag id="veh-media" />
                   </th>
                   <th scope="col">
@@ -200,6 +212,7 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
               <tbody>
                 {pagination.pageRows.map((detail) => {
                   const medium = mediumByVehicle.get(detail.vehicleId);
+                  const tag = tagByVehicle.get(detail.vehicleId);
                   const gaps = gapsOf(detail);
                   return (
                     <tr key={detail.vehicleId}>
@@ -234,13 +247,23 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
                       </td>
                       <td>{detail.driver}</td>
                       <td>
-                        {medium ? (
+                        {medium || tag ? (
                           <>
-                            <span className="table-page__nowrap">{medium.number}</span>
-                            <span className="table-page__sub">{PAYMENT_TYPE_LABEL[medium.type]}</span>
+                            {medium && (
+                              <>
+                                <span className="table-page__nowrap">{medium.number}</span>
+                                <span className="table-page__sub">Combustible · {PAYMENT_TYPE_LABEL[medium.type]}</span>
+                              </>
+                            )}
+                            {tag && (
+                              <>
+                                <span className="table-page__nowrap">{tag.number}</span>
+                                <span className="table-page__sub">Peaje · {TOLL_TAG_TYPE_LABEL[tag.type]}</span>
+                              </>
+                            )}
                           </>
                         ) : (
-                          <span className="table-page__sub">Sin medio</span>
+                          <span className="table-page__sub">Sin dispositivo</span>
                         )}
                       </td>
                       <td>
@@ -255,6 +278,8 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
         )}
         <Pagination {...pagination} noun="vehículos" onPage={pagination.setPage} />
       </section>
+
+      <EvUnitsSection showVin={showVin} />
     </div>
   );
 }

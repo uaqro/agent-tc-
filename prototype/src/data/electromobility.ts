@@ -2,6 +2,7 @@ import { businessNow } from '../domain/demo/clock';
 import type {
   EvCard,
   EvCardStatus,
+  EvCardType,
   EvChargeType,
   EvChargerRequest,
   EvChargerRequestStatus,
@@ -158,6 +159,8 @@ export const EV_VEHICLE_STATUS: Record<EvVehicleStatus, { label: string; chip: s
   maintenance: { label: 'En taller', chip: 'chip--review' },
   inactive: { label: 'Inactivo', chip: 'chip--paused' },
 };
+
+export const EV_CARD_TYPE_LABEL: Record<EvCardType, string> = { rfid: 'Tarjeta RFID', virtual: 'Tarjeta virtual' };
 
 export const EV_CARD_STATUS: Record<EvCardStatus, { label: string; chip: string }> = {
   unassigned: { label: 'Sin asignar', chip: 'chip--info' },
