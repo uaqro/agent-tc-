@@ -2,9 +2,6 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 20px 24px 56px;
-  max-width: 1600px;
-  margin: 0 auto;
   width: 100%;
 }
 
@@ -48,10 +45,6 @@
 }
 
 @media (max-width: 900px) {
-  .limits {
-    padding: 16px 14px 48px;
-  }
-
   .limits__summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

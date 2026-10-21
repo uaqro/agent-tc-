@@ -125,6 +125,44 @@ diferentes quedan sustituidas por la corrección de density anterior.
 
 ## Reglas de avance
 
+### Piloto de búsqueda global (posterior a E1)
+
+- Intención: navegar desde una paleta GlobalSearch a unidades, medios de pago
+  TicketCar+ y conductores. No ejecuta acciones ni abre detalle automáticamente.
+  El patrón CRUD de Flow sigue siendo la receta para listado + Drawer; no se
+  implementan fichas nuevas en este lote.
+- Datos: catálogo construido desde los bindings ya acotados de `data/fleet`,
+  comprobando `canAccessRoute` antes de indexar. Sin VIN ni campos ocultos.
+  Revalida tipo + ID al elegir. No usa los filtros temporales del dashboard.
+- Coincidencia: búsqueda local síncrona sobre los campos ya disponibles en
+  los tres listados, con normalización existente sin acentos, trim y minúsculas.
+  Prioriza etiquetas exactas; orden estable por etiqueta e ID. La paleta muestra
+  hasta diez coincidencias por tipo y lo comunica en su orientación inicial.
+  Las búsquedas locales no cambian su normalización.
+- Interacción: un solo GlobalSearch en modo palette, disparador accesible
+  también en móvil, atajo anunciado, recientes de cinco IDs en memoria y
+  limpieza del historial. Los recientes se resuelven contra el catálogo actual.
+  El cambio de sesión remonta la app y descarta consulta e historial.
+  Sin API remota: no se inventan debounce, cargas ni fallos de red.
+- Destino acordado: limpiar los filtros del listado, calcular la página por ID
+  y enfocar/desplazar la fila exacta. No se filtra por etiqueta ni se remonta
+  el listado para navegar dentro de él. Las ediciones locales mantienen la
+  persistencia existente; no se añade almacenamiento entre módulos/recargas.
+- Las limitaciones previamente encontradas de GlobalSearch inline y su
+  `minChars` no se declaran corregidas. Este lote usa una única paleta con el
+  mínimo por defecto y no modifica Flow.
+- Validación: 416 pruebas de producto pasan y build pasa (warning existente
+  de chunks grandes). Cinco pruebas nuevas cubren catálogo, normalización,
+  ranking/límite por grupo, permisos y un subárbol organizacional real.
+  Navegador: unidad en página 12 y medio en página 4 enfocados por ID; filtro
+  local que ocultaba la unidad limpiado; bloqueo local conservado al volver a
+  buscar el mismo medio; atajo, foco de entrada/restauración y disparador táctil
+  a 320/390/768/1280 px comprobados. Los recorridos no son E2E persistentes.
+- Pendiente del componente Flow detectado en este recorrido: al borrar todos
+  los recientes desaparece el botón enfocado y el foco cae fuera del diálogo;
+  Escape no llega al shell hasta volver a enfocar el campo. No se presenta
+  esta transición como resuelta ni se parchea con selectores DOM de producto.
+
 Cada entrega produce cambios acotados, evidencia de equivalencia y una
 actualización del inventario. El siguiente lote depende de la salida del
 anterior, no de que haya terminado una fecha estimada.
@@ -140,6 +178,53 @@ anterior, no de que haya terminado una fecha estimada.
 
 No se extrae un wrapper genérico por adelantado. Una segunda adopción equivalente
 debe demostrar qué estado, composición o estilo conviene compartir.
+
+### Navegación: shell del Overview (posterior al piloto de búsqueda)
+
+Se adopta la composición del banco: Sidebar responsive + PageHeader con
+SidebarProvider y PageChromeProvider, no TopBar y Sidebar independientes.
+La decisión aprobada sustituye pin/ocultar de escritorio por sidebar completo,
+carril intermedio y cajón compacto. No se cambia la dependencia ni Flow.
+
+| Entrega | Implementación local |
+|---|---|
+| N0 — Contrato | Rutas, permisos y datos de sesión siguen siendo del producto. Marca en Sidebar; búsqueda, ayuda, notificaciones y perfil en PageHeader; Dev en el pie de Sidebar. |
+| N1 — Navegación | Adaptador de grupos autorizados a SidebarItem; captions no navegables; activo derivado de la ruta. La búsqueda local del menú se retiró posteriormente por solicitud del usuario en completo, carril y cajón; se conserva la búsqueda global del encabezado. |
+| N2 — Chrome | Una sola paleta GlobalSearch; PageHeader consume su disparador compartido. Conserva títulos, subtítulos y filtros del dashboard. Por decisión posterior del usuario se retiran breadcrumbs y el botón de regreso al resumen en todas las vistas: la navegación poco profunda se resuelve con Sidebar, sin una jerarquía artificial ni un regreso redundante. |
+| N3 — Geometría | Sidebar gobierna ancho y rangos; el shell gobierna pad-section, content-max y scroll principal. Se retiran TopBar, CSS del encabezado y menú anteriores, padding exterior duplicado y tokens locales de esas geometrías. |
+| N4 — Regresión | Cinco pruebas persistentes nuevas y recorridos de navegador descritos abajo. No es una suite E2E persistente. |
+
+- Cascada: density → roles de padding, tipografía y geometría de navegación →
+  Sidebar/IconButton/Dialog/OverlayShell → PageHeader y providers →
+  adaptación de rutas, marca, permisos y utilidades de Ticket Car.
+  No se impone una densidad global ni breakpoints propios del producto.
+- Los filtros del dashboard ajustan su ancho y el grupo de periodo permite
+  envolver controles para caber en el slot de filtros. No cambian dimensiones,
+  alcance, valores ni lógica de aplicación. Su migración visual completa
+  continúa fuera de este lote.
+- Dev abre Dialog desde el pie del sidebar: foco inicial, ciclo de tabulación,
+  Escape y retorno de foco pertenecen al sistema. Se descartó el Popover para
+  esta configuración porque Tab desde el disparador saltaba al contenido
+  fuera del panel. Se conserva la configuración, impersonación y acceso a
+  Mejoras API. Ayuda, notificaciones y perfil mantienen sus avisos existentes;
+  no se inventa un NotificationCenter con datos simulados nuevos.
+- Navegar reinicia el scroll principal antes de renderizar el destino. La
+  búsqueda global conserva el desplazamiento posterior a su fila exacta.
+  El cajón no reaparece al regresar a compacto después de pasar por escritorio.
+  Se mantiene un enlace de salto al contenido principal.
+- Validación: 421 pruebas de producto pasan (25 archivos), build pasa y
+  diff-check limpio. Persisten los warnings SSR de useLayoutEffect de Flow
+  y el aviso existente de chunks grandes.
+- Navegador: 18 destinos del menú principal, activo único y scroll inicial;
+  filtro de menú y navegación a Facturas; búsqueda desde el carril; Escape,
+  backdrop, ciclo de foco y retorno al disparador del cajón; Dev en escritorio,
+  carril y cajón; sesión Finanzas con menú autorizado y restauración del
+  administrador; al desactivar Dev se vuelve a Resumen. Búsqueda global de
+  ECO-3281 conserva foco en la fila y activo Vehículos.
+- Matriz medida en Resumen: base/compact/comfortable × 320/390/768/1280 px,
+  sin overflow horizontal del encabezado ni del scroll principal. Pad-section
+  medido: 32/24/40 px respectivamente; carril 64/64/80 px. Son resultados de
+  tokens, no dimensiones copiadas al producto. Se restablece density base.
 
 ## E0 — Línea base ejecutable del piloto
 

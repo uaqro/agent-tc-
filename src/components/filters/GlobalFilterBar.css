@@ -2,7 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 16px;
+  width: 100%;
+  min-width: 0;
   padding: 14px 16px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -19,6 +20,8 @@
 
 .global-filters__period {
   display: flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   align-items: center;
   gap: 2px;
   padding: 3px;
@@ -69,6 +72,7 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  max-width: 100%;
 }
 
 .global-filters__field > span {
@@ -81,6 +85,7 @@
 
 .global-filters__field select {
   height: 34px;
+  width: 100%;
   max-width: 240px;
   padding: 0 10px;
   border: 1px solid var(--border-control);

@@ -1,7 +1,11 @@
+.ted {
+  height: 100%;
+}
+
 .ted__chat {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--tc-local-topbar-height) - 190px);
+  flex: 1;
   min-height: 520px;
   overflow: hidden;
 }

@@ -4,9 +4,6 @@
   gap: var(--gap-stack);
   width: 100%;
   min-width: 0;
-  max-width: var(--content-max);
-  margin: 0 auto;
-  padding: var(--pad-card);
   color: var(--text-primary);
   font: var(--type-body-md);
 }

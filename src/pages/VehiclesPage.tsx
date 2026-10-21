@@ -17,8 +17,11 @@ import {
 import { assignableGroups } from '../data/limits';
 import { formatCount } from '../utils/format';
 import './TablePage.css';
+import type { SearchDestination } from '../data/globalSearch';
+import { useSearchDestination } from '../components/ui/useSearchDestination';
 
 interface VehiclesPageProps {
+  searchDestination?: SearchDestination;
   onNotice: (message: string) => void;
   /** Registering and editing units is admin only, as in ADR-001 (`inventario.editar`). */
   canEdit?: boolean;
@@ -35,7 +38,7 @@ const STATUS_TONE: Record<VehicleStatus, 'success' | 'warning' | 'neutral'> = {
 /** Record filter: every unit, the incomplete ones, or the ones missing one piece. */
 type RecordFilter = '' | 'incomplete' | RegistryGap;
 
-export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: VehiclesPageProps) {
+export function VehiclesPage({ onNotice, canEdit = false, showVin = false, searchDestination }: VehiclesPageProps) {
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('');
   const [status, setStatus] = useState<VehicleStatus | ''>('');
@@ -54,12 +57,15 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
     });
   }, [query, group, status, record, showVin]);
   const pagination = usePagination(rows);
+  const searchRoot = useSearchDestination(searchDestination, rows.map((row) => row.vehicleId), pagination.page, pagination.setPage, () => {
+    setQuery(''); setGroup(''); setStatus(''); setRecord('');
+  }, onNotice);
   const mediumByVehicle = useMemo(() => new Map(vehicleMedia.map((medium) => [medium.vehicleId, medium])), []);
 
   const count = (key: VehicleStatus) => vehicleDetails.filter((detail) => detail.status === key).length;
 
   return (
-    <div className="table-page">
+    <div className="table-page" ref={searchRoot}>
       <ApiCoverageBanner page="vehicles" />
 
       <dl className="table-page__summary">
@@ -203,7 +209,7 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
                   const medium = mediumByVehicle.get(detail.vehicleId);
                   const gaps = gapsOf(detail);
                   return (
-                    <tr key={detail.vehicleId}>
+                    <tr key={detail.vehicleId} data-entity-id={detail.vehicleId} tabIndex={-1}>
                       <td>
                         <span className="table-page__main">{detail.plate}</span>
                         <span className="table-page__sub">

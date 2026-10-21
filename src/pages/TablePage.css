@@ -3,9 +3,6 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 20px 24px 56px;
-  max-width: 1600px;
-  margin: 0 auto;
   width: 100%;
 }
 
@@ -183,10 +180,6 @@
 }
 
 @media (max-width: 900px) {
-  .table-page {
-    padding: 16px 14px 48px;
-  }
-
   .table-page__summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -195,4 +188,10 @@
   .table-page__flow-search {
     width: 100%;
   }
+}
+.table-page__table tr[data-entity-id]:focus {
+  outline: var(--border-width) solid var(--border-focus);
+  outline-offset: calc(-1 * var(--border-width));
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-focus);
+  background: var(--surface-accent-subtle);
 }

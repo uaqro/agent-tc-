@@ -1,13 +1,9 @@
-.dev-menu {
-  position: relative;
-}
-
 .dev-menu__trigger {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 34px;
-  padding: 0 10px;
+  min-height: var(--hit-target-min);
+  padding: var(--pad-control-y) var(--pad-control-x);
   border: 1px dashed var(--tc-local-border-control);
   border-radius: 999px;
   font-size: 12.5px;
@@ -46,33 +42,9 @@
 }
 
 .dev-menu__panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 70;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  width: 340px;
-  max-width: calc(100vw - 32px);
-  padding: 16px;
-  background: var(--tc-local-surface);
-  border: 1px solid var(--tc-local-border);
-  border-radius: var(--tc-local-radius-lg);
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
-}
-
-.dev-menu__title {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--tc-local-text-strong);
-}
-
-.dev-menu__hint {
-  margin: -6px 0 2px;
-  font-size: 12px;
-  color: var(--tc-local-text-muted);
+  gap: var(--gap-stack);
 }
 
 .dev-switch {

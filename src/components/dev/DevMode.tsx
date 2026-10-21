@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { Switch } from '@er-mobility-mx/design-system';
+import { createContext, useContext, useEffect, useId, useState, type ReactNode } from 'react';
+import { Button, Dialog, IconButton, Switch } from '@er-mobility-mx/design-system';
 import { internalPrincipals, portalPrincipals } from '../../data/access';
 import { scopeLabel } from '../../data/client';
 import { DEFAULT_PRINCIPAL } from '../../data/session';
@@ -83,38 +83,33 @@ function DevSwitch({ checked, disabled, label, description, onChange }: DevSwitc
 /** Internal roles see only the active account: analytics never compare accounts (ADR-TCP-001). */
 const clientCaption = 'cuenta activa';
 
-/** Top bar control: shows whether dev mode is on and opens the dev settings. */
-export function DevModeMenu({ onOpenImprovements }: { onOpenImprovements: () => void }) {
+export function DevModeMenu({ onOpenImprovements, compact = false }: {
+  onOpenImprovements: () => void;
+  compact?: boolean;
+}) {
   const { devMode, showCoverage, update } = useDevMode();
   const { principal, signInAs } = useSession();
   const [open, setOpen] = useState(false);
   const everyone = [...portalPrincipals, ...internalPrincipals];
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handlePointerDown = (event: MouseEvent) => {
-      if (!ref.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [open]);
 
   return (
-    <div className="dev-menu" ref={ref}>
+    <>
+    {compact ? (
+      <IconButton
+        icon="code"
+        ariaLabel={`Configuración de desarrollo · Dev ${devMode ? 'ON' : 'OFF'}`}
+        badge={devMode}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => setOpen(true)}
+      />
+    ) : (
       <button
         type="button"
         className={`dev-menu__trigger${devMode ? ' is-on' : ''}`}
         aria-expanded={open}
         aria-haspopup="dialog"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => setOpen(true)}
       >
         <span className="dev-menu__code" aria-hidden="true">
           {'</>'}
@@ -122,11 +117,15 @@ export function DevModeMenu({ onOpenImprovements }: { onOpenImprovements: () => 
         Dev
         <span className="dev-menu__state">{devMode ? 'ON' : 'OFF'}</span>
       </button>
-
-      {open && (
-        <div className="dev-menu__panel" role="dialog" aria-label="Configuración de desarrollo">
-          <p className="dev-menu__title">Configuración de desarrollo</p>
-          <p className="dev-menu__hint">Se guarda en este navegador. No la ven otros usuarios.</p>
+    )}
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+      title="Configuración de desarrollo"
+      description="Se guarda en este navegador. No la ven otros usuarios."
+      actions={<Button variant="secondary" onClick={() => setOpen(false)}>Cerrar configuración</Button>}
+    >
+        <div className="dev-menu__panel">
 
           <DevSwitch
             checked={devMode}
@@ -179,7 +178,7 @@ export function DevModeMenu({ onOpenImprovements }: { onOpenImprovements: () => 
             Ver mejoras para API ZERO
           </button>
         </div>
-      )}
-    </div>
+    </Dialog>
+    </>
   );
 }

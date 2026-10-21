@@ -3,9 +3,6 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 20px 24px 56px;
-  max-width: 1600px;
-  margin: 0 auto;
   width: 100%;
 }
 
@@ -95,10 +92,4 @@
 .tone--amber {
   background: #fffbeb;
   color: #b45309;
-}
-
-@media (max-width: 900px) {
-  .intel {
-    padding: 16px 14px 48px;
-  }
 }

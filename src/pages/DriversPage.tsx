@@ -8,8 +8,11 @@ import { drivers, vehicleDetails } from '../data/fleet';
 import { assignableGroups } from '../data/limits';
 import { daysUntil, formatCount } from '../utils/format';
 import './TablePage.css';
+import type { SearchDestination } from '../data/globalSearch';
+import { useSearchDestination } from '../components/ui/useSearchDestination';
 
 interface DriversPageProps {
+  searchDestination?: SearchDestination;
   onNotice: (message: string) => void;
   /**
    * Registering, editing and deregistering drivers: admin and flota (`tc.conductores`, a Ticket Car+ permission with no
@@ -23,7 +26,7 @@ const LICENSE_WARNING_DAYS = 60;
 
 const licenseDate = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
 
-export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
+export function DriversPage({ onNotice, canEdit = false, searchDestination }: DriversPageProps) {
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('');
   const rows = useMemo(() => {
@@ -35,12 +38,15 @@ export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
     );
   }, [query, group]);
   const pagination = usePagination(rows);
+  const searchRoot = useSearchDestination(searchDestination, rows.map((row) => row.id), pagination.page, pagination.setPage, () => {
+    setQuery(''); setGroup('');
+  }, onNotice);
   const detailByVehicle = useMemo(() => new Map(vehicleDetails.map((detail) => [detail.vehicleId, detail])), []);
 
   const expiringSoon = drivers.filter((driver) => daysUntil(driver.licenseExpires) <= LICENSE_WARNING_DAYS).length;
 
   return (
-    <div className="table-page">
+    <div className="table-page" ref={searchRoot}>
       <ApiCoverageBanner page="drivers" />
 
       <dl className="table-page__summary">
@@ -155,7 +161,7 @@ export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
                   const days = daysUntil(driver.licenseExpires);
                   const below = driver.kmPerLiter !== null && expected !== undefined && driver.kmPerLiter < expected * 0.9;
                   return (
-                    <tr key={driver.id}>
+                    <tr key={driver.id} data-entity-id={driver.id} tabIndex={-1}>
                       <td>
                         <span className="table-page__main">{driver.name}</span>
                         <span className="table-page__sub">{driver.employeeNumber}</span>

@@ -17,8 +17,11 @@ import {
 import { formatCount, formatDateTime, formatMoney } from '../utils/format';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import './TablePage.css';
+import type { SearchDestination } from '../data/globalSearch';
+import { useSearchDestination } from '../components/ui/useSearchDestination';
 
 interface PaymentMediaPageProps {
+  searchDestination?: SearchDestination;
   onNotice: (message: string) => void;
 }
 
@@ -28,7 +31,7 @@ const STATUS_TONE: Record<PaymentMediumStatus, 'success' | 'danger' | 'neutral'>
   unassigned: 'neutral',
 };
 
-export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
+export function PaymentMediaPage({ onNotice, searchDestination }: PaymentMediaPageProps) {
   const [media, setMedia] = useState<PaymentMedium[]>(seedMedia);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<PaymentMediumStatus | ''>('');
@@ -58,6 +61,9 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
     });
   }, [media, query, status, type, detailById]);
   const pagination = usePagination(rows);
+  const searchRoot = useSearchDestination(searchDestination, rows.map((row) => row.id), pagination.page, pagination.setPage, () => {
+    setQuery(''); setStatus(''); setType('');
+  }, onNotice);
 
   const count = (key: PaymentMediumStatus) => media.filter((medium) => medium.status === key).length;
 
@@ -68,7 +74,7 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
   };
 
   return (
-    <div className="table-page">
+    <div className="table-page" ref={searchRoot}>
       <ApiCoverageBanner page="payment-media" />
       <DevNote label="Pregunta de producto">
         ¿Autoconsumo tiene límites propios? Hasta decidirlo, Medios de pago no muestra los tags de las{' '}
@@ -189,7 +195,7 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
                   const vehicle = vehicleOf(medium.vehicleId);
                   const detail = detailOf(medium.vehicleId);
                   return (
-                    <tr key={medium.id}>
+                    <tr key={medium.id} data-entity-id={medium.id} tabIndex={-1}>
                       <td>
                         <span className="table-page__main">{medium.number}</span>
                         <span className="table-page__sub">{PAYMENT_TYPE_LABEL[medium.type]}</span>

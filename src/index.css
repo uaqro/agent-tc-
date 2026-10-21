@@ -69,9 +69,6 @@
   --tc-local-font-sans: var(--font-body);
   --tc-local-font-brand: var(--font-display);
 
-  --tc-local-topbar-height: var(--height-bar);
-  --tc-local-sidemenu-width: 272px;
-
   color-scheme: light;
 }
 

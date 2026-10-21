@@ -2,9 +2,6 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 20px 24px 56px;
-  max-width: 1600px;
-  margin: 0 auto;
   width: 100%;
 }
 
@@ -38,10 +35,6 @@
 }
 
 @media (max-width: 900px) {
-  .dashboard {
-    padding: 16px 14px 48px;
-  }
-
   .dashboard__charts {
     grid-template-columns: minmax(0, 1fr);
   }

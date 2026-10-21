@@ -1,0 +1,75 @@
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { describe, expect, it } from 'vitest';
+import { PageChromeProvider, SidebarProvider } from '@er-mobility-mx/design-system';
+import { menuGroups } from '../../../data/dashboard';
+import { navigationItems, SideMenu } from '../SideMenu';
+import { PageHeader } from '../PageHeader';
+import { PageUtilities } from '../PageUtilities';
+import { SessionProvider } from '../../session/Session';
+
+describe('Flow navigation adapter', () => {
+  it('preserves destination IDs, order and labels, without making captions navigable', () => {
+    const items = navigationItems(menuGroups);
+    const destinations = items.flatMap((item) => item.caption ? item.children ?? [] : [item]);
+    expect(destinations.map((item) => item.id)).toEqual(menuGroups.flatMap((group) => group.items.map((item) => item.id)));
+    expect(destinations.map((item) => item.label)).toEqual(menuGroups.flatMap((group) => group.items.map((item) => item.label)));
+    expect(destinations.every((item) => !!item.icon && !item.children)).toBe(true);
+    expect(items.filter((item) => item.caption).every((item) => !item.href)).toBe(true);
+  });
+
+  it('includes only the supplied authorized groups and removes empty groups', () => {
+    const authorized = menuGroups.filter((group) => group.id === 'flota');
+    const items = navigationItems([...authorized, { id: 'empty', label: 'Vacío', items: [] }]);
+    expect(items.map((item) => item.id)).toEqual(['flota']);
+    expect(items[0].children?.map((item) => item.id)).toEqual(['vehiculos', 'conductores']);
+  });
+
+  it('renders the actual active destination and removes the legacy pin', () => {
+    const html = renderToStaticMarkup(createElement(SessionProvider, null, createElement(SideMenu, {
+      open: false, onOpenChange: () => {}, groups: menuGroups,
+      activeItemId: 'vehiculos', onSelectItem: () => {}, onHome: () => {},
+      onOpenImprovements: () => {},
+    })));
+    expect(html.match(/aria-current="page"/g)).toHaveLength(1);
+    expect(html).toMatch(/aria-current="page"[^>]*>[\s\S]*?Vehículos/);
+    expect(html).not.toContain('Buscar una opción del menú');
+    expect(html).not.toContain('type="search"');
+    expect(html).not.toContain('Buscar en el menú');
+    expect(html).toContain('Edenred One');
+    expect(html).not.toContain('Fijar menú');
+    expect(html).not.toContain('Desfijar menú');
+  });
+});
+
+describe('shared page chrome', () => {
+  it('renders one identity and one shared search trigger without a fake notification center', () => {
+    const html = renderToStaticMarkup(createElement(SidebarProvider, { value: () => {} },
+      createElement(PageChromeProvider, { value: {
+        onSearch: () => {}, searchLabel: 'Búsqueda global',
+        trailing: createElement(PageUtilities, { userName: 'Usuario Admin', onAction: () => {} }),
+      } }, createElement(PageHeader, {
+        title: 'Vehículos', subtitle: 'Unidades de la flota',
+      })),
+    ));
+    expect(html.match(/<h1\b/g)).toHaveLength(1);
+    expect(html.match(/aria-label="Búsqueda global"/g)).toHaveLength(1);
+    expect(html).toContain('Abrir navegación');
+    expect(html).not.toContain('Volver al resumen');
+    expect(html).not.toContain('aria-label="Breadcrumb"');
+    expect(html).toContain('Perfil de Usuario Admin');
+    expect(html.match(/aria-label="Notificaciones"/g)).toHaveLength(1);
+    expect(html).not.toContain('role="dialog"');
+  });
+
+  it('keeps the overview filters without breadcrumbs or a return action', () => {
+    const html = renderToStaticMarkup(createElement(PageHeader, {
+      title: 'Resumen', subtitle: 'Cuenta activa',
+      children: createElement('span', null, 'Filtros de flota'),
+    }));
+    expect(html).toContain('Filtros de flota');
+    expect(html).not.toContain('Volver al resumen');
+    expect(html).not.toContain('Ticket Car');
+    expect(html).not.toContain('aria-label="Breadcrumb"');
+  });
+});

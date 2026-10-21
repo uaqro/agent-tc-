@@ -1,17 +1,48 @@
 .app {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: var(--tc-local-topbar-height) minmax(0, 1fr);
-  grid-template-areas:
-    'topbar topbar'
-    'sidemenu main';
+  height: 100dvh;
+  display: flex;
+  overflow: hidden;
+  background: var(--surface-canvas);
+}
+
+.app__skip {
+  position: fixed;
+  top: var(--gap-inline);
+  left: var(--gap-inline);
+  z-index: 1;
+  transform: translateY(calc(-100% - var(--gap-inline)));
+  padding: var(--pad-control-y) var(--pad-control-x);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--text-primary);
+}
+
+.app__skip:focus {
+  transform: none;
 }
 
 .app__main {
-  grid-area: main;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  background: var(--tc-local-page-bg);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding: var(--pad-section);
+  gap: var(--gap-stack);
+}
+
+.app__header,
+.app__content {
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+}
+
+.app__content {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: calc(var(--hit-target-min) + var(--gap-stack));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -24,16 +55,17 @@
 .app__impersonation {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--gap-inline);
   flex-wrap: wrap;
-  max-width: 1600px;
-  margin: 12px auto 0;
-  padding: 8px 14px;
-  border: 1px solid #6b4dc7;
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--pad-control-y) var(--pad-control-x);
+  border: var(--border-width) solid var(--border-default);
   border-radius: var(--radius-sm);
-  background: #f1edfc;
-  font-size: 13px;
-  color: #4b2fa8;
+  background: var(--surface-accent-subtle);
+  font: var(--type-body-sm);
+  color: var(--text-accent);
 }
 
 .app__impersonation .btn {
