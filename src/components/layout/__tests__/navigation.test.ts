@@ -29,7 +29,7 @@ describe('Flow navigation adapter', () => {
     const html = renderToStaticMarkup(createElement(SessionProvider, null, createElement(SideMenu, {
       open: false, onOpenChange: () => {}, groups: menuGroups,
       activeItemId: 'vehiculos', onSelectItem: () => {}, onHome: () => {},
-      onOpenImprovements: () => {},
+      userName: 'Usuario Admin', userRole: 'Administrador', onAccount: () => {},
     })));
     expect(html.match(/aria-current="page"/g)).toHaveLength(1);
     expect(html).toMatch(/aria-current="page"[^>]*>[\s\S]*?Vehículos/);
@@ -37,27 +37,34 @@ describe('Flow navigation adapter', () => {
     expect(html).not.toContain('type="search"');
     expect(html).not.toContain('Buscar en el menú');
     expect(html).toContain('Edenred One');
+    expect(html).not.toContain('<span>Ticket Car</span>');
     expect(html).not.toContain('Fijar menú');
     expect(html).not.toContain('Desfijar menú');
+    expect(html).toContain('Cuenta de Usuario Admin');
+    expect(html).not.toContain('status-online');
   });
 });
 
 describe('shared page chrome', () => {
   it('renders one identity and one shared search trigger without a fake notification center', () => {
-    const html = renderToStaticMarkup(createElement(SidebarProvider, { value: () => {} },
+    const html = renderToStaticMarkup(createElement(SessionProvider, null, createElement(SidebarProvider, { value: () => {} },
       createElement(PageChromeProvider, { value: {
         onSearch: () => {}, searchLabel: 'Búsqueda global',
-        trailing: createElement(PageUtilities, { userName: 'Usuario Admin', onAction: () => {} }),
+        notifications: [],
+        trailing: createElement(PageUtilities, { onHelp: () => {}, onOpenImprovements: () => {} }),
       } }, createElement(PageHeader, {
         title: 'Vehículos', subtitle: 'Unidades de la flota',
       })),
-    ));
+    )));
     expect(html.match(/<h1\b/g)).toHaveLength(1);
     expect(html.match(/aria-label="Búsqueda global"/g)).toHaveLength(1);
     expect(html).toContain('Abrir navegación');
     expect(html).not.toContain('Volver al resumen');
     expect(html).not.toContain('aria-label="Breadcrumb"');
-    expect(html).toContain('Perfil de Usuario Admin');
+    expect(html).not.toContain('Perfil de');
+    expect(html).toContain('Dev');
+    expect(html).toContain('aria-label="Configuración de desarrollo · Dev OFF"');
+    expect(html).not.toContain('dev-menu__trigger');
     expect(html.match(/aria-label="Notificaciones"/g)).toHaveLength(1);
     expect(html).not.toContain('role="dialog"');
   });

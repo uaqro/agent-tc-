@@ -17,8 +17,21 @@ describe('BarChart legend', () => {
     }));
     expect(html).toContain('aria-label="Consumo actual contra anterior"');
     expect(html.match(/data-marcado="fill"/g)).toHaveLength(2);
+    expect(html).toContain('data-size="md"');
     expect(html).toContain('background-color:var(--viz-accent)');
     expect(html).toContain('background-color:var(--viz-neutral)');
     expect(html.indexOf('Actual')).toBeLessThan(html.indexOf('Anterior'));
+  });
+
+  it('does not add a redundant legend for a single series', () => {
+    const html = renderToStaticMarkup(createElement(BarChart, {
+      labels: ['0–1 km'],
+      series: [{ name: 'Ahorro bruto', color: 'var(--viz-positive)', values: [10] }],
+      yMin: 0,
+      yMax: 15,
+      ariaLabel: 'Ahorro por distancia',
+    }));
+    expect(html).toContain('aria-label="Ahorro por distancia"');
+    expect(html).not.toContain('data-marcado');
   });
 });

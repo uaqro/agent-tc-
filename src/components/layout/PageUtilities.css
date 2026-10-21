@@ -5,16 +5,3 @@
   gap: var(--gap-inline);
   min-width: 0;
 }
-
-.page-utilities__profile {
-  display: grid;
-  place-items: center;
-  min-width: var(--hit-target-min);
-  min-height: var(--hit-target-min);
-  border-radius: var(--radius-pill);
-}
-
-.page-utilities__profile:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}

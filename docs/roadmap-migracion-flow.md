@@ -17,8 +17,10 @@ comportamientos del producto.
   adopción. No se reinician como tareas pendientes.
 - Tablas: 23 instancias identificadas; Facturas usa Table, BulkBar y FilterSet;
   22 estructuras locales continúan pendientes de evaluación por familia.
-- Charts: tres tarjetas de barras usan Flow; dos tarjetas de líneas siguen
-  locales por diferencias de datos y formato que deben preservarse.
+- Charts: en Resumen, tres barras usan Flow y dos líneas siguen locales; el
+  Optimizador añade una barra Flow y una línea local. Los siete marcos ya
+  usan WidgetFrame; vacíos y leyendas de barras consumen las piezas Flow.
+  Las diferencias de datos y formato de las líneas siguen pendientes.
 - Adopción directa por tipo: 26/57 primitives, 10/66 components y 1/64 patterns.
   Estos porcentajes no son una medida de finalización ni el objetivo del plan.
 
@@ -188,7 +190,7 @@ carril intermedio y cajón compacto. No se cambia la dependencia ni Flow.
 
 | Entrega | Implementación local |
 |---|---|
-| N0 — Contrato | Rutas, permisos y datos de sesión siguen siendo del producto. Marca en Sidebar; búsqueda, ayuda, notificaciones y perfil en PageHeader; Dev en el pie de Sidebar. |
+| N0 — Contrato | Rutas, permisos y datos de sesión siguen siendo del producto. Marca e identidad en Sidebar; búsqueda, ayuda, notificaciones y Dev en PageHeader. |
 | N1 — Navegación | Adaptador de grupos autorizados a SidebarItem; captions no navegables; activo derivado de la ruta. La búsqueda local del menú se retiró posteriormente por solicitud del usuario en completo, carril y cajón; se conserva la búsqueda global del encabezado. |
 | N2 — Chrome | Una sola paleta GlobalSearch; PageHeader consume su disparador compartido. Conserva títulos, subtítulos y filtros del dashboard. Por decisión posterior del usuario se retiran breadcrumbs y el botón de regreso al resumen en todas las vistas: la navegación poco profunda se resuelve con Sidebar, sin una jerarquía artificial ni un regreso redundante. |
 | N3 — Geometría | Sidebar gobierna ancho y rangos; el shell gobierna pad-section, content-max y scroll principal. Se retiran TopBar, CSS del encabezado y menú anteriores, padding exterior duplicado y tokens locales de esas geometrías. |
@@ -202,17 +204,17 @@ carril intermedio y cajón compacto. No se cambia la dependencia ni Flow.
   envolver controles para caber en el slot de filtros. No cambian dimensiones,
   alcance, valores ni lógica de aplicación. Su migración visual completa
   continúa fuera de este lote.
-- Dev abre Dialog desde el pie del sidebar: foco inicial, ciclo de tabulación,
+- Dev abre Dialog desde el header: foco inicial, ciclo de tabulación,
   Escape y retorno de foco pertenecen al sistema. Se descartó el Popover para
   esta configuración porque Tab desde el disparador saltaba al contenido
   fuera del panel. Se conserva la configuración, impersonación y acceso a
-  Mejoras API. Ayuda, notificaciones y perfil mantienen sus avisos existentes;
-  no se inventa un NotificationCenter con datos simulados nuevos.
+  Mejoras API. Las utilidades posteriores se describen abajo; las alertas de
+  la campana reutilizan Insights sin inventar un catálogo paralelo.
 - Navegar reinicia el scroll principal antes de renderizar el destino. La
   búsqueda global conserva el desplazamiento posterior a su fila exacta.
   El cajón no reaparece al regresar a compacto después de pasar por escritorio.
   Se mantiene un enlace de salto al contenido principal.
-- Validación: 421 pruebas de producto pasan (25 archivos), build pasa y
+- Validación inicial del shell: 421 pruebas de producto pasan (25 archivos), build pasa y
   diff-check limpio. Persisten los warnings SSR de useLayoutEffect de Flow
   y el aviso existente de chunks grandes.
 - Navegador: 18 destinos del menú principal, activo único y scroll inicial;
@@ -225,6 +227,58 @@ carril intermedio y cajón compacto. No se cambia la dependencia ni Flow.
   sin overflow horizontal del encabezado ni del scroll principal. Pad-section
   medido: 32/24/40 px respectivamente; carril 64/64/80 px. Son resultados de
   tokens, no dimensiones copiadas al producto. Se restablece density base.
+
+### Ayuda de contacto
+
+El botón Ayuda deja de emitir un toast y abre Dialog de Flow con enlaces
+`tel:` y `mailto:`, cierre explícito y acceso a la vista TED cuando el rol
+tiene permiso. Abrir TED cierra el diálogo; no crea ni reinicia conversaciones.
+Los contactos +1 202 555 0147 y soporte@ticketcar.example son ficticios y el
+diálogo lo comunica: deben sustituirse antes de ofrecer atención real.
+No se incorpora HelpCenter ni se cambian notificaciones o perfil en este lote.
+
+### Utilidades, cuenta y notificaciones compartidas
+
+- Dev vuelve al header con Ayuda y búsqueda. Usa el mismo IconButton de Flow
+  que las demás utilidades en todos los rangos, con icono de código, estado
+  accesible ON/OFF e indicador cuando está activo. Su configuración sigue
+  usando Dialog.
+- El pie de Sidebar muestra Avatar + nombre + rol; en carril solo Avatar
+  con nombre accesible. Abre un Dialog de cuenta con nombre, rol y alcance
+  actuales. No incluye presencia online, perfil editable ni cierre de sesión
+  ficticios. Es el alcance elegido por el usuario.
+- No se adopta ProfileMenu para esa identidad de solo lectura: requiere una
+  lista de acciones y fuerza `online`. No se crea otro patrón de perfil en
+  Flow. Queda como propuesta DS revisar presencia configurable y composición
+  de disparador + shell + ProfileMenu antes de ampliar su contrato a escritorio.
+- La campana usa la misma fuente `fleetAlerts` que Insights y un estado
+  compartido en el shell. Leer y descartar son independientes. Marcar todas
+  leídas no elimina alertas activas; descartar elimina la misma entidad del
+  listado y la campana. No se añade una resolución de negocio inexistente.
+- Seleccionar una notificación revalida su ID y permiso de Insights, la marca
+  leída y abre la alerta exacta, limpiando filtro de severidad y seleccionando
+  la pestaña Alertas. La tarjeta recibe foco y scroll; no ejecuta su acción.
+- Estado en memoria durante la sesión: sobrevive al cambio de módulo, no a
+  recarga o cambio de sesión. El shell ya se remonta al cambiar usuario/rol/
+  alcance. Se conserva el catálogo estático de demo de Insights: esta entrega
+  no convierte sus alertas agregadas en eventos de backend ni acredita un
+  filtrado organizacional de esas alertas. La campana se oculta sin permiso
+  para Insights.
+- Se usa NotificationCenter de Flow fuera de compacto. A 320 px su lista
+  fija de 340 px se recorta: defecto comprobado, sin corregir Flow ni aplicar
+  overrides a sus selectores internos. Por decisión del usuario, compacto
+  compone IconButton + Dialog + ListRow + Badge + EmptyState existentes.
+  La lista tiene scroll propio limitado a media altura del viewport para
+  mantener visibles cabecera y acciones. Lectura y selección comparten los
+  mismos callbacks en ambos formatos.
+- Los cambios no actualizan la dependencia ni los repositorios de Flow/canon.
+- Validación de este lote: 425 pruebas pasan (26 archivos), build y diff-check
+  correctos. Navegador: lectura individual/todas, descarte coherente, estados
+  vacíos, destino exacto y regreso desde optimización, identidad en cuenta tras
+  impersonar y reinicio de alertas al cambiar sesión. Cuenta/cajón y
+  notificaciones compactas verificadas con Escape y retorno de foco.
+  Matriz de utilidades: base/compact/comfortable × 320/390/768/1280 px sin
+  overflow horizontal; scroll del inbox limitado dentro del Dialog.
 
 ## E0 — Línea base ejecutable del piloto
 

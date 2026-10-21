@@ -204,3 +204,7 @@
     margin-left: 0;
   }
 }
+.alert-card[data-alert-id]:focus {
+  outline: var(--border-width) solid var(--border-focus);
+  box-shadow: var(--focus-ring);
+}

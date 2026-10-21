@@ -88,36 +88,3 @@
   height: 10px;
   border-radius: 3px;
 }
-
-.chart-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-height: 220px;
-  color: var(--tc-local-text-muted);
-  text-align: center;
-}
-
-.chart-empty__title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--tc-local-text-strong);
-  margin: 0;
-}
-
-.chart-empty__hint {
-  font-size: 12.5px;
-  margin: 0;
-  max-width: 34ch;
-  line-height: 1.5;
-}
-
-.chart-empty__axis {
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--tc-local-text-muted);
-  margin: 8px 0 0;
-}

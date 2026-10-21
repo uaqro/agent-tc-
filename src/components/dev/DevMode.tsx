@@ -83,9 +83,8 @@ function DevSwitch({ checked, disabled, label, description, onChange }: DevSwitc
 /** Internal roles see only the active account: analytics never compare accounts (ADR-TCP-001). */
 const clientCaption = 'cuenta activa';
 
-export function DevModeMenu({ onOpenImprovements, compact = false }: {
+export function DevModeMenu({ onOpenImprovements }: {
   onOpenImprovements: () => void;
-  compact?: boolean;
 }) {
   const { devMode, showCoverage, update } = useDevMode();
   const { principal, signInAs } = useSession();
@@ -94,7 +93,6 @@ export function DevModeMenu({ onOpenImprovements, compact = false }: {
 
   return (
     <>
-    {compact ? (
       <IconButton
         icon="code"
         ariaLabel={`Configuración de desarrollo · Dev ${devMode ? 'ON' : 'OFF'}`}
@@ -103,21 +101,6 @@ export function DevModeMenu({ onOpenImprovements, compact = false }: {
         aria-expanded={open}
         onClick={() => setOpen(true)}
       />
-    ) : (
-      <button
-        type="button"
-        className={`dev-menu__trigger${devMode ? ' is-on' : ''}`}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        onClick={() => setOpen(true)}
-      >
-        <span className="dev-menu__code" aria-hidden="true">
-          {'</>'}
-        </span>
-        Dev
-        <span className="dev-menu__state">{devMode ? 'ON' : 'OFF'}</span>
-      </button>
-    )}
     <Dialog
       open={open}
       onOpenChange={setOpen}

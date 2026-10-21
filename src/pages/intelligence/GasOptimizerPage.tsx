@@ -1,4 +1,5 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
+import { WidgetFrame } from '@er-mobility-mx/design-system';
 import { ApiCoverageBanner } from '../../components/api/ApiCoverage';
 import { BarChart } from '../../components/charts/BarChart';
 import { EmptyChart } from '../../components/charts/EmptyChart';
@@ -298,12 +299,11 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
 
       {tab === 'resumen' && (
         <div className="optimizer__columns">
-          <section className="intel-card optimizer__panel">
-            <h2 className="intel-section-title">Ahorro por distancia de desvío</h2>
+          <WidgetFrame title="Ahorro por distancia de desvío">
             {bands.some((band) => band.loads > 0) ? (
               <BarChart
                 labels={bands.map((band) => band.label)}
-                series={[{ name: `Ahorro ${mode}`, color: '#007840', values: bands.map((band) => Math.round(band.saving)) }]}
+                series={[{ name: `Ahorro ${mode}`, color: 'var(--viz-positive)', values: bands.map((band) => Math.round(band.saving)) }]}
                 yMin={0}
                 yMax={niceMax(Math.max(0, ...bands.map((band) => band.saving)))}
                 ariaLabel="Ahorro por banda de distancia de desvío"
@@ -317,19 +317,20 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
                 redirigibles, pero no compensan.
               </p>
             )}
-          </section>
+          </WidgetFrame>
 
-          <section className="intel-card optimizer__panel">
-            <div className="optimizer__panel-head">
-              <h2 className="intel-section-title">Evolución diaria</h2>
-              <select value={dailyMetric} onChange={(event) => setDailyMetric(event.target.value as DailyMetric)} aria-label="Métrica">
+          <WidgetFrame
+            title="Evolución diaria"
+            actions={
+              <select className="optimizer__chart-metric" value={dailyMetric} onChange={(event) => setDailyMetric(event.target.value as DailyMetric)} aria-label="Métrica">
                 {(Object.keys(DAILY_METRIC_LABELS) as DailyMetric[]).map((metric) => (
                   <option key={metric} value={metric}>
                     {DAILY_METRIC_LABELS[metric]}
                   </option>
                 ))}
               </select>
-            </div>
+            }
+          >
             <LineChart
               labels={daily.map((point) => dayLabel(point.day))}
               series={[{ name: DAILY_METRIC_LABELS[dailyMetric], color: '#0060df', values: daily.map((point) => Math.round(point[dailyMetric])) }]}
@@ -337,7 +338,7 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
               yMax={niceMax(Math.max(0, ...daily.map((point) => point[dailyMetric])))}
               ariaLabel={`${DAILY_METRIC_LABELS[dailyMetric]} por día`}
             />
-          </section>
+          </WidgetFrame>
 
           <section className="intel-card optimizer__panel optimizer__panel--wide">
             <h2 className="intel-section-title">Cómo se calcula</h2>

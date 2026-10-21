@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { GlobalSearch, PageChromeProvider, SidebarProvider, useBreakpoint, useToast } from '@er-mobility-mx/design-system';
 import { globalSearchCatalog, searchEntities, type SearchDestination, type SearchRoute } from './data/globalSearch';
 import { GlobalFilterBar, chipText } from './components/filters/GlobalFilterBar';
@@ -7,6 +7,11 @@ import { FloatingControls } from './components/layout/FloatingControls';
 import { PageHeader } from './components/layout/PageHeader';
 import { SideMenu } from './components/layout/SideMenu';
 import { PageUtilities } from './components/layout/PageUtilities';
+import { HelpDialog } from './components/layout/HelpDialog';
+import { AccountDialog } from './components/layout/AccountDialog';
+import { NotificationInbox } from './components/layout/NotificationInbox';
+import { activeAlerts, alertNotifications, alertReducer, INITIAL_ALERT_STATE } from './data/alertState';
+import { fleetAlerts } from './data/intelligence';
 import { devMenuGroup, menuGroups } from './data/dashboard';
 import { useSession } from './components/session/Session';
 import { ROUTE_CAPABILITY, canAccessRoute } from './data/access';
@@ -37,12 +42,6 @@ import type { AppRoute } from './types';
 import type { StationRecommendationRequest } from './types/limits';
 import { useDevMode } from './components/dev/DevMode';
 import './App.css';
-
-const UTILITY_MESSAGES = {
-  help: 'Centro de ayuda abierto.',
-  notifications: 'Tienes 4 alertas críticas en Insights & Alertas.',
-  profile: 'Menú de perfil de usuario abierto.',
-};
 
 const ROUTES: Record<AppRoute, { menuItem: string; title: string; subtitle: string }> = {
   dashboard: {
@@ -152,6 +151,10 @@ function AppContent() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [route, setRoute] = useState<AppRoute>('dashboard');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [alertState, dispatchAlert] = useReducer(alertReducer, INITIAL_ALERT_STATE);
+  const [alertDestination, setAlertDestination] = useState<{ id: string; requestId: number }>();
   const [searchQuery, setSearchQuery] = useState('');
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const [searchDestination, setSearchDestination] = useState<(SearchDestination & { route: SearchRoute })>();
@@ -219,6 +222,7 @@ function AppContent() {
 
   useEffect(() => {
     setSearchDestination((current) => current && current.route !== route ? undefined : current);
+    if (route !== 'insights') setAlertDestination(undefined);
   }, [route]);
 
   // Leaving dev mode while on a dev page goes back home.
@@ -232,6 +236,7 @@ function AppContent() {
   }, [devMode, impersonating, signInAs]);
 
   const meta = ROUTES[route];
+  const alerts = activeAlerts(fleetAlerts, alertState);
   const searchCatalog = globalSearchCatalog();
   const searchResults = searchEntities(searchQuery, searchCatalog);
   const recents = recentIds.flatMap((id) => {
@@ -252,13 +257,40 @@ function AppContent() {
       searchLabel: 'Búsqueda global (⌘K / Ctrl+K)',
       trailing: (
         <PageUtilities
-          userName={principal.name}
-          onAction={(actionId) => notify(UTILITY_MESSAGES[actionId])}
+          onHelp={() => setHelpOpen(true)}
+          onOpenImprovements={() => navigate('dev-api-improvements')}
+          notifications={allowed('insights') && (
+            <NotificationInbox
+              items={alertNotifications(fleetAlerts, alertState)}
+              onMarkAllRead={() => dispatchAlert({ type: 'read', ids: alerts.map((alert) => alert.id) })}
+              onSelect={(item) => {
+                if (!allowed('insights') || !alerts.some((alert) => alert.id === item.id)) {
+                  notify('La alerta ya no está disponible para tu sesión.');
+                  return;
+                }
+                dispatchAlert({ type: 'read', ids: [item.id] });
+                setAlertDestination((current) => ({ id: item.id, requestId: (current?.requestId ?? 0) + 1 }));
+                navigate('insights');
+              }}
+            />
+          )}
         />
       ),
     }}>
     <div className="app">
       <a className="app__skip" href="#main">Ir al contenido principal</a>
+      <AccountDialog
+        open={accountOpen}
+        onOpenChange={setAccountOpen}
+        name={principal.name}
+        role={sessionRoleName(principal.role)}
+        scope={scopeLabel(principal.scopeNodeId)}
+      />
+      <HelpDialog
+        open={helpOpen}
+        onOpenChange={setHelpOpen}
+        onStartTed={allowed('ted') ? () => navigate('ted') : undefined}
+      />
       <GlobalSearch
         open={searchOpen}
         onOpenChange={setSearchOpen}
@@ -293,7 +325,9 @@ function AppContent() {
         activeItemId={meta.menuItem}
         onSelectItem={handleSelectItem}
         onHome={() => navigate('dashboard')}
-        onOpenImprovements={() => navigate('dev-api-improvements')}
+        userName={principal.name}
+        userRole={sessionRoleName(principal.role)}
+        onAccount={() => setAccountOpen(true)}
       />
 
       <main ref={mainRef} className="app__main" id="main" tabIndex={-1}>
@@ -330,7 +364,15 @@ function AppContent() {
         {route === 'toll-media' && <TollMediaPage onNotice={notify} readOnly={!writable(route)} />}
         {route === 'maintenance' && <MaintenancePage onNotice={notify} />}
         {route === 'reports' && <ReportsPage />}
-        {route === 'insights' && <InsightsPage onNotice={notify} onNavigate={navigate} />}
+        {route === 'insights' && (
+          <InsightsPage
+            alerts={alerts}
+            onDismiss={(id) => dispatchAlert({ type: 'dismiss', id })}
+            destination={alertDestination}
+            onNotice={notify}
+            onNavigate={navigate}
+          />
+        )}
         {route === 'optimizer' && (
           <GasOptimizerPage
             onNotice={notify}

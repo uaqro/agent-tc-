@@ -729,6 +729,69 @@ permitir el scroll.
 
 #### Auditoría de charts: diccionario, primitives, componentes y composición
 
+**Actualización del 21-oct-2026:** esta auditoría inicial se amplía con el
+Optimizador: hay siete gráficas, cuatro instancias de BarChart/FlowChart y tres
+de LineChart local. El lote de composición descrito a continuación sustituye
+las conclusiones iniciales de conservar las carcasas locales.
+
+**Adopción de la cascada ya disponible**
+
+- Las cinco tarjetas de Resumen delegan superficie, título h2, descripción,
+  acciones y padding a WidgetFrame → Card + SectionHeader. ChartCard queda
+  como adaptador de las acciones del producto; se elimina su hoja de estilos
+  y los overrides de 30 px en IconButton. Menú e información conservan nombres
+  accesibles y callbacks. Las opciones del menú siguen siendo avisos demo:
+  no se implementan descarga, exportación ni actualización real.
+- Los dos paneles gráficos del Optimizador también usan WidgetFrame. La métrica
+  diaria permanece en el slot actions y conserva su estado y cálculo. La serie
+  de ahorro adopta `--viz-positive` en lugar del verde literal.
+- BarChart usa Stack para separar plot y leyenda, y ChartLegend `size="md"`
+  para la leyenda principal; conserva `marks="fill"`, orden y colores. No
+  añade leyenda redundante a la serie única del Optimizador.
+- EmptyChart delega en EmptyState de Flow, conservando título y causa de
+  negocio. Se retiran su icono SVG y estilos locales, no las explicaciones.
+- El mensual separa carga de vacío y no muestra el resultado de filtros
+  anteriores mientras recalcula. Usa Skeleton de Flow con la proporción del
+  SVG existente y `aria-busy` en su contenedor. No usa el placeholder interno
+  de WidgetFrame: su altura de 120 px no reserva el plot mensual (de proporción
+  760/260). La composición del Skeleton no modifica selectores internos; las
+  notas de datos faltantes se incorporan al llegar los datos.
+- Se conserva la rejilla actual: WidgetGrid existe, pero sus columnas 1.5:1 y
+  corte de 982 px no son equivalentes a las columnas iguales del producto.
+  No se cambia distribución, KPIs, filtros, escalas, cálculos ni motores.
+
+**Brechas verificadas, fuera de este lote**
+
+Flow sí tiene las recetas Dashboard / analytics y Data viz para flotas grandes.
+Esta última prescribe BulletChart para real frente a objetivo, pero la
+implementación actual colorea superar la meta como danger, no imprime el
+objetivo y siempre incluye periodo anterior en la leyenda. No se aplica
+automáticamente a rendimiento km/L. Tampoco se crean piezas nuevas.
+
+El generador de opciones de FlowChart preserva `null` en runtime, pero el tipo
+sigue siendo `number[]` y su formatter de línea no representa «Sin datos».
+`format` es compartido; `axisLabels` solo se aplica a scatter. La densidad
+cambia los roles pero no repinta por sí sola el canvas ya montado. ChartLegend
+`marks="line"` deja transparente el primer swatch sólido. Estas diferencias se
+comprobaron en el paquete instalado; no se corrigen con casts ni overrides.
+Se conservan las tres líneas SVG y sus tooltips/leyendas hasta cerrar los casos
+relevantes. No se actualiza el paquete ni se modifica Flow o el canon.
+
+**Validación de esta adopción:** 429 pruebas en 27 archivos, build y
+diff-check correctos. Cuatro regresiones nuevas cubren composición del marco,
+proporción del Skeleton, causa del vacío y ausencia de leyenda redundante;
+la prueba multiserie comprueba también `size="md"`. Recorridos de navegador,
+no E2E persistentes: 24 combinaciones de Resumen/Optimizador ×
+base/compact/comfortable × 320/390/768/1280 sin overflow de los charts.
+Botones de información/menú de 44 px, tooltip por foco, apertura del menú por
+teclado y retorno de foco con Escape. Cambio de producto conserva el hueco
+mensual al volver a Todos; un nodo hoja conserva su causa de vacío.
+Cambio de métrica y ahorro bruto/neto del Optimizador permanecen operables.
+El Skeleton del plot y el SVG resultante midieron ambos 307.07 px de alto
+en el mismo viewport de escritorio; las notas aparecen al completar el cálculo.
+No se acredita aquí que los defectos de densidad dinámica o de línea de Flow
+estén resueltos. Persisten los avisos SSR de Flow y de tamaño de chunks.
+
 Tras el rebase, `FuelDashboardPage` tiene **cinco tarjetas de gráfica**:
 `Rendimiento por vehículo`, `Consumo organizacional` y `Recargas y Recortes`
 usan el adaptador `BarChart` sobre `FlowChart`; `Consumo mensual (12 meses)`

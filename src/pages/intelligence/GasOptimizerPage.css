@@ -104,6 +104,7 @@
 
 .optimizer__control select,
 .optimizer__control input,
+.optimizer__chart-metric,
 .optimizer__panel-head select {
   height: 34px;
   padding: 0 10px;

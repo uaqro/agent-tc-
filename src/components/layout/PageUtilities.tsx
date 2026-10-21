@@ -1,24 +1,20 @@
-import { Avatar, IconButton } from '@er-mobility-mx/design-system';
+import { IconButton } from '@er-mobility-mx/design-system';
+import { DevModeMenu } from '../dev/DevMode';
 import './PageUtilities.css';
 
 interface PageUtilitiesProps {
-  userName: string;
-  onAction: (actionId: 'help' | 'notifications' | 'profile') => void;
+  onHelp: () => void;
+  onOpenImprovements: () => void;
+  notifications?: ReactNode;
 }
 
-export function PageUtilities({ userName, onAction }: PageUtilitiesProps) {
+export function PageUtilities({ onHelp, onOpenImprovements, notifications }: PageUtilitiesProps) {
   return (
     <nav className="page-utilities" aria-label="Acciones de usuario">
-      <IconButton icon="help" ariaLabel="Ayuda" onClick={() => onAction('help')} />
-      <IconButton icon="notifications" ariaLabel="Notificaciones" badge onClick={() => onAction('notifications')} />
-      <button
-        type="button"
-        className="page-utilities__profile"
-        aria-label={`Perfil de ${userName}`}
-        onClick={() => onAction('profile')}
-      >
-        <Avatar name={userName} size="sm" />
-      </button>
+      <DevModeMenu onOpenImprovements={onOpenImprovements} />
+      <IconButton icon="help" ariaLabel="Ayuda" aria-haspopup="dialog" onClick={onHelp} />
+      {notifications}
     </nav>
   );
 }
+import type { ReactNode } from 'react';

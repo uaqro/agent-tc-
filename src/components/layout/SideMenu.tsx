@@ -1,6 +1,5 @@
-import { IconButton, Sidebar, useBreakpoint, type SidebarItem } from '@er-mobility-mx/design-system';
+import { Avatar, IconButton, Sidebar, useBreakpoint, type SidebarItem } from '@er-mobility-mx/design-system';
 import type { MenuGroup, MenuIconName } from '../../types';
-import { DevModeMenu } from '../dev/DevMode';
 import './SideMenu.css';
 
 const ICONS: Record<MenuIconName, string> = {
@@ -41,10 +40,12 @@ interface SideMenuProps {
   activeItemId: string;
   onSelectItem: (itemId: string) => void;
   onHome: () => void;
-  onOpenImprovements: () => void;
+  userName: string;
+  userRole: string;
+  onAccount: () => void;
 }
 
-export function SideMenu({ open, onOpenChange, groups, activeItemId, onSelectItem, onHome, onOpenImprovements }: SideMenuProps) {
+export function SideMenu({ open, onOpenChange, groups, activeItemId, onSelectItem, onHome, userName, userRole, onAccount }: SideMenuProps) {
   const rail = useBreakpoint() === 'medium';
   const items = navigationItems(groups);
 
@@ -56,7 +57,18 @@ export function SideMenu({ open, onOpenChange, groups, activeItemId, onSelectIte
       items={items}
       activeId={activeItemId}
       onNavigate={onSelectItem}
-      footerActions={<DevModeMenu compact={rail} onOpenImprovements={onOpenImprovements} />}
+      footerActions={
+        <button
+          type="button"
+          className="navigation-account"
+          aria-label={`Cuenta de ${userName} · ${userRole}`}
+          aria-haspopup="dialog"
+          onClick={onAccount}
+        >
+          <Avatar name={userName} size="sm" />
+          {!rail && <span className="navigation-account__identity"><strong>{userName}</strong><span>{userRole}</span></span>}
+        </button>
+      }
       headerContent={
         <div className="navigation-header">
           {rail ? (
@@ -64,7 +76,6 @@ export function SideMenu({ open, onOpenChange, groups, activeItemId, onSelectIte
           ) : (
             <button type="button" className="navigation-brand" onClick={onHome} aria-label="Edenred One · Ticket Car, ir al resumen">
               <img src="/logo-edenred-one.png" alt="Edenred One" />
-              <span>Ticket Car</span>
             </button>
           )}
         </div>

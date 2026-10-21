@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Skeleton, Stack } from '@er-mobility-mx/design-system';
 import type { GapSeries } from '../../types';
 import {
   CHART_HEIGHT,
@@ -23,6 +24,15 @@ interface LineChartProps {
   tickCount?: number;
   valueSuffix?: string;
   ariaLabel: string;
+}
+
+export function LineChartSkeleton() {
+  return (
+    <Stack direction="column" gap="inline">
+      <Skeleton variant="card" height="auto" style={{ aspectRatio: `${CHART_WIDTH} / ${CHART_HEIGHT}` }} />
+      <Skeleton width="40%" />
+    </Stack>
+  );
 }
 
 /** Runs of consecutive non-null points, one polyline each: a gap is never bridged. */

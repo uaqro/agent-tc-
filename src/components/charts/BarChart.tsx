@@ -1,4 +1,4 @@
-import { ChartLegend, FlowChart } from '@er-mobility-mx/design-system';
+import { ChartLegend, FlowChart, Stack } from '@er-mobility-mx/design-system';
 import type { ChartSeries } from '../../types';
 
 interface BarChartProps {
@@ -11,7 +11,7 @@ interface BarChartProps {
 
 export function BarChart({ labels, series, yMin, yMax, ariaLabel }: BarChartProps) {
   return (
-    <div>
+    <Stack direction="column" gap="stack">
       <FlowChart
         type="bar"
         height={240}
@@ -24,11 +24,11 @@ export function BarChart({ labels, series, yMin, yMax, ariaLabel }: BarChartProp
       {series.length > 1 && (
         <ChartLegend
           items={series.map(({ name, color }) => ({ label: name, color }))}
-          size="sm"
+          size="md"
           width="fill"
           marks="fill"
         />
       )}
-    </div>
+    </Stack>
   );
 }

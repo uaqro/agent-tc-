@@ -9,12 +9,8 @@
 .navigation-brand {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: var(--gap-inline);
   min-height: var(--hit-target-min);
   text-align: start;
-  color: var(--text-accent);
-  font: var(--type-navigation-label);
 }
 
 .navigation-brand img {
@@ -27,4 +23,52 @@
 .navigation-brand:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
+}
+
+.navigation-account {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-inline);
+  min-width: 0;
+  width: 100%;
+  min-height: var(--hit-target-min);
+  padding: var(--pad-control-y) var(--gap-inline);
+  border-radius: var(--radius-sm);
+  text-align: start;
+}
+
+.navigation-account__identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}
+
+.navigation-account__identity strong {
+  color: var(--text-primary);
+}
+
+.navigation-account:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.navigation-account-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-stack);
+  margin: 0;
+}
+
+.navigation-account-details dt {
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}
+
+.navigation-account-details dd {
+  margin: var(--gap-inline) 0 0;
+  font: var(--type-body-md);
+  color: var(--text-primary);
 }

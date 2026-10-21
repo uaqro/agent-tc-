@@ -1,10 +1,9 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Badge, Button, Chip, ChipGroup, TabPanel, Tabs } from '@er-mobility-mx/design-system';
 import { AlertIcon, CheckCircleIcon, InfoIcon, SparklesIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import {
   SEVERITY_META,
-  fleetAlerts,
   optimizationInsights,
   type FleetAlert,
   type InsightAction,
@@ -16,6 +15,9 @@ import './intelligence.css';
 import './InsightsPage.css';
 
 interface InsightsPageProps {
+  alerts: FleetAlert[];
+  onDismiss: (id: string) => void;
+  destination?: { id: string; requestId: number };
   onNotice: (message: string) => void;
   onNavigate: (route: AppRoute) => void;
 }
@@ -45,10 +47,28 @@ const SEVERITY_CHIP_STYLE: Record<Severity, CSSProperties> = {
 
 const INSIGHTS_TABS_ID = 'insights-view-tabs';
 
-export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
+export function InsightsPage({ onNotice, onNavigate, alerts, onDismiss, destination }: InsightsPageProps) {
   const [tab, setTab] = useState<'alerts' | 'insights'>('alerts');
-  const [alerts, setAlerts] = useState<FleetAlert[]>(fleetAlerts);
   const [severity, setSeverity] = useState<Severity | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const handled = useRef<number>();
+
+  useEffect(() => {
+    if (!destination || handled.current === destination.requestId) return;
+    setTab('alerts');
+    setSeverity(null);
+  }, [destination]);
+
+  useEffect(() => {
+    if (!destination || handled.current === destination.requestId || tab !== 'alerts' || severity !== null) return;
+    const card = [...(rootRef.current?.querySelectorAll<HTMLElement>('[data-alert-id]') ?? [])]
+      .find((element) => element.dataset.alertId === destination.id);
+    if (card) {
+      handled.current = destination.requestId;
+      card.focus();
+      card.scrollIntoView({ block: 'center', inline: 'nearest' });
+    }
+  }, [destination, tab, severity]);
 
   const counts = useMemo(
     () => Object.fromEntries(SEVERITIES.map((key) => [key, alerts.filter((alert) => alert.severity === key).length])),
@@ -64,7 +84,7 @@ export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
   };
 
   return (
-    <div className="intel insights">
+    <div className="intel insights" ref={rootRef}>
       <div className="insights__summary">
         <div role="group" aria-label="Filtrar por severidad">
           <ChipGroup style={{ gap: 8, flexWrap: 'wrap' }}>
@@ -122,7 +142,7 @@ export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
             {visible.map((alert) => {
               const Icon = SEVERITY_ICON[alert.severity];
               return (
-                <li key={alert.id} className={`alert-card intel-card alert-card--${alert.severity}`}>
+                <li key={alert.id} data-alert-id={alert.id} tabIndex={-1} className={`alert-card intel-card alert-card--${alert.severity}`}>
                   <span className="alert-card__icon">
                     <Icon width={18} height={18} />
                   </span>
@@ -141,7 +161,7 @@ export function InsightsPage({ onNotice, onNavigate }: InsightsPageProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          setAlerts((current) => current.filter((candidate) => candidate.id !== alert.id));
+                          onDismiss(alert.id);
                           onNotice(`Alerta descartada: ${alert.title}.`);
                         }}
                       >
