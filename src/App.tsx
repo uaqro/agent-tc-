@@ -11,7 +11,7 @@ import { ROUTE_CAPABILITY, canAccessRoute } from './data/access';
 import { clientAccount, scopeLabel } from './data/client';
 import { DEFAULT_PRINCIPAL } from './data/session';
 import { canSession, sessionRoleName } from './domain/rbac/portal-roles';
-import { DispersionPage } from './pages/DispersionPage';
+import { AssignmentsPage } from './pages/AssignmentsPage';
 import { FuelDashboardPage } from './pages/FuelDashboardPage';
 import { LimitsPage } from './pages/LimitsPage';
 import { StationNetworksPage } from './pages/StationNetworksPage';
@@ -52,8 +52,8 @@ const ROUTES: Record<AppRoute, { menuItem: string; section: string; title: strin
   dispersion: {
     menuItem: 'saldos',
     section: 'Combustible',
-    title: 'Saldos',
-    subtitle: 'Fondeo automático, envíos puntuales y recortes de saldo',
+    title: 'Asignaciones',
+    subtitle: 'Administración del saldo global y asignaciones a medios de pago',
   },
   limits: {
     menuItem: 'reglas-limites',
@@ -100,9 +100,10 @@ const ROUTES: Record<AppRoute, { menuItem: string; section: string; title: strin
   },
   reports: {
     menuItem: 'reportes',
-    section: 'Inteligencia',
-    title: 'Reportes',
-    subtitle: 'Consumo, presupuesto y reportes dinámicos de transacciones',
+    section: 'Reportería',
+    title: 'Reportería',
+    crumb: 'Combustible',
+    subtitle: 'Reportes del producto contratado',
   },
   insights: {
     menuItem: 'insights',
@@ -295,7 +296,7 @@ function AppContent() {
         {route === 'dashboard' && (
           <FuelDashboardPage onCardOption={(chart, option) => setNotice(`${chart}: ${option}.`)} />
         )}
-        {route === 'dispersion' && <DispersionPage onNotice={setNotice} />}
+        {route === 'dispersion' && <AssignmentsPage onNotice={setNotice} />}
         {route === 'limits' && (
           <LimitsPage onNotice={setNotice} stationRequest={stationRequest} onStationRequestHandled={() => setStationRequest(null)} />
         )}
@@ -305,7 +306,7 @@ function AppContent() {
         {route === 'toll-rules' && <TollRulesPage onNotice={setNotice} readOnly={!writable(route)} />}
         {route === 'toll-media' && <TollMediaPage onNotice={setNotice} readOnly={!writable(route)} />}
         {route === 'maintenance' && <MaintenancePage onNotice={setNotice} />}
-        {route === 'reports' && <ReportsPage />}
+        {route === 'reports' && <ReportsPage key={principal.userId} />}
         {route === 'insights' && <InsightsPage onNotice={setNotice} onNavigate={navigate} />}
         {route === 'optimizer' && (
           <GasOptimizerPage

@@ -11,7 +11,7 @@ export const menuGroups: MenuGroup[] = [
     id: 'combustible',
     label: 'Combustible',
     items: [
-      { id: 'saldos', label: 'Saldos', icon: 'wallet' },
+      { id: 'saldos', label: 'Asignaciones', icon: 'wallet' },
       { id: 'reglas-limites', label: 'Políticas de uso', icon: 'lock' },
       { id: 'red-estaciones', label: 'Red de estaciones', icon: 'compass' },
       { id: 'medios-pago', label: 'Medios de pago', icon: 'card' },
@@ -32,10 +32,14 @@ export const menuGroups: MenuGroup[] = [
     items: [{ id: 'mantenimiento-resumen', label: 'Resumen', icon: 'gear' }],
   },
   {
+    id: 'reporteria',
+    label: 'Reportería',
+    items: [{ id: 'reportes', label: 'Combustible', icon: 'file' }],
+  },
+  {
     id: 'inteligencia',
     label: 'Inteligencia',
     items: [
-      { id: 'reportes', label: 'Reportes', icon: 'file' },
       { id: 'insights', label: 'Insights & Alertas', icon: 'sparkles' },
       { id: 'optimizador', label: 'Optimizador de gasolineras', icon: 'compass' },
       { id: 'ted', label: 'TED', icon: 'chat' },

@@ -1,25 +1,31 @@
 import { useState } from 'react';
 import { ConsolidatedReportPanel } from '../components/reports/ConsolidatedReportPanel';
 import { DynamicReportBuilder } from '../components/reports/DynamicReportBuilder';
+import { AccountStatementReport, PaymentBalanceReport } from '../components/reports/FixedReports';
 import './ReportsPage.css';
 
-type ReportView = 'consolidated' | 'dynamic';
+type ReportView = 'transactional' | 'account' | 'balances' | 'consolidated';
 
 const VIEWS: { id: ReportView; label: string; hint: string }[] = [
   {
-    id: 'consolidated',
-    label: 'Reporte consolidado',
-    hint: 'Autoconsumo y TicketCar+ en un mismo documento, con el alcance y el periodo que elijas.',
+    id: 'transactional',
+    label: 'Transaccional dinámico',
+    hint: 'Combustible',
   },
   {
-    id: 'dynamic',
-    label: 'Reporte dinámico',
-    hint: 'Arma el detalle de transacciones eligiendo columnas, filtros y agrupador.',
+    id: 'account',
+    label: 'Estado de cuenta',
+    hint: 'Cuenta corriente',
+  },
+  {
+    id: 'balances',
+    label: 'Saldos por medio de pago',
+    hint: 'Asignaciones y movimientos',
   },
 ];
 
 export function ReportsPage() {
-  const [view, setView] = useState<ReportView>('consolidated');
+  const [view, setView] = useState<ReportView>('transactional');
   const active = VIEWS.find((candidate) => candidate.id === view) ?? VIEWS[0];
 
   return (
@@ -32,8 +38,9 @@ export function ReportsPage() {
             </h2>
             <p className="reports__hint">{active.hint}</p>
           </div>
+          <span className="reports__demo">Datos de demostración</span>
 
-          <div className="reports__tabs" role="tablist" aria-label="Tipo de reporte">
+          <div className="reports__tabs" role="tablist" aria-label="Reportes de combustible">
             {VIEWS.map((candidate) => (
               <button
                 type="button"
@@ -49,7 +56,10 @@ export function ReportsPage() {
           </div>
         </header>
 
-        {view === 'consolidated' ? <ConsolidatedReportPanel /> : <DynamicReportBuilder />}
+        {view === 'transactional' && <DynamicReportBuilder />}
+        {view === 'account' && <AccountStatementReport />}
+        {view === 'balances' && <PaymentBalanceReport />}
+        {view === 'consolidated' && <ConsolidatedReportPanel />}
       </section>
     </div>
   );
