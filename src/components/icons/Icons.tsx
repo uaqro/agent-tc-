@@ -346,6 +346,12 @@ export const MapPinIcon = (props: IconProps) => (
   </svg>
 );
 
+export const PencilIcon = (props: IconProps) => (
+  <svg {...base(props)}>
+    <path d="m14.5 5.5 4 4M4 20l4.2-.9L19.1 8.2a2.1 2.1 0 0 0-3-3L5.2 16.1 4 20Z" />
+  </svg>
+);
+
 export const CardIcon = (props: IconProps) => (
   <svg {...base(props)}>
     <rect x="3" y="5.5" width="18" height="13" rx="2" />

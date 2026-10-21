@@ -1,4 +1,8 @@
 .networks__catalog { min-width: 0; }
+.station-networks__tabs { display: flex; gap: 4px; width: fit-content; max-width: 100%; margin-bottom: 18px; border-bottom: 1px solid var(--border-control); }
+.station-networks__tabs button { min-height: 40px; padding: 0 14px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-muted); font: inherit; font-size: 13px; cursor: pointer; }
+.station-networks__tabs button:hover, .station-networks__tabs button.is-active { border-bottom-color: var(--brand-blue); color: var(--brand-blue); }
+.station-networks__tabs button:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: 2px; }
 .networks .table-page__head { padding: 0 0 16px; }
 .networks__cards { margin-top: 12px; }
 .network-card { min-width: 0; }

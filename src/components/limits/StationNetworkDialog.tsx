@@ -22,20 +22,21 @@ export function NetworkPager({ page, size, total, onPage, onSize, label, sizeLab
   </div>;
 }
 
-export function StationNetworkDialog({ network, networks, onClose, onSave }: {
+export function StationNetworkDialog({ network, networks, initialStationIds = [], onClose, onSave }: {
   network: StationNetwork | null;
   networks: StationNetwork[];
+  initialStationIds?: string[];
   onClose: () => void;
   onSave: (network: StationNetwork) => string | null;
 }) {
   const [name, setName] = useState(network?.name ?? '');
   const [mode, setMode] = useState<StationNetwork['mode']>(network?.mode ?? 'allow');
-  const [selected, setSelected] = useState(() => new Set(network?.stationIds ?? []));
+  const [selected, setSelected] = useState(() => new Set(network?.stationIds ?? initialStationIds));
   const [query, setQuery] = useState('');
   const [state, setState] = useState('');
   const [city, setCity] = useState('');
   const [brand, setBrand] = useState('');
-  const [selectedOnly, setSelectedOnly] = useState(false);
+  const [selectedOnly, setSelectedOnly] = useState(() => initialStationIds.length > 0);
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(10);
   const [error, setError] = useState('');

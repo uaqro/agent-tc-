@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { NetworkPager, StationNetworkDialog } from '../components/limits/StationNetworkDialog';
 import { CloseIcon, PlusIcon, SlidersIcon, TrendDownIcon, TrendUpIcon } from '../components/icons/Icons';
 import { Modal } from '../components/ui/Modal';
@@ -22,10 +22,12 @@ const COLUMNS = [
 type FilterColumn = typeof COLUMNS[number]['key'];
 const EMPTY_FILTERS: Record<FilterColumn, string> = { name: '', mode: '', stations: '', policies: '', voucherNotes: '', updated: '', updatedBy: '' };
 const dateLabel = (date: string) => new Intl.DateTimeFormat('es-MX').format(new Date(`${date}T12:00:00`));
+const StationMap = lazy(() => import('../components/stations/StationMap').then(({ StationMap: Component }) => ({ default: Component })));
 
 export function StationNetworksPage({ onNotice }: { onNotice: (message: string) => void }) {
   const { networks, policies, saveNetwork, cancelNetwork, storageError } = useFuelPolicies();
-  const [editor, setEditor] = useState<{ network: StationNetwork | null } | null>(null);
+  const [editor, setEditor] = useState<{ network: StationNetwork | null; initialStationIds?: string[] } | null>(null);
+  const [activeView, setActiveView] = useState<'map' | 'networks'>('map');
   const [confirmation, setConfirmation] = useState<{ network: StationNetwork; cancel: boolean } | null>(null);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [activeFilter, setActiveFilter] = useState<FilterColumn>('name');
@@ -44,9 +46,18 @@ export function StationNetworksPage({ onNotice }: { onNotice: (message: string) 
   const related = confirmation ? associatedPolicies(confirmation.network.id) : [];
   const blocked = confirmation && (related.length > 0 || confirmation.network.voucherNotes.length > 0);
   const clearFilters = () => { setFilters(EMPTY_FILTERS); setPage(1); };
+  const createNetworkFromStations = (stationIds: string[]) => {
+    setEditor({ network: null, initialStationIds: stationIds });
+    setActiveView('networks');
+  };
 
   return <div className="table-page networks">
     {storageError && <p className="network-editor__error" role="status">No fue posible guardar los cambios en este navegador. Se conservarán solo durante esta sesión.</p>}
+    <div className="station-networks__tabs" role="group" aria-label="Vistas de Red de estaciones">
+      <button type="button" className={activeView === 'map' ? 'is-active' : ''} aria-pressed={activeView === 'map'} onClick={() => setActiveView('map')}>Mapa de estaciones</button>
+      <button type="button" className={activeView === 'networks' ? 'is-active' : ''} aria-pressed={activeView === 'networks'} onClick={() => setActiveView('networks')}>Redes personalizadas</button>
+    </div>
+    {activeView === 'map' ? <Suspense fallback={<p className="station-map__loading" role="status">Cargando mapa...</p>}><StationMap onCreateNetwork={createNetworkFromStations} /></Suspense> : <>
     <dl className="limits__summary networks__summary">
       <div><dt>Redes configuradas</dt><dd>{formatCount(networks.length)}</dd></div>
       <div><dt>Permitidas</dt><dd>{formatCount(networks.filter((network) => network.mode === 'allow').length)}</dd></div>
@@ -95,7 +106,7 @@ export function StationNetworksPage({ onNotice }: { onNotice: (message: string) 
       {!pageRows.length && <p className="networks__empty">{networks.length ? 'No hay redes que coincidan con los filtros.' : 'No hay redes de estaciones personalizadas configuradas.'}</p>}
       <NetworkPager label="redes" sizeLabel="Redes" page={currentPage} size={size} total={rows.length} onPage={setPage} onSize={(value) => { setSize(value); setPage(1); }} />
     </section>
-    {editor && <StationNetworkDialog network={editor.network} networks={networks} onClose={() => setEditor(null)} onSave={(network) => {
+    {editor && <StationNetworkDialog network={editor.network} networks={networks} initialStationIds={editor.initialStationIds} onClose={() => setEditor(null)} onSave={(network) => {
       const error = saveNetwork(network);
       if (!error) { setEditor(null); onNotice(editor.network ? 'Cambios de la red guardados.' : 'Red creada correctamente.'); }
       return error;
@@ -115,5 +126,6 @@ export function StationNetworksPage({ onNotice }: { onNotice: (message: string) 
       {related.length > 0 && <><h3 className="network-editor__title">Políticas de uso</h3><ul>{related.map((policy) => <li key={policy.id}>{policy.name}{policy.status === 'paused' ? ' · Pausada' : ''}</li>)}</ul></>}
       {confirmation.network.voucherNotes.length > 0 && <><h3 className="network-editor__title">Nota Vales · Muestra</h3><ul>{confirmation.network.voucherNotes.map((note) => <li key={note}>{note}</li>)}</ul></>}
     </Modal>}
+    </>}
   </div>;
 }
