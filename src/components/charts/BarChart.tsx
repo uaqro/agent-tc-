@@ -26,6 +26,7 @@ export function BarChart({ labels, series, yMin, yMax, ariaLabel }: BarChartProp
           items={series.map(({ name, color }) => ({ label: name, color }))}
           size="sm"
           width="fill"
+          marks="fill"
         />
       )}
     </div>

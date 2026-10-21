@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button, Input, StatusPill } from '@er-mobility-mx/design-system';
-import { PlusIcon, SearchIcon } from '../../components/icons/Icons';
+import { PlusIcon } from '../../components/icons/Icons';
 import { TollAssignDialog } from '../../components/toll/TollAssignDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { fleetVehicles as vehicles } from '../../data/dispersion';
@@ -107,16 +107,16 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
             TAGs de telepeaje
           </h2>
           <div className="table-page__filters">
-            <label className="table-page__search">
-              <SearchIcon width={15} height={15} />
+            <div className="table-page__flow-search">
               <Input
                 type="search"
+                icon="search"
                 ariaLabel="Buscar TAG"
                 value={query}
                 placeholder="Número de TAG, placa o conductor"
                 onChange={setQuery}
               />
-            </label>
+            </div>
             <label>
               <span className="visually-hidden">Filtrar por tipo</span>
               <select value={type} onChange={(event) => setType(event.target.value as TollTagType | '')}>

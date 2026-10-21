@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
-import { PlusIcon, SearchIcon } from '../components/icons/Icons';
+import { PlusIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
 import { DevNote } from '../components/dev/DevNote';
@@ -101,16 +101,16 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
             <ApiTag id="media-list" />
           </h2>
           <div className="table-page__filters">
-            <label className="table-page__search">
-              <SearchIcon width={15} height={15} />
+            <div className="table-page__flow-search">
               <Input
                 type="search"
+                icon="search"
                 ariaLabel="Buscar medio de pago"
                 value={query}
                 placeholder="Número, placa o conductor"
                 onChange={setQuery}
               />
-            </label>
+            </div>
             <span id="payment-media-type-filter-label" className="visually-hidden">Filtrar por tipo</span>
             <Select
               options={typeOptions}

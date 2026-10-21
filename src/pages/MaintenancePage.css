@@ -16,31 +16,9 @@
 }
 
 .maintenance__input {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   flex: 1;
   min-width: 0;
   max-width: 520px;
-  height: 40px;
-  padding: 0 12px;
-  border: 1px solid var(--tc-local-border-control);
-  border-radius: var(--tc-local-radius-sm);
-  color: var(--tc-local-text-muted);
-}
-
-.maintenance__input:focus-within {
-  border-color: var(--tc-local-text-strong);
-}
-
-.maintenance__input input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 14px;
-  color: var(--tc-local-text-strong);
 }
 
 .maintenance__results-head,

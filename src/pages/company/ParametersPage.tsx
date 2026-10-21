@@ -3,7 +3,7 @@ import { Badge, Button, Input, StatusPill, Switch } from '@er-mobility-mx/design
 import { ParameterCatalogDialog } from '../../components/company/ParameterCatalogDialog';
 import { ParameterRecordDialog } from '../../components/company/ParameterRecordDialog';
 import { ApiCoverageBanner, ApiTag } from '../../components/api/ApiCoverage';
-import { PlusIcon, SearchIcon } from '../../components/icons/Icons';
+import { PlusIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { parameterCatalogs, type ParameterCatalog, type ParameterRecord } from '../../data/company';
 import '../TablePage.css';
@@ -171,16 +171,16 @@ export function ParametersPage({ onNotice }: ParametersPageProps) {
 
           {catalog.records.length > 0 && (
             <div className="table-page__head">
-              <label className="table-page__search">
-                <SearchIcon width={15} height={15} />
+              <div className="table-page__flow-search">
                 <Input
                   type="search"
+                  icon="search"
                   ariaLabel={`Buscar en ${catalog.label}`}
                   value={query}
                   placeholder={`Buscar en ${catalog.label.toLowerCase()}`}
                   onChange={setQuery}
                 />
-              </label>
+              </div>
               <div className="parameters__toggle">
                 <Switch checked={showInactive} label="Mostrar inactivos" onChange={setShowInactive} />
               </div>

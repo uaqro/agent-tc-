@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button, Input, Select } from '@er-mobility-mx/design-system';
-import { CopyIcon, SearchIcon } from '../../components/icons/Icons';
+import { CopyIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { API_STATUS_LABEL, PAGE_LABEL, apiCapabilities, capabilityById, type FuelPage } from '../../data/apiCoverage';
 import {
@@ -132,10 +132,9 @@ export function ApiImprovementsPage({ onNotice }: ApiImprovementsPageProps) {
             Backlog para el equipo de API ZERO
           </h2>
           <div className="table-page__filters">
-            <label className="table-page__search">
-              <SearchIcon width={15} height={15} />
-              <Input type="search" ariaLabel="Buscar mejora" value={query} placeholder="Método, campo o tema" onChange={setQuery} />
-            </label>
+            <div className="table-page__flow-search">
+              <Input type="search" icon="search" ariaLabel="Buscar mejora" value={query} placeholder="Método, campo o tema" onChange={setQuery} />
+            </div>
             <span id="improvements-priority-filter-label" className="visually-hidden">Filtrar por prioridad</span>
             <Select
               options={priorityOptions}

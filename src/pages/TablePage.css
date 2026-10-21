@@ -88,6 +88,12 @@
   color: var(--tc-local-text-muted);
 }
 
+.table-page__flow-search {
+  width: 260px;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .table-page__search:focus-within {
   border-color: var(--tc-local-text-strong);
 }
@@ -185,7 +191,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .table-page__search {
+  .table-page__search,
+  .table-page__flow-search {
     width: 100%;
   }
 }

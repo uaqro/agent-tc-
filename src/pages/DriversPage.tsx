@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button, Input, StatusPill } from '@er-mobility-mx/design-system';
-import { PlusIcon, SearchIcon } from '../components/icons/Icons';
+import { PlusIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
@@ -69,16 +69,16 @@ export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
             <ApiTag id="drv-list" />
           </h2>
           <div className="table-page__filters">
-            <label className="table-page__search">
-              <SearchIcon width={15} height={15} />
+            <div className="table-page__flow-search">
               <Input
                 type="search"
+                icon="search"
                 ariaLabel="Buscar conductor"
                 value={query}
                 placeholder="Nombre o número de empleado"
                 onChange={setQuery}
               />
-            </label>
+            </div>
             <label>
               <span className="visually-hidden">Filtrar por grupo</span>
               <select value={group} onChange={(event) => setGroup(event.target.value)}>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Badge, Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
 import { InviteUserDialog } from '../../components/company/InviteUserDialog';
-import { PlusIcon, SearchIcon } from '../../components/icons/Icons';
+import { PlusIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import {
   USER_ROLE_LABEL,
@@ -88,10 +88,9 @@ export function UsersPage({ onNotice }: UsersPageProps) {
             Usuarios
           </h2>
           <div className="table-page__filters">
-            <label className="table-page__search">
-              <SearchIcon width={15} height={15} />
-              <Input type="search" ariaLabel="Buscar usuario" value={query} placeholder="Nombre o correo" onChange={setQuery} />
-            </label>
+            <div className="table-page__flow-search">
+              <Input type="search" icon="search" ariaLabel="Buscar usuario" value={query} placeholder="Nombre o correo" onChange={setQuery} />
+            </div>
             <span id="users-role-filter-label" className="visually-hidden">Filtrar por rol</span>
             <Select
               options={roleOptions}

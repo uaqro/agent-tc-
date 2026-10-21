@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Badge, Button, Chip, Input, StatusPill, TabPanel, Tabs } from '@er-mobility-mx/design-system';
 import { ServiceOrderDialog } from '../components/maintenance/ServiceOrderDialog';
-import { AlertIcon, CalendarIcon, GearIcon, PlusIcon, SearchIcon, WalletIcon } from '../components/icons/Icons';
+import { AlertIcon, CalendarIcon, GearIcon, PlusIcon, WalletIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
 import { fleetVehicles as vehicles } from '../data/dispersion';
 import { VEHICLE_STATUS_LABEL, vehicleDetails } from '../data/fleet';
@@ -104,16 +104,16 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
             ariaLabel="Consultar por"
             style={{ flexShrink: 0 }}
           />
-          <label className="maintenance__input">
-            <SearchIcon width={16} height={16} />
+          <div className="maintenance__input">
             <Input
               type="search"
+              icon="search"
               ariaLabel={mode === 'orders' ? 'Buscar órdenes de servicio' : 'Buscar vehículos'}
               value={query}
               placeholder={mode === 'orders' ? 'Folio, placa, taller o sistema' : 'Placa, conductor, marca o modelo'}
               onChange={setQuery}
             />
-          </label>
+          </div>
         </div>
         <Button onClick={() => setDialog({})}>
           <PlusIcon width={16} height={16} />
