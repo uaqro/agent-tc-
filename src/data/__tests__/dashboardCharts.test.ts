@@ -52,4 +52,16 @@ describe('Resumen charts', () => {
     expect(niceMax(0.66)).toBe(1);
     expect(niceMax(18_400)).toBe(20_000);
   });
+
+  it('comparison bars use visualization roles instead of fixed colors', () => {
+    for (const chart of [
+      performanceByVehicle(DEFAULT_FILTERS, 8, AT),
+      organizationalConsumption(DEFAULT_FILTERS, AT),
+    ]) {
+      expect(chart.series.map((series) => series.color)).toEqual([
+        'var(--viz-accent)',
+        'var(--viz-neutral)',
+      ]);
+    }
+  });
 });

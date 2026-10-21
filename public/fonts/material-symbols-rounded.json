@@ -1,0 +1,17 @@
+{
+  "_": "Generado por scripts/iconos-build.mjs — no editar a mano. Lo verifica check:fuentes (fnt-3).",
+  "origen": "Material Symbols Rounded (variable), Apache-2.0 — ver LICENSES/",
+  "ejes": {
+    "opsz": 24,
+    "wght": 400,
+    "FILL": {
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  },
+  "iconos": 4277,
+  "catalogo": "225bd09137103cb7746bc93dc08d08764c9f0c3bd04f4b958d4a3c3c19432dd6",
+  "sha256": "3749e08aacbd4466151a0e3519d1f4f6fc3da80dba97bc5b336fceeb5bf7a3af",
+  "bytes": 346448
+}

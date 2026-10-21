@@ -1,30 +1,30 @@
 .summary-card {
-  --card-accent: var(--accent-blue);
+  --card-accent: var(--tc-local-accent-blue);
   --card-tint: #e0eeff;
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: 18px 20px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--tc-local-border);
+  border-radius: var(--tc-local-radius-lg);
+  background: var(--tc-local-surface);
+  box-shadow: var(--tc-local-shadow-sm);
 }
 
 .summary-card--blue {
-  --card-accent: var(--accent-blue);
+  --card-accent: var(--tc-local-accent-blue);
   --card-tint: #e0eeff;
 }
 .summary-card--orange {
-  --card-accent: var(--accent-orange);
+  --card-accent: var(--tc-local-accent-orange);
   --card-tint: #fdeae3;
 }
 .summary-card--purple {
-  --card-accent: var(--accent-purple);
+  --card-accent: var(--tc-local-accent-purple);
   --card-tint: #f3eefb;
 }
 .summary-card--green {
-  --card-accent: var(--accent-green);
+  --card-accent: var(--tc-local-accent-green);
   --card-tint: #e1f4eb;
 }
 
@@ -49,29 +49,29 @@
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .summary-card__value {
   margin: 6px 0 0;
-  font-family: var(--font-brand);
+  font-family: var(--tc-local-font-brand);
   font-size: 28px;
   font-weight: 700;
   line-height: 1.1;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .summary-card__unit {
   margin-left: 6px;
   font-size: 15px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .summary-card__caption {
   margin: 4px 0 0;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .summary-card__footer {
@@ -81,14 +81,14 @@
   gap: 10px;
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--tc-local-border);
   font-size: 12.5px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .summary-card__previous strong {
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .summary-card__delta {
@@ -104,6 +104,6 @@
 }
 
 .summary-card__delta--warn {
-  background: var(--brand-red-tint);
-  color: var(--brand-red-hover);
+  background: var(--tc-local-brand-red-tint);
+  color: var(--tc-local-brand-red-hover);
 }

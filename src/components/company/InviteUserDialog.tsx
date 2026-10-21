@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button, Field, Input, Radio } from '@er-mobility-mx/design-system';
 import { scopeNodeOptions } from '../../data/client';
 import { USER_ROLE_DESCRIPTION, USER_ROLE_LABEL, type PlatformUser, type UserRole } from '../../data/company';
 import { Modal } from '../ui/Modal';
@@ -12,6 +13,7 @@ interface InviteUserDialogProps {
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const roleOptions = Object.keys(USER_ROLE_LABEL) as UserRole[];
 
 export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUserDialogProps) {
   const [name, setName] = useState('');
@@ -21,7 +23,12 @@ export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUs
 
   const normalizedEmail = email.trim().toLowerCase();
   const emailInvalid = normalizedEmail !== '' && !EMAIL_PATTERN.test(normalizedEmail);
-  const emailTaken = existingEmails.includes(normalizedEmail);
+  const emailTaken = normalizedEmail !== '' && existingEmails.includes(normalizedEmail);
+  const emailError = emailInvalid
+    ? 'Escribe un correo válido.'
+    : emailTaken
+      ? 'Ese correo ya tiene un usuario en la empresa.'
+      : undefined;
   const valid = name.trim() !== '' && normalizedEmail !== '' && !emailInvalid && !emailTaken;
 
   return (
@@ -32,12 +39,10 @@ export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUs
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn--primary"
+          </Button>
+          <Button
             disabled={!valid}
             onClick={() =>
               onInvite({
@@ -52,32 +57,44 @@ export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUs
             }
           >
             Enviar invitación
-          </button>
+          </Button>
         </>
       }
     >
       <div className="company-form__grid">
-        <label className="policy-form__field">
-          <span>Nombre completo *</span>
-          <input value={name} onChange={(event) => setName(event.target.value)} />
-        </label>
-        <label className="policy-form__field">
-          <span>Correo *</span>
-          <input type="email" value={email} placeholder="nombre@empresa.mx" onChange={(event) => setEmail(event.target.value)} />
-        </label>
+        <Field label="Nombre completo" htmlFor="invite-user-name" required>
+          <Input id="invite-user-name" required value={name} onChange={setName} />
+        </Field>
+        <Field label="Correo" htmlFor="invite-user-email" required error={emailError}>
+          <Input
+            id="invite-user-email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            placeholder="nombre@empresa.mx"
+            onChange={setEmail}
+          />
+        </Field>
       </div>
 
       <fieldset className="policy-form__block company-form__fields">
         <legend>Rol</legend>
         <div className="company-form__roles">
-          {(Object.keys(USER_ROLE_LABEL) as UserRole[]).map((option) => (
-            <label key={option} className={`company-form__role${role === option ? ' is-active' : ''}`}>
-              <input type="radio" name="role" checked={role === option} onChange={() => setRole(option)} />
-              <span>
-                <strong>{USER_ROLE_LABEL[option]}</strong>
-                <small>{USER_ROLE_DESCRIPTION[option]}</small>
-              </span>
-            </label>
+          {roleOptions.map((option) => (
+            <div key={option} className={`company-form__role${role === option ? ' is-active' : ''}`}>
+              <Radio
+                name="role"
+                value={option}
+                checked={role === option}
+                label={USER_ROLE_LABEL[option]}
+                description={USER_ROLE_DESCRIPTION[option]}
+                onChange={(value) => {
+                  const selectedRole = roleOptions.find((candidate) => candidate === value);
+                  if (selectedRole) setRole(selectedRole);
+                }}
+              />
+            </div>
           ))}
         </div>
       </fieldset>
@@ -101,16 +118,6 @@ export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUs
         </p>
       </fieldset>
 
-      {emailInvalid && (
-        <p className="company-form__error" role="alert">
-          Escribe un correo válido.
-        </p>
-      )}
-      {emailTaken && (
-        <p className="company-form__error" role="alert">
-          Ese correo ya tiene un usuario en la empresa.
-        </p>
-      )}
     </Modal>
   );
 }

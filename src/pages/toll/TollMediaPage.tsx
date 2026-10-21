@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { CardIcon, PlusIcon, SearchIcon } from '../../components/icons/Icons';
+import { Button, Input, StatusPill } from '@er-mobility-mx/design-system';
+import { PlusIcon } from '../../components/icons/Icons';
 import { TollAssignDialog } from '../../components/toll/TollAssignDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { fleetVehicles as vehicles } from '../../data/dispersion';
@@ -23,11 +24,11 @@ interface TollMediaPageProps {
   readOnly?: boolean;
 }
 
-const STATUS_CHIP: Record<TollTagStatus, string> = {
-  active: 'chip--active',
-  blocked: 'chip--danger',
-  unassigned: 'chip--paused',
-  replacement: 'chip--review',
+const STATUS_TONE: Record<TollTagStatus, 'success' | 'danger' | 'neutral' | 'warning'> = {
+  active: 'success',
+  blocked: 'danger',
+  unassigned: 'neutral',
+  replacement: 'warning',
 };
 
 export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps) {
@@ -36,7 +37,6 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
   const [status, setStatus] = useState<TollTagStatus | ''>('');
   const [type, setType] = useState<TollTagType | ''>('');
   const [assigning, setAssigning] = useState<TollTag | null>(null);
-
   const vehicleOf = (id: string | null) => vehicles.find((vehicle) => vehicle.id === id);
 
   const rows = useMemo(() => {
@@ -107,16 +107,16 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
             TAGs de telepeaje
           </h2>
           <div className="table-page__filters">
-            <label className="table-page__search">
-              <SearchIcon width={15} height={15} />
-              <span className="visually-hidden">Buscar TAG</span>
-              <input
+            <div className="table-page__flow-search">
+              <Input
                 type="search"
+                icon="search"
+                ariaLabel="Buscar TAG"
                 value={query}
                 placeholder="Número de TAG, placa o conductor"
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={setQuery}
               />
-            </label>
+            </div>
             <label>
               <span className="visually-hidden">Filtrar por tipo</span>
               <select value={type} onChange={(event) => setType(event.target.value as TollTagType | '')}>
@@ -155,13 +155,13 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
         {rows.length === 0 ? (
           <EmptyState
             compact
-            icon={<CardIcon width={20} height={20} />}
+            icon="credit_card"
             title={tags.length === 0 ? 'Aún no tienes TAGs de telepeaje' : 'Ningún TAG coincide con los filtros'}
             description="Revisa el número, la placa o el conductor, o cambia el tipo y el estado seleccionados."
             actions={
-              <button
-                type="button"
-                className="btn btn--secondary btn--sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setQuery('');
                   setStatus('');
@@ -169,7 +169,7 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
                 }}
               >
                 Limpiar filtros
-              </button>
+              </Button>
             }
           />
         ) : (
@@ -211,7 +211,7 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
                       </td>
                       <td className="table-page__nowrap">{tag.vehicleId ? TOLL_CATEGORY_LABEL[tag.category] : '—'}</td>
                       <td>
-                        <span className={`chip ${STATUS_CHIP[tag.status]}`}>{TOLL_TAG_STATUS_LABEL[tag.status]}</span>
+                        <StatusPill label={TOLL_TAG_STATUS_LABEL[tag.status]} tone={STATUS_TONE[tag.status]} />
                       </td>
                       <td>{tag.vehicleId ? formatMoney(tag.balanceMXN, true) : '—'}</td>
                       <td>
@@ -227,16 +227,16 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
                       <td className="table-page__action">
                         {!readOnly && tag.status === 'active' && (
                           <>
-                            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setTagStatus(tag, 'blocked')}>
+                            <Button variant="ghost" size="sm" onClick={() => setTagStatus(tag, 'blocked')}>
                               Bloquear
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn--ghost btn--sm"
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => setTagStatus(tag, 'replacement')}
                             >
                               Reportar robo o daño
-                            </button>
+                            </Button>
                           </>
                         )}
                         {!readOnly && tag.status === 'blocked' && (

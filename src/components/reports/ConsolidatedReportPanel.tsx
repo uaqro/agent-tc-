@@ -240,7 +240,7 @@ export function ConsolidatedReportPanel() {
       {phase.kind === 'idle' && (
         <EmptyState
           compact
-          icon={<FileTextIcon width={22} height={22} />}
+          icon="description"
           title="Elige tipo, alcance y periodo, y genera el reporte"
           description="Consolida las cargas de Autoconsumo y de TicketCar+ en un mismo documento con KPIs y desglose por unidad y por conductor."
         />

@@ -1,4 +1,5 @@
 import type { Receipt } from '../../types/dispersion';
+import { Button } from '@er-mobility-mx/design-system';
 import { toLiters } from '../../data/dispersion';
 import { Modal } from '../ui/Modal';
 import { CheckCircleIcon, DownloadIcon, ShareIcon } from '../icons/Icons';
@@ -26,17 +27,17 @@ export function ReceiptDialog({ open, receipt, onClose, onShare }: ReceiptDialog
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cerrar
-          </button>
-          <button type="button" className="btn btn--secondary" onClick={() => onShare(receipt)}>
+          </Button>
+          <Button variant="secondary" onClick={() => onShare(receipt)}>
             <ShareIcon width={16} height={16} />
             Compartir con finanzas
-          </button>
-          <button type="button" className="btn btn--primary" onClick={() => downloadReceipt(receipt)}>
+          </Button>
+          <Button onClick={() => downloadReceipt(receipt)}>
             <DownloadIcon width={16} height={16} />
             Descargar comprobante
-          </button>
+          </Button>
         </>
       }
     >

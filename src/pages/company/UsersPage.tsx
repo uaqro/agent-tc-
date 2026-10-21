@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
+import { Badge, Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
 import { InviteUserDialog } from '../../components/company/InviteUserDialog';
-import { PlusIcon, SearchIcon } from '../../components/icons/Icons';
+import { PlusIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import {
   USER_ROLE_LABEL,
@@ -19,10 +20,10 @@ interface UsersPageProps {
   onNotice: (message: string) => void;
 }
 
-const STATUS_CHIP: Record<UserStatus, string> = {
-  active: 'chip--active',
-  invited: 'chip--info',
-  suspended: 'chip--paused',
+const STATUS_TONE: Record<UserStatus, 'success' | 'info' | 'neutral'> = {
+  active: 'success',
+  invited: 'info',
+  suspended: 'neutral',
 };
 
 export function UsersPage({ onNotice }: UsersPageProps) {
@@ -31,6 +32,16 @@ export function UsersPage({ onNotice }: UsersPageProps) {
   const [role, setRole] = useState<UserRole | ''>('');
   const [status, setStatus] = useState<UserStatus | ''>('');
   const [inviteOpen, setInviteOpen] = useState(false);
+  const roleKeys = Object.keys(USER_ROLE_LABEL) as UserRole[];
+  const statusKeys = Object.keys(USER_STATUS_LABEL) as UserStatus[];
+  const roleOptions = [
+    { value: '', label: 'Todos los roles' },
+    ...roleKeys.map((key) => ({ value: key, label: USER_ROLE_LABEL[key] })),
+  ];
+  const statusOptions = [
+    { value: '', label: 'Todos los estados' },
+    ...statusKeys.map((key) => ({ value: key, label: USER_STATUS_LABEL[key] })),
+  ];
 
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -77,50 +88,46 @@ export function UsersPage({ onNotice }: UsersPageProps) {
             Usuarios
           </h2>
           <div className="table-page__filters">
-            <label className="table-page__search">
-              <SearchIcon width={15} height={15} />
-              <span className="visually-hidden">Buscar usuario</span>
-              <input type="search" value={query} placeholder="Nombre o correo" onChange={(event) => setQuery(event.target.value)} />
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por rol</span>
-              <select value={role} onChange={(event) => setRole(event.target.value as UserRole | '')}>
-                <option value="">Todos los roles</option>
-                {(Object.keys(USER_ROLE_LABEL) as UserRole[]).map((key) => (
-                  <option key={key} value={key}>
-                    {USER_ROLE_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por estado</span>
-              <select value={status} onChange={(event) => setStatus(event.target.value as UserStatus | '')}>
-                <option value="">Todos los estados</option>
-                {(Object.keys(USER_STATUS_LABEL) as UserStatus[]).map((key) => (
-                  <option key={key} value={key}>
-                    {USER_STATUS_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => setInviteOpen(true)}>
+            <div className="table-page__flow-search">
+              <Input type="search" icon="search" ariaLabel="Buscar usuario" value={query} placeholder="Nombre o correo" onChange={setQuery} />
+            </div>
+            <span id="users-role-filter-label" className="visually-hidden">Filtrar por rol</span>
+            <Select
+              options={roleOptions}
+              value={role}
+              aria-labelledby="users-role-filter-label"
+              onChange={(value) => {
+                const selected = roleKeys.find((key) => key === value);
+                if (selected || value === '') setRole(selected ?? '');
+              }}
+            />
+            <span id="users-status-filter-label" className="visually-hidden">Filtrar por estado</span>
+            <Select
+              options={statusOptions}
+              value={status}
+              aria-labelledby="users-status-filter-label"
+              onChange={(value) => {
+                const selected = statusKeys.find((key) => key === value);
+                if (selected || value === '') setStatus(selected ?? '');
+              }}
+            />
+            <Button size="sm" onClick={() => setInviteOpen(true)}>
               <PlusIcon width={14} height={14} />
               Invitar usuario
-            </button>
+            </Button>
           </div>
         </header>
 
         {rows.length === 0 ? (
           <EmptyState
             compact
-            icon={<SearchIcon width={20} height={20} />}
+            icon="search"
             title="Ningún usuario coincide con los filtros"
             description="Revisa el nombre o el correo, o cambia el rol y el estado seleccionados."
             actions={
-              <button
-                type="button"
-                className="btn btn--secondary btn--sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setQuery('');
                   setRole('');
@@ -128,7 +135,7 @@ export function UsersPage({ onNotice }: UsersPageProps) {
                 }}
               >
                 Limpiar filtros
-              </button>
+              </Button>
             }
           />
         ) : (
@@ -153,7 +160,7 @@ export function UsersPage({ onNotice }: UsersPageProps) {
                     <tr key={user.id}>
                       <td>
                         <span className="table-page__main">
-                          {user.name} {isSelf && <span className="chip chip--info">Tú</span>}
+                          {user.name} {isSelf && <Badge>Tú</Badge>}
                         </span>
                         <span className="table-page__sub">{user.email}</span>
                       </td>
@@ -163,23 +170,23 @@ export function UsersPage({ onNotice }: UsersPageProps) {
                         {user.lastAccess ? formatDateTime(new Date(user.lastAccess)) : <span className="table-page__sub">Nunca</span>}
                       </td>
                       <td>
-                        <span className={`chip ${STATUS_CHIP[user.status]}`}>{USER_STATUS_LABEL[user.status]}</span>
+                        <StatusPill label={USER_STATUS_LABEL[user.status]} tone={STATUS_TONE[user.status]} />
                       </td>
                       <td className="table-page__action">
                         {user.status === 'invited' && (
-                          <button type="button" className="btn btn--ghost btn--sm" onClick={() => onNotice(`Invitación reenviada a ${user.email}.`)}>
+                          <Button variant="ghost" size="sm" onClick={() => onNotice(`Invitación reenviada a ${user.email}.`)}>
                             Reenviar invitación
-                          </button>
+                          </Button>
                         )}
                         {user.status === 'active' && !isSelf && (
-                          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setUserStatus(user, 'suspended')}>
+                          <Button variant="ghost" size="sm" onClick={() => setUserStatus(user, 'suspended')}>
                             Suspender
-                          </button>
+                          </Button>
                         )}
                         {user.status === 'suspended' && (
-                          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setUserStatus(user, 'active')}>
+                          <Button variant="ghost" size="sm" onClick={() => setUserStatus(user, 'active')}>
                             Reactivar
-                          </button>
+                          </Button>
                         )}
                       </td>
                     </tr>

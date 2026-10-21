@@ -171,8 +171,8 @@ export function performanceByVehicle(filters: GlobalFilters, limit = 8, at?: num
   return {
     labels: top.map((entry) => entry.unit.plate),
     series: [
-      { name: 'Rendimiento real', color: '#0060df', values: real },
-      { name: 'Esperado por clase', color: '#94a3b8', values: expected },
+      { name: 'Rendimiento real', color: 'var(--viz-accent)', values: real },
+      { name: 'Esperado por clase', color: 'var(--viz-neutral)', values: expected },
     ],
     yMin: 0,
     yMax: niceMax(Math.max(0, ...real, ...expected)),
@@ -241,8 +241,8 @@ export function organizationalConsumption(filters: GlobalFilters, at?: number): 
     parentName: parent.name,
     labels: branches.map((branch) => branch.name.replace(/^(División|Departamento|Área) /, '')),
     series: [
-      { name: 'Periodo actual', color: '#0060df', values: current },
-      { name: 'Periodo anterior', color: '#94a3b8', values: previous },
+      { name: 'Periodo actual', color: 'var(--viz-accent)', values: current },
+      { name: 'Periodo anterior', color: 'var(--viz-neutral)', values: previous },
     ],
     yMin: 0,
     yMax: niceMax(Math.max(0, ...current, ...previous)),

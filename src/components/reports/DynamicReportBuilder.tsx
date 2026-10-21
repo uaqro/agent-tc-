@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Button, Checkbox, DatePicker, Field, Input, Select } from '@er-mobility-mx/design-system';
 import {
   ADVANCED_FILTER_FIELDS,
   DEFAULT_YIELD_UNIT,
@@ -14,7 +15,6 @@ import {
 } from '../../data/reports';
 import { today as businessToday } from '../../domain/demo/clock';
 import { formatDateLong } from '../../utils/format';
-import { CloseIcon, NoDataIcon, PlusIcon, RuleIcon, SearchIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
 import './DynamicReportBuilder.css';
 
@@ -40,6 +40,14 @@ const toISODate = (date: Date) =>
 function defaultRange(today = businessToday()) {
   return { from: toISODate(new Date(today.getFullYear(), today.getMonth(), 1)), to: toISODate(today) };
 }
+const REPORT_FIELD_IDS = {
+  type: 'dynamic-report-type',
+  yieldUnit: 'dynamic-report-yield-unit',
+  grouper: 'dynamic-report-grouper',
+  period: 'dynamic-report-period',
+  evaluateBy: 'dynamic-report-evaluate-by',
+  state: 'dynamic-report-state',
+};
 
 let filterSequence = 0;
 
@@ -65,6 +73,7 @@ export function DynamicReportBuilder() {
   }, [columnQuery]);
 
   const periodValid = from !== '' && to !== '' && from <= to;
+  const periodError = !from || !to ? 'Selecciona las fechas inicial y final del período.' : undefined;
   const allSelected = selected.length === allReportColumns.length;
 
   const setColumns = (columns: string[], checked: boolean) =>
@@ -99,66 +108,47 @@ export function DynamicReportBuilder() {
         <fieldset className="report-builder__block">
           <legend>Reporte</legend>
           <div className="report-builder__fields">
-            <label className="report-builder__field">
-              <span>Tipo de reporte</span>
-              <select value={type} onChange={(event) => setType(event.target.value)}>
-                {REPORT_TYPES.map((option) => (
-                  <option key={option}>{option}</option>
-                ))}
-              </select>
-            </label>
-            <label className="report-builder__field">
-              <span>Rendimiento</span>
-              <select value={yieldUnit} onChange={(event) => setYieldUnit(event.target.value)}>
-                {YIELD_UNITS.map((option) => (
-                  <option key={option}>{option}</option>
-                ))}
-              </select>
-            </label>
-            <label className="report-builder__field">
-              <span>Agrupar por</span>
-              <select value={grouper} onChange={(event) => setGrouper(event.target.value)}>
-                {REPORT_GROUPERS.map((option) => (
-                  <option key={option}>{option}</option>
-                ))}
-              </select>
-            </label>
+            <Field label="Tipo de reporte" htmlFor={REPORT_FIELD_IDS.type}>
+              <Select id={REPORT_FIELD_IDS.type} options={REPORT_TYPES} value={type} onChange={setType} />
+            </Field>
+            <Field label="Rendimiento" htmlFor={REPORT_FIELD_IDS.yieldUnit}>
+              <Select id={REPORT_FIELD_IDS.yieldUnit} options={YIELD_UNITS} value={yieldUnit} onChange={setYieldUnit} />
+            </Field>
+            <Field label="Agrupar por" htmlFor={REPORT_FIELD_IDS.grouper}>
+              <Select id={REPORT_FIELD_IDS.grouper} options={REPORT_GROUPERS} value={grouper} onChange={setGrouper} />
+            </Field>
           </div>
         </fieldset>
 
         <fieldset className="report-builder__block">
           <legend>Filtros básicos</legend>
           <div className="report-builder__fields report-builder__fields--four">
-            <label className="report-builder__field">
-              <span>Período · desde</span>
-              <input type="date" required value={from} max={to || undefined} onChange={(event) => setFrom(event.target.value)} />
-            </label>
-            <label className="report-builder__field">
-              <span>Período · hasta</span>
-              <input type="date" required value={to} min={from || undefined} onChange={(event) => setTo(event.target.value)} />
-            </label>
-            <label className="report-builder__field">
-              <span>Evaluar por</span>
-              <select value={evaluateBy} onChange={(event) => setEvaluateBy(event.target.value)}>
-                {EVALUATE_BY.map((option) => (
-                  <option key={option}>{option}</option>
-                ))}
-              </select>
-            </label>
-            <label className="report-builder__field">
-              <span>Estado de la transacción</span>
-              <select value={state} onChange={(event) => setState(event.target.value)}>
-                {TRANSACTION_STATES.map((option) => (
-                  <option key={option}>{option}</option>
-                ))}
-              </select>
-            </label>
+            <div className="report-builder__period">
+              <Field label="Período" htmlFor={REPORT_FIELD_IDS.period} required error={periodError}>
+                <DatePicker
+                  id={REPORT_FIELD_IDS.period}
+                  mode="range"
+                  value={from && to ? `${from}|${to}` : ''}
+                  onChange={(value) => {
+                    if (!value) {
+                      setFrom('');
+                      setTo('');
+                      return;
+                    }
+                    const [rangeStart, rangeEnd] = value.split('|');
+                    setFrom(rangeStart ?? '');
+                    setTo(rangeEnd ?? '');
+                  }}
+                />
+              </Field>
+            </div>
+            <Field label="Evaluar por" htmlFor={REPORT_FIELD_IDS.evaluateBy}>
+              <Select id={REPORT_FIELD_IDS.evaluateBy} options={EVALUATE_BY} value={evaluateBy} onChange={setEvaluateBy} />
+            </Field>
+            <Field label="Estado de la transacción" htmlFor={REPORT_FIELD_IDS.state}>
+              <Select id={REPORT_FIELD_IDS.state} options={TRANSACTION_STATES} value={state} onChange={setState} />
+            </Field>
           </div>
-          {!periodValid && (
-            <p className="report-builder__error" role="alert">
-              Indica un período válido: la fecha inicial no puede ser posterior a la final.
-            </p>
-          )}
         </fieldset>
 
         <fieldset className="report-builder__block">
@@ -172,47 +162,50 @@ export function DynamicReportBuilder() {
             <ul className="report-builder__filters">
               {filters.map((filter) => (
                 <li key={filter.id}>
-                  <select
-                    aria-label="Filtro"
-                    value={filter.field}
-                    onChange={(event) => patchFilter(filter.id, { field: event.target.value })}
-                  >
-                    {ADVANCED_FILTER_FIELDS.map((option) => (
-                      <option key={option}>{option}</option>
-                    ))}
-                  </select>
-                  <select
-                    aria-label="Operador"
-                    value={filter.operator}
-                    onChange={(event) => patchFilter(filter.id, { operator: event.target.value })}
-                  >
-                    {FILTER_OPERATORS.map((option) => (
-                      <option key={option}>{option}</option>
-                    ))}
-                  </select>
-                  <input
-                    type="text"
-                    aria-label={`Valor de ${filter.field}`}
-                    placeholder="Valor"
-                    value={filter.value}
-                    onChange={(event) => patchFilter(filter.id, { value: event.target.value })}
-                  />
-                  <button
-                    type="button"
-                    className="report-builder__remove"
+                  <Field label="Filtro" htmlFor={`report-filter-field-${filter.id}`}>
+                    <Select
+                      id={`report-filter-field-${filter.id}`}
+                      options={ADVANCED_FILTER_FIELDS}
+                      value={filter.field}
+                      onChange={(value) => patchFilter(filter.id, { field: value })}
+                    />
+                  </Field>
+                  <Field label="Operador" htmlFor={`report-filter-operator-${filter.id}`}>
+                    <Select
+                      id={`report-filter-operator-${filter.id}`}
+                      options={FILTER_OPERATORS}
+                      value={filter.operator}
+                      onChange={(value) => patchFilter(filter.id, { operator: value })}
+                    />
+                  </Field>
+                  <Field label={`Valor de ${filter.field}`} htmlFor={`report-filter-value-${filter.id}`}>
+                    <Input
+                      id={`report-filter-value-${filter.id}`}
+                      type="text"
+                      placeholder="Valor"
+                      value={filter.value}
+                      onChange={(value) => patchFilter(filter.id, { value })}
+                    />
+                  </Field>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon="close"
+                    ariaLabel={`Quitar filtro de ${filter.field}`}
                     onClick={() => setFilters((current) => current.filter((candidate) => candidate.id !== filter.id))}
                   >
-                    <CloseIcon width={15} height={15} />
-                    <span className="visually-hidden">Quitar filtro de {filter.field}</span>
-                  </button>
+                    Quitar
+                  </Button>
                 </li>
               ))}
             </ul>
           )}
 
-          <button
-            type="button"
-            className="btn btn--secondary btn--sm"
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="add"
+            ariaLabel="Agregar filtro"
             onClick={() =>
               setFilters((current) => [
                 ...current,
@@ -220,9 +213,8 @@ export function DynamicReportBuilder() {
               ])
             }
           >
-            <PlusIcon width={14} height={14} />
             Agregar filtro
-          </button>
+          </Button>
         </fieldset>
 
         <fieldset className="report-builder__block">
@@ -231,24 +223,24 @@ export function DynamicReportBuilder() {
           </legend>
 
           <div className="report-builder__columns-tools">
-            <label className="report-builder__search">
-              <SearchIcon width={15} height={15} />
-              <span className="visually-hidden">Buscar columna</span>
-              <input
+            <div className="report-builder__search">
+              <Input
                 type="search"
+                icon="search"
+                ariaLabel="Buscar columna"
                 placeholder="Buscar columna"
                 value={columnQuery}
-                onChange={(event) => setColumnQuery(event.target.value)}
+                onChange={setColumnQuery}
+                style={{ width: '100%' }}
               />
-            </label>
-            <label className="report-builder__check">
-              <input
-                type="checkbox"
+            </div>
+            <div className="report-builder__check">
+              <Checkbox
                 checked={allSelected}
-                onChange={(event) => setColumns(allReportColumns, event.target.checked)}
+                label="Seleccionar todo"
+                onChange={(checked) => setColumns(allReportColumns, checked)}
               />
-              Seleccionar todo
-            </label>
+            </div>
           </div>
 
           <div className="report-builder__columns">
@@ -258,20 +250,19 @@ export function DynamicReportBuilder() {
                 <section className="report-builder__group" key={group.id}>
                   <header>
                     <h3>{group.label}</h3>
-                    <button type="button" onClick={() => setColumns(group.columns, !groupSelected)}>
+                    <Button variant="link" size="sm" onClick={() => setColumns(group.columns, !groupSelected)}>
                       {groupSelected ? 'Quitar todas' : 'Marcar todas'}
-                    </button>
+                    </Button>
                   </header>
                   <div className="report-builder__group-grid">
                     {group.columns.map((column) => (
-                      <label className="report-builder__check" key={column}>
-                        <input
-                          type="checkbox"
+                      <div className="report-builder__check" key={column}>
+                        <Checkbox
                           checked={selected.includes(column)}
-                          onChange={(event) => setColumns([column], event.target.checked)}
+                          label={column}
+                          onChange={(checked) => setColumns([column], checked)}
                         />
-                        {column}
-                      </label>
+                      </div>
                     ))}
                   </div>
                 </section>
@@ -281,12 +272,12 @@ export function DynamicReportBuilder() {
             {visibleGroups.length === 0 && (
               <EmptyState
                 compact
-                icon={<SearchIcon width={20} height={20} />}
+                icon="search"
                 title={`Ninguna columna coincide con “${columnQuery.trim()}”`}
                 actions={
-                  <button type="button" className="btn btn--secondary btn--sm" onClick={() => setColumnQuery('')}>
+                  <Button variant="secondary" size="sm" onClick={() => setColumnQuery('')}>
                     Limpiar búsqueda
-                  </button>
+                  </Button>
                 }
               />
             )}
@@ -300,17 +291,16 @@ export function DynamicReportBuilder() {
         </fieldset>
 
         <div className="report-builder__actions">
-          <button type="button" className="btn btn--ghost" onClick={reset}>
+          <Button variant="ghost" onClick={reset}>
             Restablecer
-          </button>
-          <button
-            type="button"
-            className="btn btn--primary"
+          </Button>
+          <Button
+            variant="primary"
             disabled={!periodValid || selected.length === 0}
             onClick={() => setGenerated({ type, from, to, grouper, columns: selected })}
           >
             Generar reporte
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -331,14 +321,14 @@ export function DynamicReportBuilder() {
               </table>
             </div>
             <EmptyState
-              icon={<NoDataIcon width={24} height={24} />}
+              icon="query_stats"
               title="No hay transacciones que coincidan"
               description={`${generated.type} del ${formatDateLong(generated.from)} al ${formatDateLong(generated.to)}, agrupado por ${generated.grouper}. Amplía el período, cambia el estado de la transacción o quita filtros avanzados.`}
             />
           </>
         ) : (
           <EmptyState
-            icon={<RuleIcon width={22} height={22} />}
+            icon="rule"
             title="Aún no has generado el reporte"
             description="Define el período, los filtros, el agrupador y las columnas; al generar, las transacciones aparecen aquí."
           />

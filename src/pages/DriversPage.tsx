@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { PlusIcon, SearchIcon } from '../components/icons/Icons';
+import { Button, Input, StatusPill } from '@er-mobility-mx/design-system';
+import { PlusIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
@@ -25,7 +26,6 @@ const licenseDate = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 's
 export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('');
-
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return drivers.filter(
@@ -69,11 +69,16 @@ export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
             <ApiTag id="drv-list" />
           </h2>
           <div className="table-page__filters">
-            <label className="table-page__search">
-              <SearchIcon width={15} height={15} />
-              <span className="visually-hidden">Buscar conductor</span>
-              <input type="search" value={query} placeholder="Nombre o número de empleado" onChange={(event) => setQuery(event.target.value)} />
-            </label>
+            <div className="table-page__flow-search">
+              <Input
+                type="search"
+                icon="search"
+                ariaLabel="Buscar conductor"
+                value={query}
+                placeholder="Nombre o número de empleado"
+                onChange={setQuery}
+              />
+            </div>
             <label>
               <span className="visually-hidden">Filtrar por grupo</span>
               <select value={group} onChange={(event) => setGroup(event.target.value)}>
@@ -98,20 +103,20 @@ export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
         {rows.length === 0 ? (
           <EmptyState
             compact
-            icon={<SearchIcon width={20} height={20} />}
+            icon="search"
             title="Ningún conductor coincide con los filtros"
             description="Revisa el nombre o el número de empleado, o cambia el grupo seleccionado."
             actions={
-              <button
-                type="button"
-                className="btn btn--secondary btn--sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setQuery('');
                   setGroup('');
                 }}
               >
                 Limpiar filtros
-              </button>
+              </Button>
             }
           />
         ) : (
@@ -176,12 +181,12 @@ export function DriversPage({ onNotice, canEdit = false }: DriversPageProps) {
                         )}
                       </td>
                       <td>
-                        <span className={`chip ${driver.active ? 'chip--active' : 'chip--paused'}`}>{driver.active ? 'Activo' : 'Inactivo'}</span>
+                        <StatusPill label={driver.active ? 'Activo' : 'Inactivo'} tone={driver.active ? 'success' : 'neutral'} />
                       </td>
                       <td className="table-page__action">
-                        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onNotice(`Expediente de ${driver.name} abierto.`)}>
+                        <Button variant="ghost" size="sm" onClick={() => onNotice(`Expediente de ${driver.name} abierto.`)}>
                           Ver expediente
-                        </button>
+                        </Button>
                         {canEdit && (
                           <>
                             <button type="button" className="btn btn--ghost btn--sm" onClick={() => onNotice(`Edición de ${driver.name} abierta.`)}>

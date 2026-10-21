@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { CardIcon, PlusIcon, SearchIcon } from '../components/icons/Icons';
+import { Button, Input, Select, StatusPill } from '@er-mobility-mx/design-system';
+import { PlusIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
 import { DevNote } from '../components/dev/DevNote';
@@ -21,10 +22,10 @@ interface PaymentMediaPageProps {
   onNotice: (message: string) => void;
 }
 
-const STATUS_CHIP: Record<PaymentMediumStatus, string> = {
-  active: 'chip--active',
-  blocked: 'chip--danger',
-  unassigned: 'chip--paused',
+const STATUS_TONE: Record<PaymentMediumStatus, 'success' | 'danger' | 'neutral'> = {
+  active: 'success',
+  blocked: 'danger',
+  unassigned: 'neutral',
 };
 
 export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
@@ -32,6 +33,16 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<PaymentMediumStatus | ''>('');
   const [type, setType] = useState<PaymentMediumType | ''>('');
+  const typeKeys = Object.keys(PAYMENT_TYPE_LABEL) as PaymentMediumType[];
+  const statusKeys = Object.keys(PAYMENT_STATUS_LABEL) as PaymentMediumStatus[];
+  const typeOptions = [
+    { value: '', label: 'Todos los tipos' },
+    ...typeKeys.map((key) => ({ value: key, label: PAYMENT_TYPE_LABEL[key] })),
+  ];
+  const statusOptions = [
+    { value: '', label: 'Todos los estados' },
+    ...statusKeys.map((key) => ({ value: key, label: PAYMENT_STATUS_LABEL[key] })),
+  ];
 
   const vehicleById = useMemo(() => new Map(vehicles.map((vehicle) => [vehicle.id, vehicle])), []);
   const detailById = useMemo(() => new Map(vehicleDetails.map((detail) => [detail.vehicleId, detail])), []);
@@ -90,42 +101,40 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
             <ApiTag id="media-list" />
           </h2>
           <div className="table-page__filters">
-            <label className="table-page__search">
-              <SearchIcon width={15} height={15} />
-              <span className="visually-hidden">Buscar medio de pago</span>
-              <input
+            <div className="table-page__flow-search">
+              <Input
                 type="search"
+                icon="search"
+                ariaLabel="Buscar medio de pago"
                 value={query}
                 placeholder="Número, placa o conductor"
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={setQuery}
               />
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por tipo</span>
-              <select value={type} onChange={(event) => setType(event.target.value as PaymentMediumType | '')}>
-                <option value="">Todos los tipos</option>
-                {(Object.keys(PAYMENT_TYPE_LABEL) as PaymentMediumType[]).map((key) => (
-                  <option key={key} value={key}>
-                    {PAYMENT_TYPE_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por estado</span>
-              <select value={status} onChange={(event) => setStatus(event.target.value as PaymentMediumStatus | '')}>
-                <option value="">Todos los estados</option>
-                {(Object.keys(PAYMENT_STATUS_LABEL) as PaymentMediumStatus[]).map((key) => (
-                  <option key={key} value={key}>
-                    {PAYMENT_STATUS_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => onNotice('Solicitud de nuevos medios de pago abierta.')}>
+            </div>
+            <span id="payment-media-type-filter-label" className="visually-hidden">Filtrar por tipo</span>
+            <Select
+              options={typeOptions}
+              value={type}
+              aria-labelledby="payment-media-type-filter-label"
+              onChange={(value) => {
+                const selected = typeKeys.find((key) => key === value);
+                if (selected || value === '') setType(selected ?? '');
+              }}
+            />
+            <span id="payment-media-status-filter-label" className="visually-hidden">Filtrar por estado</span>
+            <Select
+              options={statusOptions}
+              value={status}
+              aria-labelledby="payment-media-status-filter-label"
+              onChange={(value) => {
+                const selected = statusKeys.find((key) => key === value);
+                if (selected || value === '') setStatus(selected ?? '');
+              }}
+            />
+            <Button size="sm" onClick={() => onNotice('Solicitud de nuevos medios de pago abierta.')}>
               <PlusIcon width={14} height={14} />
               Solicitar medios
-            </button>
+            </Button>
             <ApiTag id="media-request" />
           </div>
         </header>
@@ -133,13 +142,13 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
         {rows.length === 0 ? (
           <EmptyState
             compact
-            icon={<CardIcon width={20} height={20} />}
+            icon="credit_card"
             title={media.length === 0 ? 'Aún no tienes medios de pago' : 'Ningún medio de pago coincide con los filtros'}
             description="Revisa el número, la placa o el conductor, o cambia el tipo y el estado seleccionados."
             actions={
-              <button
-                type="button"
-                className="btn btn--secondary btn--sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setQuery('');
                   setStatus('');
@@ -147,7 +156,7 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
                 }}
               >
                 Limpiar filtros
-              </button>
+              </Button>
             }
           />
         ) : (
@@ -198,7 +207,7 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
                         )}
                       </td>
                       <td>
-                        <span className={`chip ${STATUS_CHIP[medium.status]}`}>{PAYMENT_STATUS_LABEL[medium.status]}</span>
+                        <StatusPill label={PAYMENT_STATUS_LABEL[medium.status]} tone={STATUS_TONE[medium.status]} />
                       </td>
                       <td>
                         <span className="table-page__nowrap">{vehicle ? formatMoney(vehicle.balanceMXN, true) : '—'}</span>
@@ -216,19 +225,19 @@ export function PaymentMediaPage({ onNotice }: PaymentMediaPageProps) {
                       </td>
                       <td className="table-page__action">
                         {medium.status === 'active' && (
-                          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setMediumStatus(medium, 'blocked')}>
+                          <Button variant="ghost" size="sm" onClick={() => setMediumStatus(medium, 'blocked')}>
                             Bloquear
-                          </button>
+                          </Button>
                         )}
                         {medium.status === 'blocked' && (
-                          <button type="button" className="btn btn--secondary btn--sm" onClick={() => setMediumStatus(medium, 'active')}>
+                          <Button variant="secondary" size="sm" onClick={() => setMediumStatus(medium, 'active')}>
                             Desbloquear
-                          </button>
+                          </Button>
                         )}
                         {medium.status === 'unassigned' && (
-                          <button type="button" className="btn btn--secondary btn--sm" onClick={() => onNotice(`Asignando ${medium.number} a una unidad.`)}>
+                          <Button variant="secondary" size="sm" onClick={() => onNotice(`Asignando ${medium.number} a una unidad.`)}>
                             Asignar
-                          </button>
+                          </Button>
                         )}
                       </td>
                     </tr>

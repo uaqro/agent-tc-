@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button, Field, Input, Select } from '@er-mobility-mx/design-system';
 import type { ParameterCatalog, ParameterRecord } from '../../data/company';
 import { Modal } from '../ui/Modal';
 import '../limits/PolicyDialog.css';
@@ -43,17 +44,15 @@ export function ParameterRecordDialog({ catalog, catalogs, record, onClose, onSa
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn--primary"
+          </Button>
+          <Button
             disabled={!valid}
             onClick={() => onSave(Object.fromEntries(Object.entries(values).map(([key, value]) => [key, value.trim()])))}
           >
             {record ? 'Guardar cambios' : 'Agregar'}
-          </button>
+          </Button>
         </>
       }
     >
@@ -61,32 +60,38 @@ export function ParameterRecordDialog({ catalog, catalogs, record, onClose, onSa
         {catalog.fields.map((field) => {
           const value = values[field.key] ?? '';
           const setValue = (next: string) => setValues((current) => ({ ...current, [field.key]: next }));
-          const label = `${field.label}${field.required ? ' *' : ''}`;
 
           if (field.type === 'text') {
             return (
-              <label key={field.key} className="policy-form__field">
-                <span>{label}</span>
-                <input value={value} placeholder={field.placeholder} onChange={(event) => setValue(event.target.value)} />
-              </label>
+              <Field key={field.key} label={field.label} htmlFor={`parameter-record-${field.key}`} required={field.required}>
+                <Input
+                  id={`parameter-record-${field.key}`}
+                  value={value}
+                  placeholder={field.placeholder}
+                  required={field.required}
+                  onChange={setValue}
+                />
+              </Field>
             );
           }
 
           const options = field.type === 'ref' ? refOptions(field.ref ?? '', value) : field.options ?? [];
+          const selectOptions = [
+            ...(field.type === 'ref' && !field.required ? [{ value: '', label: 'Sin asignar' }] : []),
+            ...options.map((option) => ({ value: option, label: option })),
+          ];
           return (
-            <label key={field.key} className="policy-form__field">
-              <span>{label}</span>
-              <select value={value} onChange={(event) => setValue(event.target.value)}>
-                {field.type === 'ref' && (
-                  <option value="" disabled={field.required}>
-                    {field.required ? 'Elige una opción' : 'Sin asignar'}
-                  </option>
-                )}
-                {options.map((option) => (
-                  <option key={option}>{option}</option>
-                ))}
-              </select>
-            </label>
+            <Field key={field.key} label={field.label} htmlFor={`parameter-record-${field.key}`} required={field.required}>
+              <Select
+                id={`parameter-record-${field.key}`}
+                options={selectOptions}
+                value={value}
+                placeholder={field.type === 'ref' && field.required ? 'Elige una opción' : undefined}
+                onChange={(next) => {
+                  if (selectOptions.some((option) => option.value === next)) setValue(next);
+                }}
+              />
+            </Field>
           );
         })}
       </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button, Chip, ChipGroup, DatePicker, Field, Select, Textarea } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import {
   MAINTENANCE_SYSTEMS,
@@ -35,6 +36,12 @@ export function ServiceOrderDialog({ vehicles, initialVehicleId, nextFolio, onCl
 
   const datesValid = opened !== '' && promised !== '' && promised >= opened;
   const valid = vehicleId !== '' && description.trim() !== '' && datesValid;
+  const vehicleOptions = vehicles.map((vehicle) => ({
+    value: vehicle.id,
+    label: `${vehicle.plate} · ${vehicle.driver}`,
+  }));
+  const systemOptions = MAINTENANCE_SYSTEMS.map((option) => ({ value: option, label: option }));
+  const workshopOptions = WORKSHOPS.map((option) => ({ value: option, label: option }));
 
   return (
     <Modal
@@ -44,12 +51,10 @@ export function ServiceOrderDialog({ vehicles, initialVehicleId, nextFolio, onCl
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn--primary"
+          </Button>
+          <Button
             disabled={!valid}
             onClick={() =>
               onCreate({
@@ -67,74 +72,82 @@ export function ServiceOrderDialog({ vehicles, initialVehicleId, nextFolio, onCl
             }
           >
             Crear orden
-          </button>
+          </Button>
         </>
       }
     >
       <div className="service-form">
-        <div className="policy-form__pills" role="group" aria-label="Tipo de servicio">
-          {(Object.keys(ORDER_KIND_LABEL) as OrderKind[]).map((option) => (
-            <button
-              type="button"
-              key={option}
-              className={kind === option ? 'is-active' : ''}
-              aria-pressed={kind === option}
-              onClick={() => setKind(option)}
-            >
-              {ORDER_KIND_LABEL[option]}
-            </button>
-          ))}
+        <div role="group" aria-label="Tipo de servicio">
+          <ChipGroup style={{ gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+            {(Object.keys(ORDER_KIND_LABEL) as OrderKind[]).map((option) => (
+              <Chip
+                key={option}
+                label={ORDER_KIND_LABEL[option]}
+                size="sm"
+                selected={kind === option}
+                onClick={() => setKind(option)}
+              />
+            ))}
+          </ChipGroup>
         </div>
 
         <div className="service-form__grid">
-          <label className="policy-form__field">
-            <span>Unidad</span>
-            <select value={vehicleId} onChange={(event) => setVehicleId(event.target.value)}>
-              <option value="" disabled>
-                Elige una unidad
-              </option>
-              {vehicles.map((vehicle) => (
-                <option key={vehicle.id} value={vehicle.id}>
-                  {vehicle.plate} · {vehicle.driver}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="policy-form__field">
-            <span>Sistema</span>
-            <select value={system} onChange={(event) => setSystem(event.target.value)}>
-              {MAINTENANCE_SYSTEMS.map((option) => (
-                <option key={option}>{option}</option>
-              ))}
-            </select>
-          </label>
-          <label className="policy-form__field">
-            <span>Taller</span>
-            <select value={workshop} onChange={(event) => setWorkshop(event.target.value)}>
-              {WORKSHOPS.map((option) => (
-                <option key={option}>{option}</option>
-              ))}
-            </select>
-          </label>
-          <label className="policy-form__field">
-            <span>Fecha de ingreso</span>
-            <input type="date" value={opened} onChange={(event) => setOpened(event.target.value)} />
-          </label>
-          <label className="policy-form__field">
-            <span>Fecha promesa</span>
-            <input type="date" value={promised} min={opened || undefined} onChange={(event) => setPromised(event.target.value)} />
-          </label>
+          <Field label="Unidad" htmlFor="service-order-vehicle" required>
+            <Select
+              id="service-order-vehicle"
+              options={vehicleOptions}
+              value={vehicleId}
+              placeholder="Elige una unidad"
+              onChange={(value) => {
+                if (vehicleOptions.some((option) => option.value === value)) setVehicleId(value);
+              }}
+            />
+          </Field>
+          <Field label="Sistema" htmlFor="service-order-system">
+            <Select
+              id="service-order-system"
+              options={systemOptions}
+              value={system}
+              onChange={(value) => {
+                if (MAINTENANCE_SYSTEMS.includes(value)) setSystem(value);
+              }}
+            />
+          </Field>
+          <Field label="Taller" htmlFor="service-order-workshop">
+            <Select
+              id="service-order-workshop"
+              options={workshopOptions}
+              value={workshop}
+              onChange={(value) => {
+                if (WORKSHOPS.includes(value)) setWorkshop(value);
+              }}
+            />
+          </Field>
+          <Field label="Fecha de ingreso" htmlFor="service-order-opened" required>
+            <DatePicker id="service-order-opened" value={opened} onChange={setOpened} />
+          </Field>
+          <Field label="Fecha promesa" htmlFor="service-order-promised" required>
+            <DatePicker
+              id="service-order-promised"
+              value={promised}
+              min={opened || undefined}
+              onChange={setPromised}
+            />
+          </Field>
         </div>
 
-        <label className="policy-form__field service-form__description">
-          <span>Descripción del servicio</span>
-          <textarea
-            rows={3}
-            value={description}
-            placeholder="Ej. Ruido al frenar, revisar balatas y discos delanteros"
-            onChange={(event) => setDescription(event.target.value)}
-          />
-        </label>
+        <div className="service-form__description">
+          <Field label="Descripción del servicio" htmlFor="service-order-description" required>
+            <Textarea
+              id="service-order-description"
+              rows={3}
+              value={description}
+              placeholder="Ej. Ruido al frenar, revisar balatas y discos delanteros"
+              required
+              onChange={setDescription}
+            />
+          </Field>
+        </div>
 
         {!datesValid && (
           <p className="service-form__error" role="alert">

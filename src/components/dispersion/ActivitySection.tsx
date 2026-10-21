@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
+import { Badge, Button, SectionHeader, StatusPill, TabPanel, Tabs } from '@er-mobility-mx/design-system';
 import type { FundingRule, Receipt, ReceiptKind } from '../../types/dispersion';
 import { CalendarIcon, ClockIcon, EyeIcon, PlayIcon } from '../icons/Icons';
 import { formatCount, formatDateLong, formatDateTime, formatMoney } from '../../utils/format';
@@ -20,11 +21,11 @@ interface ActivitySectionProps {
 
 const PAGE_SIZE = 6;
 
-const KIND_META: Record<ReceiptKind, { label: string; chip: string }> = {
-  rule: { label: 'Regla', chip: 'chip--info' },
-  'one-off': { label: 'Puntual', chip: 'chip--review' },
-  bulk: { label: 'Archivo', chip: 'chip--info' },
-  cut: { label: 'Recorte', chip: 'chip--danger' },
+const KIND_META: Record<ReceiptKind, { label: string; tone: 'info' | 'warning' | 'danger' }> = {
+  rule: { label: 'Regla', tone: 'info' },
+  'one-off': { label: 'Puntual', tone: 'warning' },
+  bulk: { label: 'Archivo', tone: 'info' },
+  cut: { label: 'Recorte', tone: 'danger' },
 };
 
 export function ActivitySection({
@@ -37,55 +38,55 @@ export function ActivitySection({
   onRunPayment,
 }: ActivitySectionProps) {
   const [expanded, setExpanded] = useState(false);
+  const tabsId = useId();
   const visible = expanded ? receipts : receipts.slice(0, PAGE_SIZE);
 
   return (
     <section className="activity" aria-labelledby="activity-title">
       <header className="activity__head">
-        <h2 className="activity__title" id="activity-title">
-          {activeTab === 'history' ? <ClockIcon width={17} height={17} /> : <CalendarIcon width={17} height={17} />}
-          {activeTab === 'history' ? 'Últimas dispersiones' : 'Pagos programados'}
-          <ApiTag id={activeTab === 'history' ? 'disp-history' : 'disp-scheduled'} />
-        </h2>
-
-        <div className="activity__tabs" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'history'}
-            className={activeTab === 'history' ? 'is-active' : ''}
-            onClick={() => onTabChange('history')}
-          >
-            Últimas dispersiones
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'scheduled'}
-            className={activeTab === 'scheduled' ? 'is-active' : ''}
-            onClick={() => onTabChange('scheduled')}
-          >
-            Pagos programados ({scheduled.length})
-          </button>
-        </div>
+        <SectionHeader
+          size="sm"
+          level={2}
+          style={{ width: '100%' }}
+          trailing={
+            <Tabs
+              id={tabsId}
+              items={[
+                { value: 'history', label: 'Últimas dispersiones' },
+                { value: 'scheduled', label: 'Pagos programados', count: scheduled.length },
+              ]}
+              value={activeTab}
+              onChange={(value) => {
+                if (value === 'history' || value === 'scheduled') onTabChange(value);
+              }}
+              ariaLabel="Actividad de dispersión"
+            />
+          }
+        >
+          <span id="activity-title">
+            {activeTab === 'history' ? <ClockIcon width={17} height={17} /> : <CalendarIcon width={17} height={17} />}
+            {activeTab === 'history' ? 'Últimas dispersiones' : 'Pagos programados'}
+            <ApiTag id={activeTab === 'history' ? 'disp-history' : 'disp-scheduled'} />
+          </span>
+        </SectionHeader>
       </header>
 
-      <div className="activity__scroll">
-        {activeTab === 'history' && receipts.length === 0 ? (
+      <TabPanel tabsId={tabsId} value={activeTab} active>
+        <div className="activity__scroll">{activeTab === 'history' && receipts.length === 0 ? (
           <EmptyState
-            icon={<ClockIcon width={22} height={22} />}
+            icon="history"
             title="Aún no hay dispersiones"
             description="Cada corrida, envío puntual, carga masiva o recorte queda registrado aquí con su comprobante."
             actions={
-              <button type="button" className="btn btn--secondary btn--sm" onClick={() => onTabChange('scheduled')}>
+              <Button variant="secondary" size="sm" onClick={() => onTabChange('scheduled')}>
                 <CalendarIcon width={14} height={14} />
                 Ver pagos programados
-              </button>
+              </Button>
             }
           />
         ) : activeTab === 'scheduled' && scheduled.length === 0 ? (
           <EmptyState
-            icon={<CalendarIcon width={22} height={22} />}
+            icon="calendar_month"
             title="No hay pagos programados"
             description="Las automatizaciones activas aparecen aquí con su fecha y monto proyectado. Crea una o reactiva las que estén pausadas."
           />
@@ -110,7 +111,7 @@ export function ActivitySection({
                   <tr key={receipt.folio}>
                     <td>{formatDateTime(new Date(receipt.issuedAt))}</td>
                     <td>
-                      <span className={`chip ${meta.chip}`}>{meta.label}</span>
+                      <Badge tone={meta.tone}>{meta.label}</Badge>
                     </td>
                     <td>
                       <span className="activity__source">{receipt.sourceLabel}</span>
@@ -126,9 +127,9 @@ export function ActivitySection({
                       {formatMoney(Math.abs(receipt.totalMXN))}
                     </td>
                     <td className="activity__action">
-                      <button type="button" className="btn btn--ghost btn--sm" onClick={() => onOpenReceipt(receipt)}>
+                      <Button variant="ghost" size="sm" onClick={() => onOpenReceipt(receipt)}>
                         Comprobante
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 );
@@ -166,45 +167,46 @@ export function ActivitySection({
                   <td>{formatCount(rule.units - rule.excludedUnits)}</td>
                   <td className="activity__amount">{formatMoney(rule.projectedMXN)}</td>
                   <td className="activity__action">
-                    {rule.approved && <span className="chip chip--active">Aprobada</span>}
-                    <button type="button" className="btn btn--ghost btn--sm" onClick={() => onReviewPayment(rule)}>
+                    {rule.approved && <StatusPill label="Aprobada" tone="success" />}
+                    <Button variant="ghost" size="sm" onClick={() => onReviewPayment(rule)}>
                       <EyeIcon width={14} height={14} />
                       Revisar
-                    </button>
-                    <button type="button" className="btn btn--secondary btn--sm" onClick={() => onRunPayment(rule)}>
+                    </Button>
+                    <Button variant="secondary" size="sm" onClick={() => onRunPayment(rule)}>
                       <PlayIcon width={12} height={12} />
                       Ejecutar
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
-      </div>
+        </div>
 
-      <footer className="activity__foot">
-        {activeTab === 'history' ? (
-          <>
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              disabled={receipts.length <= PAGE_SIZE}
-              onClick={() => setExpanded((value) => !value)}
-            >
-              {expanded ? 'Ver menos' : `Ver más dispersiones (${receipts.length})`}
-            </button>
-            <button type="button" className="btn btn--secondary btn--sm" onClick={() => onTabChange('scheduled')}>
-              <CalendarIcon width={14} height={14} />
-              Ver pagos programados
-            </button>
-          </>
-        ) : (
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => onTabChange('history')}>
-            Ver últimas dispersiones
-          </button>
-        )}
-      </footer>
+        <footer className="activity__foot">
+          {activeTab === 'history' ? (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={receipts.length <= PAGE_SIZE}
+                onClick={() => setExpanded((value) => !value)}
+              >
+                {expanded ? 'Ver menos' : `Ver más dispersiones (${receipts.length})`}
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => onTabChange('scheduled')}>
+                <CalendarIcon width={14} height={14} />
+                Ver pagos programados
+              </Button>
+            </>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={() => onTabChange('history')}>
+              Ver últimas dispersiones
+            </Button>
+          )}
+        </footer>
+      </TabPanel>
     </section>
   );
 }

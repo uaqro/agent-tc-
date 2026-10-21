@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Button, StatusPill } from '@er-mobility-mx/design-system';
 import { PlusIcon, SearchIcon } from '../components/icons/Icons';
 import { ApiCoverageBanner, ApiTag } from '../components/api/ApiCoverage';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -25,10 +26,10 @@ interface VehiclesPageProps {
   showVin?: boolean;
 }
 
-const STATUS_CHIP: Record<VehicleStatus, string> = {
-  active: 'chip--active',
-  maintenance: 'chip--review',
-  inactive: 'chip--paused',
+const STATUS_TONE: Record<VehicleStatus, 'success' | 'warning' | 'neutral'> = {
+  active: 'success',
+  maintenance: 'warning',
+  inactive: 'neutral',
 };
 
 /** Record filter: every unit, the incomplete ones, or the ones missing one piece. */
@@ -143,13 +144,13 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
         {rows.length === 0 ? (
           <EmptyState
             compact
-            icon={<SearchIcon width={20} height={20} />}
+            icon="search"
             title="Ningún vehículo coincide con los filtros"
             description="Revisa la placa, la marca o el conductor, o cambia el grupo y el estado seleccionados."
             actions={
-              <button
-                type="button"
-                className="btn btn--secondary btn--sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setQuery('');
                   setGroup('');
@@ -158,7 +159,7 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
                 }}
               >
                 Limpiar filtros
-              </button>
+              </Button>
             }
           />
         ) : (
@@ -244,7 +245,7 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false }: Veh
                         )}
                       </td>
                       <td>
-                        <span className={`chip ${STATUS_CHIP[detail.status]}`}>{VEHICLE_STATUS_LABEL[detail.status]}</span>
+                        <StatusPill tone={STATUS_TONE[detail.status]} label={VEHICLE_STATUS_LABEL[detail.status]} />
                       </td>
                     </tr>
                   );

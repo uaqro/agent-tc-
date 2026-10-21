@@ -1,0 +1,75 @@
+Edenred (familia tipográfica de marca)
+======================================
+
+Archivos cubiertos
+------------------
+  edenred_black-webfont.woff2   peso 900, 18.6 KB   la cara que pide la web
+  edenred_black.otf             peso 900, 60.0 KB   la misma cara, para Flutter
+
+Son la MISMA cara en dos formatos, los dos entregados por la marca. El `.woff2`
+lo pide el navegador; el `.otf` lo pide Flutter, que no soporta woff2. Ninguno
+sale del otro: convertirlos aquí sería modificarlos, y el punto 2 no lo permite.
+
+Naturaleza
+----------
+Tipografía propietaria de Edenred. NO es software libre y NO lleva una licencia
+abierta: se redistribuye dentro de este paquete como activo de marca.
+
+Esto no es una licencia: es el registro de un activo redistribuido. Antes había
+tres `.woff2` de marca viajando en el paquete sin un archivo que dijera de dónde
+salían ni bajo qué derecho, y la respuesta vivía en una conversación.
+
+Alcance, confirmado por la organización (7-oct-2026)
+----------------------------------------------------
+  1. USO INTERNO. La redistribución dentro de este paquete está cubierta por
+     ese uso. Si un externo o un proveedor llegara a descargarlo, su uso tiene
+     restricciones igualmente claras: todo el mundo firma contrato y NDA, y la
+     fuente queda dentro de ese marco. No es un activo de redistribución
+     abierta y el paquete no debe publicarse en un registro público.
+
+  2. NO ES MODIFICABLE. La cara viaja tal cual la entrega la marca: no se
+     subsetea, no se reinstancia ningún eje, no se reempaqueta. Si en algún
+     momento hiciera falta otra forma, será otra VERSIÓN u otra FUENTE
+     entregada por la marca, con las mismas reglas de uso que ésta — no una
+     modificación de este archivo.
+
+El `.otf` entró el 14-oct-2026 por esa puerta y no por otra: es otra FORMA
+entregada por la marca, no una conversión del `.woff2`. La diferencia importa
+porque el resultado habría sido parecido y el derecho no.
+
+El punto 2 tiene una consecuencia mecánica y por eso tiene reja: `fnt-4`
+(`check:fuentes`) exige que cada archivo de esta lista sea byte a byte el que la
+marca entregó —lo compara contra SU sha256, uno por archivo— y que ninguna
+herramienta de subset del repo lo nombre entre sus entradas o salidas. El subset
+de Material Symbols sólo es legal porque Apache-2.0 permite modificar; aquí no se
+permite, así que la diferencia no puede quedar en la disciplina de quien edite el
+build.
+
+El sha va con el NOMBRE del archivo al lado, y eso no es cosmético: mientras hubo
+uno solo, la reja leía «el primer sha256 del registro». Con dos archivos esa
+lectura habría comparado los dos contra el mismo hash, o sea habría dejado de
+medir uno de ellos sin decirlo.
+
+  sha256  6bcdcf24a3ca3d33ec1fae62a1c81e20b646e98943e13395e39b555fa741ea54  edenred_black-webfont.woff2
+  sha256  61baf0bdb0ec1b6fa7ae6ac4271383fabed3b39e28a32663d9e54bc0bbaa843b  edenred_black.otf
+
+Lo que sí está medido
+---------------------
+El `.woff2` pesa 18.6 KB y trae 234 glifos (231 codepoints, 40 de ellos fuera de
+latin-1): ya viene subseteado. El `.otf` es la cara COMPLETA —593 glifos, 538
+codepoints, 347 fuera de latin-1— y por eso pesa 60.0 KB. No hay nada que hacer
+con esa diferencia: subsetearlo es justo lo que el punto 2 prohíbe, así que 60 KB
+es el precio de una cara no modificable y queda dicho en vez de escondido.
+
+Hubo tres caras y queda una. La 400 se retiró primero —el sistema nunca la
+pidió—, y la 700 después, cuando el Core Team decidió (6-oct-2026) que los
+títulos se distinguen por TAMAÑO y no por peso, y toda la escala de display
+pasó a Black. Las dos veces lo marcó `check:fuentes` (fnt-2): una cara sin
+consumidor es una fuente de marca que se redistribuye sin motivo.
+
+La entrega de la marca traía seis `.otf` —light, light italic, regular, medium,
+bold y black— y entró UNO. El criterio es el mismo de fnt-2 y la medición vale
+apuntarla, porque el nombre del archivo no es el dato: leído el `OS/2` de cada
+uno, `edenred.otf` es peso 500 y `edenred_medium.otf` es 600, así que esta
+familia no mapea sus nombres a los pesos de la forma habitual. La Black sí es
+900, y es la única cara con consumidor.

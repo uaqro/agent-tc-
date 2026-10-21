@@ -11,7 +11,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .policy-form__fields {
@@ -29,7 +29,7 @@
 .policy-form__field span,
 .policy-form__label {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .policy-form__label {
@@ -38,21 +38,23 @@
 
 .policy-form__field select,
 .policy-form__field input,
-.policy-form__inline-number {
+.policy-form__inline-number,
+.policy-form__native-control {
   height: 36px;
   padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
+  border: 1px solid var(--tc-local-border);
+  border-radius: var(--tc-local-radius-sm);
+  background: var(--tc-local-surface);
   font-size: 13.5px;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
   outline: none;
 }
 
 .policy-form__field select:focus,
 .policy-form__field input:focus,
-.policy-form__inline-number:focus {
-  border-color: var(--brand-blue);
+.policy-form__inline-number:focus,
+.policy-form__native-control:focus {
+  border-color: var(--tc-local-brand-blue);
 }
 
 .policy-form__inline-number {
@@ -61,8 +63,8 @@
 }
 
 .policy-form__inline-number:disabled {
-  background: var(--surface-sunken);
-  color: var(--text-muted);
+  background: var(--tc-local-surface-sunken);
+  color: var(--tc-local-text-muted);
 }
 
 .policy-form__checks {
@@ -79,14 +81,14 @@
   gap: 8px;
   flex-wrap: wrap;
   padding: 6px 8px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--tc-local-radius-sm);
   font-size: 13px;
-  color: var(--text-body);
+  color: var(--tc-local-text-body);
   cursor: pointer;
 }
 
 .policy-form__checks label:hover {
-  background: var(--surface-sunken);
+  background: var(--tc-local-surface-sunken);
 }
 
 .policy-form__switch {
@@ -100,36 +102,13 @@
   color: #a85c02;
 }
 
-.policy-form__pills {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-
-.policy-form__pills button {
-  padding: 5px 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-muted);
-  background: var(--surface);
-}
-
-.policy-form__pills button.is-active {
-  border-color: var(--brand-blue);
-  background: rgba(47, 107, 255, 0.09);
-  color: #1d55e0;
-}
-
 .policy-form__preview {
   margin: 0;
   padding: 12px 14px;
-  border-radius: var(--radius-md);
-  background: var(--surface-muted);
+  border-radius: var(--tc-local-radius-md);
+  background: var(--tc-local-surface-muted);
   font-size: 13px;
-  color: var(--text-body);
+  color: var(--tc-local-text-body);
 }
 
 .policy-form__preview-error {

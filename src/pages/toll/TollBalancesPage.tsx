@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { CardIcon } from '../../components/icons/Icons';
+import { Badge, Switch } from '@er-mobility-mx/design-system';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { TollAmountDialog, type TollAmountMode } from '../../components/toll/TollAmountDialog';
 import { fleetVehicles as vehicles } from '../../data/dispersion';
@@ -23,6 +23,13 @@ interface TollBalancesPageProps {
   /** The role reads balances but can't top up, cut or change automatic top-ups (ADR-TCP-001). */
   readOnly?: boolean;
 }
+
+const MOVEMENT_TONE: Record<TollMovement['kind'], 'success' | 'warning' | 'neutral' | 'danger'> = {
+  crossing: 'neutral',
+  'top-up': 'success',
+  cut: 'warning',
+  rejected: 'danger',
+};
 
 let movementSequence = 100;
 
@@ -117,7 +124,7 @@ export function TollBalancesPage({ onNotice, readOnly = false }: TollBalancesPag
         {balanceTags.length === 0 ? (
           <EmptyState
             compact
-            icon={<CardIcon width={20} height={20} />}
+            icon="credit_card"
             title="Aún no hay TAGs asignados"
             description="Asigna un TAG a una unidad en Peaje · Medios de pago para administrar su saldo."
           />
@@ -220,22 +227,20 @@ export function TollBalancesPage({ onNotice, readOnly = false }: TollBalancesPag
 
             return (
               <li className={`toll-auto__row${config.enabled ? '' : ' toll-auto__row--off'}`} key={config.groupId}>
-                <label className="toll-auto__toggle">
-                  <input
-                    type="checkbox"
+                <div className="toll-auto__toggle">
+                  <Switch
                     checked={config.enabled}
                     disabled={readOnly}
-                    onChange={(event) => {
-                      patchAutoTopUp(config.groupId, { enabled: event.target.checked });
+                    onChange={(enabled) => {
+                      patchAutoTopUp(config.groupId, { enabled });
                       onNotice(
-                        event.target.checked
+                        enabled
                           ? `Recarga automática activada para ${group?.label}.`
                           : `Recarga automática desactivada para ${group?.label}.`,
                       );
                     }}
                   />
-                  <span>{group?.label}</span>
-                </label>
+                </div>
                 <label className="toll-auto__field">
                   <span>Si baja de</span>
                   <input
@@ -292,7 +297,7 @@ export function TollBalancesPage({ onNotice, readOnly = false }: TollBalancesPag
                   <tr key={movement.id}>
                     <td className="table-page__nowrap">{formatDateTime(new Date(movement.at))}</td>
                     <td>
-                      <span className={`chip ${meta.chip}`}>{meta.label}</span>
+                      <Badge tone={MOVEMENT_TONE[movement.kind]}>{meta.label}</Badge>
                     </td>
                     <td>
                       <span className="table-page__main">{tag?.number}</span>

@@ -143,7 +143,6 @@ export function PolicyDialog({ policy, policies, onClose, onSave }: PolicyDialog
   const takenOver = assignableGroups.filter((group) => draft.groupIds.includes(group.id))
     .map((group) => ({ group, from: policyForGroup(policies, group.id) }))
     .filter((entry) => entry.from && entry.from.id !== draft.id);
-
   return (
     <Modal open size="lg" title={policy ? 'Editar política de uso' : 'Nueva política de uso'} onClose={onClose}
       footer={<>

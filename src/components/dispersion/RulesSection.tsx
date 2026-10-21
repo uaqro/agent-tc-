@@ -1,6 +1,7 @@
 import type { FundingRule, RuleStatus, RuleType } from '../../types/dispersion';
+import { Button, Chip, SectionHeader, Stack, StatusPill } from '@er-mobility-mx/design-system';
 import { toLiters } from '../../data/dispersion';
-import { EyeIcon, PauseIcon, PlayIcon, PlusIcon, RuleIcon, UploadIcon } from '../icons/Icons';
+import { EyeIcon, PauseIcon, PlayIcon, PlusIcon, UploadIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
 import { formatCount, formatDateLong, formatLiters, formatMoney } from '../../utils/format';
 import { ApiTag } from '../api/ApiCoverage';
@@ -15,10 +16,10 @@ interface RulesSectionProps {
   onEdit: (rule: FundingRule) => void;
 }
 
-const STATUS_META: Record<RuleStatus, { label: string; chip: string }> = {
-  active: { label: 'Activa', chip: 'chip--active' },
-  paused: { label: 'Pausada', chip: 'chip--paused' },
-  'needs-review': { label: 'Necesita revisión', chip: 'chip--review' },
+const STATUS_META: Record<RuleStatus, { label: string; tone: 'success' | 'neutral' | 'warning' }> = {
+  active: { label: 'Activa', tone: 'success' },
+  paused: { label: 'Pausada', tone: 'neutral' },
+  'needs-review': { label: 'Necesita revisión', tone: 'warning' },
 };
 
 const TYPE_LABEL: Record<RuleType, string> = {
@@ -32,39 +33,47 @@ export function RulesSection({ rules, onSimulate, onToggleStatus, onCreate, onBu
   return (
     <section className="rules" aria-labelledby="rules-title">
       <header className="rules__head">
-        <h2 className="rules__title" id="rules-title">
-          Automatización de dispersiones
-          <ApiTag id="disp-rules" />
-        </h2>
-        <div className="rules__actions">
-          <ApiTag id="disp-bulk" />
-          <button type="button" className="btn btn--secondary btn--sm" onClick={onBulkUpload}>
-            <UploadIcon width={15} height={15} />
-            Carga masiva desde archivo
-          </button>
-          <button type="button" className="btn btn--primary btn--sm" onClick={onCreate}>
-            <PlusIcon width={15} height={15} />
-            Nueva automatización
-          </button>
-        </div>
+        <SectionHeader
+          size="sm"
+          level={2}
+          style={{ width: '100%' }}
+          trailing={
+            <Stack gap={2} wrap>
+              <ApiTag id="disp-bulk" />
+              <Button variant="secondary" size="sm" onClick={onBulkUpload}>
+                <UploadIcon width={15} height={15} />
+                Carga masiva desde archivo
+              </Button>
+              <Button size="sm" onClick={onCreate}>
+                <PlusIcon width={15} height={15} />
+                Nueva automatización
+              </Button>
+            </Stack>
+          }
+        >
+          <span id="rules-title">
+            Automatización de dispersiones
+            <ApiTag id="disp-rules" />
+          </span>
+        </SectionHeader>
       </header>
 
       {rules.length === 0 && (
         <EmptyState
           card
-          icon={<RuleIcon width={22} height={22} />}
+          icon="rule"
           title="Aún no hay automatizaciones"
           description="Crea una regla para que el saldo se disperse solo: por calendario, a tope o cuando una unidad baje de cierto saldo. Si solo necesitas un envío único, carga un archivo."
           actions={
             <>
-              <button type="button" className="btn btn--primary btn--sm" onClick={onCreate}>
+              <Button size="sm" onClick={onCreate}>
                 <PlusIcon width={15} height={15} />
                 Crear primera automatización
-              </button>
-              <button type="button" className="btn btn--secondary btn--sm" onClick={onBulkUpload}>
+              </Button>
+              <Button variant="secondary" size="sm" onClick={onBulkUpload}>
                 <UploadIcon width={15} height={15} />
                 Carga masiva desde archivo
-              </button>
+              </Button>
             </>
           }
         />
@@ -79,13 +88,13 @@ export function RulesSection({ rules, onSimulate, onToggleStatus, onCreate, onBu
             <li className={`rule-card${paused ? ' rule-card--paused' : ''}`} key={rule.id}>
               <header className="rule-card__head">
                 <h3 className="rule-card__name">{rule.name}</h3>
-                <span className={`chip ${status.chip}`}>{status.label}</span>
+                <StatusPill label={status.label} tone={status.tone} />
               </header>
 
               {rule.statusNote && <p className="rule-card__note">{rule.statusNote}</p>}
 
               <p className="rule-card__scope">
-                <span className="chip chip--info">{TYPE_LABEL[rule.type]}</span>
+                <Chip label={TYPE_LABEL[rule.type]} size="sm" />
                 {rule.scopeLabel} · {formatCount(rule.units)} unidades
               </p>
 
@@ -103,17 +112,17 @@ export function RulesSection({ rules, onSimulate, onToggleStatus, onCreate, onBu
                 </span>
 
                 <div className="rule-card__buttons">
-                  <button type="button" className="btn btn--secondary btn--sm" onClick={() => onSimulate(rule)}>
+                  <Button variant="secondary" size="sm" onClick={() => onSimulate(rule)}>
                     <EyeIcon width={15} height={15} />
                     Simular
-                  </button>
-                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => onToggleStatus(rule)}>
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => onToggleStatus(rule)}>
                     {paused ? <PlayIcon width={13} height={13} /> : <PauseIcon width={13} height={13} />}
                     {paused ? 'Activar' : 'Pausar'}
-                  </button>
-                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => onEdit(rule)}>
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => onEdit(rule)}>
                     Editar
-                  </button>
+                  </Button>
                 </div>
               </footer>
             </li>

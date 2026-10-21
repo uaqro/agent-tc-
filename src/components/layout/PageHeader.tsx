@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { ArrowLeftIcon, MenuIcon } from '../icons/Icons';
+import { Button, Breadcrumb } from '@er-mobility-mx/design-system';
+import { MenuIcon } from '../icons/Icons';
 import './PageHeader.css';
 
 interface PageHeaderProps {
@@ -31,20 +32,17 @@ export function PageHeader({ section, title, crumb, subtitle, menuOpen, onBack, 
           <span className="visually-hidden">{menuOpen ? 'Ocultar menú lateral' : 'Mostrar menú lateral'}</span>
         </button>
         {onBack && (
-          <button type="button" className="page-header__button" onClick={onBack} title="Regresar al resumen">
-            <ArrowLeftIcon width={18} height={18} />
-            <span className="visually-hidden">Regresar al resumen</span>
-          </button>
+          <Button
+            variant="ghost"
+            size="sm"
+            icon="arrow_back"
+            ariaLabel="Regresar al resumen"
+            onClick={onBack}
+          />
         )}
-        <nav className="page-header__breadcrumb" aria-label="Ubicación">
-          <span>Ticket Car</span>
-          <span aria-hidden="true">›</span>
-          <span>{section}</span>
-          <span aria-hidden="true">›</span>
-          <span className="page-header__current" aria-current="page">
-            {crumb ?? title}
-          </span>
-        </nav>
+        <div className="page-header__breadcrumb">
+          <Breadcrumb items={[{ label: 'Ticket Car' }, { label: section }, { label: crumb ?? title }]} />
+        </div>
       </div>
 
       <h1 className="page-header__title">{title}</h1>

@@ -1,0 +1,399 @@
+# Roadmap de migración a Flow
+
+## Objetivo y estado de partida
+
+Plan de ejecución del 21-oct-2026 para Ticket Car+, basado en la
+[revisión de foundations y primitives](./migracion-flow-foundations-primitives.md).
+No es una propuesta de rediseño de Flow ni una autorización para cambiar
+comportamientos del producto.
+
+- Base publicada del producto: `7dd74b1`; los ajustes posteriores del piloto
+  siguen locales. No se considera terminada una entrega solo por estar publicada,
+  ni se publica sin solicitud.
+- Dependencia instalada: Flow `3.0.0-beta.9`, artefacto local versionado,
+  diccionario de 768 valores y canon declarado `97a1d43`. El ajuste de densidad
+  descrito abajo incorpora cambios locales de implementación, no de canon.
+- Integración base, fuentes, múltiples primitives, Tabs y Accordion ya tienen
+  adopción. No se reinician como tareas pendientes.
+- Tablas: 23 instancias identificadas; Facturas usa Table, BulkBar y FilterSet;
+  22 estructuras locales continúan pendientes de evaluación por familia.
+- Charts: tres tarjetas de barras usan Flow; dos tarjetas de líneas siguen
+  locales por diferencias de datos y formato que deben preservarse.
+- Adopción directa por tipo: 26/57 primitives, 10/66 components y 1/64 patterns.
+  Estos porcentajes no son una medida de finalización ni el objetivo del plan.
+
+**Implementación actual: E0/E1 completadas localmente en Facturas**, con las
+limitaciones de validación registradas abajo. Siguiente puerta: revisión visual
+del piloto antes de ampliar a E2. No activar compact global, sustituir todo
+por DataTable ni modificar Flow sin una necesidad transversal comprobada.
+
+### Corrección posterior: alturas gobernadas por density
+
+La entrega inicial no cerró la diferencia de alturas. Este ajuste sustituye
+la decisión anterior de conservar variantes diferentes en filtros y búsqueda:
+
+- No se elige una altura en Facturas ni se modifica el diccionario. La cadena
+  es `data-density` → `--type-body-md` y `--pad-control-*` → ControlShell →
+  Input/Select → FilterSet/BulkBar → producto.
+- Flow FilterSet deja de imponer `size="sm"`; Select conserva su default `md`,
+  cuyo padding consume los roles de densidad. El cambio afecta al pattern
+  compartido, no solo a esta pantalla.
+- Flow Input deja de sustituir el interlineado por `1.4` y hereda el de
+  ControlShell. Afecta también a otros Input: es una corrección de consumo de
+  tipografía, no una excepción visual para Facturas.
+- Implementación local en `FlowHANA-migration-review`, base `214f69b`, con
+  pruebas y guía de uso actualizadas. No se cambian contratos ni tokens.
+- `npm pack -w packages/flow-react --pack-destination
+  ../prototype-tc-plus-flow-review/vendor/flow` ejecuta el build/prepack.
+  El producto consume el artefacto nuevo
+  `vendor/flow/er-mobility-mx-design-system-3.0.0-beta.9.tgz`, con su integridad
+  en el lockfile. No se sobrescribe el tarball anterior ni se edita node_modules.
+  Es una variante local de beta.9, no una versión publicada.
+
+| Density | Los tres Select | Input de búsqueda |
+|---|---:|---:|
+| Base, sin atributo | 50.8 px | 50.8 px |
+| Compact | 44 px | 44 px |
+| Comfortable | 62.8 px | 62.8 px |
+
+Medición real de las nueve combinaciones: tres densidades por 390/768/1280 px.
+Sin overflow global, con el menú lateral cerrado; se conserva el scroll de
+tabla. Se restablece el contexto base al terminar. No se activa compact global.
+Se verifica además 10 filas → Peaje 2 → Vencida 1 → búsqueda vacía → limpiar 10,
+selección y apertura/cierre por teclado. El resumen financiero no cambia.
+
+Validación: 49 pruebas focalizadas de Flow, typecheck de Flow, tres pruebas de
+Facturas y build de producto pasan. Las medidas son recorridos del navegador,
+no tests E2E persistentes. Continúan los warnings SSR y de bundle; npm install
+reporta seis vulnerabilidades de dependencias, fuera de este ajuste.
+La X de limpiar sin selección se corrige en el siguiente ajuste.
+
+### Corrección posterior: limpieza solo con selección
+
+- Select normaliza el valor single vacío a ausencia de selección, excepto
+  cuando existe una opción declarada explícitamente con `value: ''`. No se
+  altera ese caso compatible ni los valores no vacíos fuera del catálogo.
+- Se conserva la API: limpiar single emite `''`, limpiar multiple emite `[]`.
+  FilterSet mantiene su estado y chips; no se ocultan botones mediante CSS.
+- El paquete final consumido es
+  `vendor/flow/er-mobility-mx-design-system-3.0.0-beta.9-selection-fix.tgz`;
+  incluye también el ajuste de densidad. Se genera con el mismo `npm pack`
+  anterior, se copia con ese nombre y se instala tras cambiar el manifiesto.
+  El lockfile registra su integridad. Sigue siendo una variante local no
+  publicada, con fuentes en `FlowHANA-migration-review`.
+- Pasan 57 pruebas focalizadas de Flow, su typecheck, las tres regresiones
+  SSR de Facturas y el build de producto.
+- Navegador: inicio 10 filas/0 botones Limpiar; Peaje 2/1; limpiar el control
+  10/0; Peaje + Vencida 1/2; quitar chip de Estado 2/1; limpiar todos 10/0.
+  Resumen financiero intacto. Base/compact/comfortable a 390 y 1280 px
+  conservan igualdad de alturas y ausencia de overflow global.
+
+### Resultado de E0/E1
+
+Línea base de la entrega inicial; las referencias a conservar size y a alturas
+diferentes quedan sustituidas por la corrección de density anterior.
+
+- Facturas usa su propio CSS, sin los estilos compartidos de TablePage:
+  roles `--type-data`, `--type-data-sm/lg`, texto, estado, padding, superficie,
+  borde y radios. Se preserva el resumen semántico `<dl>`.
+- Table vuelve a ser dueña de su superficie y scroll; se retiran la carcasa
+  exterior redundante y el mínimo local de 900 px. Las siete columnas siguen
+  presentes y el ancho intrínseco se recorre en scroll local.
+- Se corrige el recorte de acciones de lote con overflow horizontal mediante
+  `BulkBar.style`. El wrapper de producto asegura que el objetivo enfocado se
+  desplace completo a la vista; no hay selectores de interiores de Flow.
+- No cambian size, densidad de producción, filtros, cálculos, selección ni
+  dependencia. Los avisos PDF/XML/ambos continúan siendo simulados.
+- Tres pruebas Vitest cubren estructura, resumen, fechas y separación de dato
+  frente a metadato. La interacción y geometría se comprobaron en el navegador
+  disponible; no se añadió un runner E2E ni se afirma automatización persistente
+  de esos recorridos.
+- Navegador: 10 filas iniciales; Peaje 2; más Vencida 1; más Corporativo vacío;
+  restablecer 10. Búsqueda por folio normalizado y UUID, seleccionar todo el
+  conjunto filtrado, limpiar selección al cambiar filtros y tres formatos
+  verificados. El resumen permanece en $919,938 / $706,950 / $198,476 / 10.
+- Base/compact/comfortable a 390/768/1280 px: sin overflow horizontal global
+  en reposo ni con selección. La tabla conserva scroll local; botones de lote
+  y limpiar miden al menos 44 px. En móvil, Tab recorre las cuatro acciones
+  completas con foco visible; el Select abre por teclado y Escape devuelve foco.
+- El importe de resumen responde a densidad con 26/22/30 px; el identificador
+  con 13/12/14 px. Se mantiene la diferencia de variantes entre filtro y búsqueda;
+  no se presenta igualdad de alturas como criterio de conformance.
+- Build y pruebas focalizadas pasan. Permanecen los warnings SSR de Popover
+  Flow y de tamaño de bundle. Los problemas del menú móvil preexistente y la
+  pérdida de contexto de portales no se declaran corregidos por este lote.
+
+## Reglas de avance
+
+Cada entrega produce cambios acotados, evidencia de equivalencia y una
+actualización del inventario. El siguiente lote depende de la salida del
+anterior, no de que haya terminado una fecha estimada.
+
+| Clasificación | Acción |
+|---|---|
+| Consumo incorrecto del producto | Corregir props, roles semánticos, composición o CSS propio en este repositorio. |
+| Funcionalidad ya cubierta por Flow | Adoptar la API existente y retirar solo la implementación que reemplaza. |
+| Diferencia de comportamiento deliberada | Conservarla; cualquier cambio de UX o negocio requiere una decisión explícita. |
+| Desfase entre fuente y paquete | Comparar ambos comportamientos antes de decidir una actualización de dependencia. |
+| Defecto o necesidad transversal del DS | Reproducción aislada, promesa/uso afectados, prueba y propuesta acotada; no bloquear entregas independientes. |
+| Sin equivalencia o sin caso de uso | Mantener la solución local con la razón registrada. No construir abstracciones para completar el catálogo. |
+
+No se extrae un wrapper genérico por adelantado. Una segunda adopción equivalente
+debe demostrar qué estado, composición o estilo conviene compartir.
+
+## E0 — Línea base ejecutable del piloto
+
+**Estado:** verificada localmente para el piloto. Hay pruebas SSR persistentes
+y recorridos/medidas de navegador; no una suite E2E persistente completa.
+**Dependencias:** ninguna. **Bloquea:** cierre de E1 y escalamiento de tablas.
+
+**Trabajo**
+
+1. Registrar el estado inicial de Facturas: datos, resumen de cuenta completa,
+   filtros, búsqueda, selección, vacío y avisos de descarga.
+2. Ampliar la prueba existente para las salidas estáticas relevantes y los
+   importes; no presentar SSR como prueba de interacción o dimensiones.
+3. Comprobar en navegador los flujos de la tabla siguiente. Si automatizar
+   interacción exige herramientas no instaladas, usar primero el navegador
+   disponible y registrar qué sigue siendo verificación manual.
+4. Medir página, región de tabla y barra con y sin selección a 390, 768 y
+   1280 px. El overflow global observado anteriormente sigue abierto: medir
+   su causa antes de atribuirlo al piloto.
+
+| Invariante | Resultado que debe conservarse |
+|---|---|
+| Resultado inicial | 10 facturas; seis columnas de datos y selección, sin columna Descargas. |
+| Finanzas | Misma fórmula de IVA y redondeo a centavos; resumen no se recalcula sobre el subconjunto filtrado. |
+| Filtros | Dimensiones combinadas con AND; Peaje devuelve 2 filas, más Vencida devuelve 1, más Corporativo devuelve vacío. |
+| Búsqueda | Folio/UUID; normalización actual de espacios y mayúsculas; no ampliar silenciosamente los campos buscados. |
+| Selección | Identidad por UUID; seleccionar todo afecta al resultado visible filtrado; cambiar búsqueda o dimensiones limpia la selección. |
+| Limpieza | Chips limpian dimensiones; acción del vacío limpia también búsqueda; restablecer recupera las 10 filas. |
+| Acciones | Una o varias seleccionadas permiten PDF, XML o ambos; siguen siendo avisos simulados, no archivos reales. |
+| Alcance | Sin orden, paginación, vistas guardadas ni cambios en los vencimientos o estados. |
+
+**Salida:** evidencia de base y fallos clasificados; no se declara “responsive
+correcto” solo porque la tabla tenga scroll.
+
+## E1 — Completar la cascada en Facturas
+
+**Estado:** implementada y verificada localmente; pendiente de aceptación visual
+para escalar a la siguiente familia.
+**Dependencia:** E0 para verificar equivalencia.
+**Archivos principales:** `src/pages/company/InvoicesPage.tsx`,
+`src/pages/TablePage.css`, `src/pages/company/__tests__/InvoicesPage.test.ts`.
+Un CSS específico de Facturas solo se añade si permite aislar realmente el
+piloto del stylesheet compartido; no es un requisito del diseño.
+
+### E1.1 — Roles de contenido y superficies
+
+- Separar explícitamente texto, identificadores, importes, metadatos y estado
+  en los renders de las columnas.
+- Folio/UUID e importes consumen roles `--type-data*`; etiquetas y texto
+  consumen `--type-body-*`; no aplicar `mono` a una columna mixta si convierte
+  también sus etiquetas en dato.
+- Totales/resumen usan el rol de cifra apropiado, no familia display con
+  peso sintético. Conservar el `<dl>` y sus relaciones `<dt>/<dd>`.
+- Texto auxiliar usa un shorthand tipográfico completo del diccionario, no
+  `font-size: 12px` aislado. Vencimiento alertado conserva su texto y usa el rol
+  de estado correspondiente, no rojo de marca por semejanza de color.
+- Mapear superficie, borde, radio, separación y padding propios a roles
+  existentes. Conservar un único dueño de cada carcasa; no añadir Card encima
+  de otra superficie ni reestilizar los interiores de Flow.
+- No editar globalmente `.table-page__main`, `.table-page__sub` o el resumen
+  compartido para forzar la migración de las otras páginas.
+
+### E1.2 — Composición y densidad
+
+- Mantener FilterSet fuera de la región de resultados y BulkBar como barra de
+  trabajo/selección. No crear otro estado de filtros.
+- Mantener inicialmente la densidad base de producción. Comparar base,
+  compact y comfortable como matriz de validación, no como tres nuevas
+  preferencias de usuario.
+- Medir el efecto conjunto de texto, accesorios, chips, búsqueda y acciones;
+  la aceptación no exige alturas idénticas entre zonas con distintas funciones.
+- Si persiste un problema de jerarquía o ergonomía, presentar una alternativa
+  de composición con los roles/variantes existentes y obtener decisión sobre
+  el cambio de UX. No ocultarlo con `size="sm"`, una altura literal o un
+  atributo global.
+- No introducir densidad local como solución cerrada mientras los overlays
+  pierdan ese contexto; registrar el límite sin aplicar un parche al portal.
+
+### E1.3 — Cierre del piloto
+
+- Ejecutar E0 de nuevo y revisar foco de búsqueda, selects, checkboxes y acciones.
+- Área interactiva computada de al menos 44 px para los objetivos comprobados;
+  no confundir altura del glifo o trigger interior con la del control completo.
+- A 390/768/1280 px, conservar las columnas mediante scroll local, sin añadir
+  ocultación por prioridad. Corregir el overflow causado por esta composición;
+  separar el del shell preexistente si la evidencia demuestra otro origen.
+- Revisar reposo/selección, filtros con valores largos y estado vacío. Ningún
+  control puede quedar recortado o inaccesible.
+- Ejecutar la prueba focalizada de Facturas, `npm run build` y
+  `git diff --check`. Conservar visibles los warnings preexistentes.
+
+**Salida:** Facturas consume la cascada en contenido y composición, no solo
+en el import de Table. Ningún cambio de paquete ni de contrato Flow necesario
+por defecto.
+
+## E2 — Escalar tablas por familias, no por reemplazo masivo
+
+**Estado:** pendiente. **Dependencia:** E1 aceptada.
+**Método:** una pantalla representativa, validación y después su familia.
+El orden de candidatos puede ajustarse si el contrato medido revela riesgos.
+
+| Lote | Superficies candidatas | Implementación y comportamiento a preservar | Puerta de salida |
+|---|---|---|---|
+| E2.1 Administración | Usuarios y Parámetros | Table para estructura/estilo si hay equivalencia; conservar invitaciones, permisos, catálogos, switches, validaciones y edición de registros. Sin selección masiva nueva. | Datos/acciones y nombres accesibles iguales; abrir, confirmar y cancelar edición sin regresión. |
+| E2.2 Listados paginados | Conductores, Vehículos y Medios de pago | Mantener búsqueda, filtros, página, tamaño de página y acciones existentes. Comparar Pagination y DataTable con el flujo real; no sustituir la paginación sin equivalencia. | Probar filtro desde una página posterior, resultado vacío, última página y acción sobre la fila correcta. |
+| E2.3 Peaje y mantenimiento | TAGs, reglas, saldos y órdenes | Conservar estados, asignaciones, topes, edición/activación y transiciones de servicio. Mapear importes/IDs/estados a roles. | Pruebas de las operaciones de dominio afectadas y comprobación visual por estado. |
+| E2.4 Asignación y optimizador | AssignmentsTable, dos tablas de GasOptimizerPage y tablas de LoadDetail | Preservar Select por unidad, medidores, recomendaciones, detalles y paginación. Evaluar DataTable solo donde coordine un flujo ya existente. | Edición/acción no dispara otra interacción de fila; cifras y recomendación intactas. |
+| E2.5 Actividad e historial | ActivitySection, movimientos de peaje e historial de envíos | Mantener comparación por columnas y «Ver más/menos» donde exista. No convertir un historial tabular en feed por nombre de pattern. | Mismo alcance temporal, agrupación, expansión e identidad de registros. |
+| E2.6 Tablas en overlays y previews | BulkUploadDialog, ReceiptDialog, SimulationDialog, StationNetworkDialog y DynamicReportBuilder | Preservar volumen, edición de estaciones, importación CSV, semántica del recibo y preview sin filas. No imponer el layout de una página completa. | Foco/teclado dentro del diálogo, scroll contenido y datos/validación sin pérdida. |
+
+Los lotes agrupan casos de revisión; no implican que todas sus superficies sean
+equivalentes ni añaden instancias al conteo de 23.
+
+**Decisión Table frente a DataTable**
+
+- Table cuando el producto ya coordina estado y solo necesita la tabla.
+- DataTable cuando su búsqueda/orden/página/selección cubren el contrato medido
+  sin duplicar filtros ni cambiar el alcance de las operaciones.
+- Configurar funciones explícitamente; no heredar orden/paginación nuevos por
+  defecto. El comportamiento remoto, si aparece, requiere evaluación propia.
+- Extraer una composición compartida solo tras demostrar equivalencia en dos
+  usos. Mantener lógica financiera, de permisos y de operación fuera del DS.
+
+## E3 — Completar barras y composición del dashboard
+
+**Estado:** parcial; roles de series y `marks="fill"` ya integrados.
+**Dependencia:** E0 no bloquea la investigación; cierre visual después de E1
+para reutilizar sus criterios de roles y densidad.
+**Archivos:** `src/components/charts/BarChart.tsx`,
+`src/components/dashboard/ChartCard.tsx`, su CSS,
+`src/data/dashboardCharts.ts` y las pruebas existentes.
+
+1. Clasificar la leyenda como principal o metadato y contrastar la variante
+   existente `md`/`sm`; no crear una tipografía alternativa.
+2. Completar roles de superficie, borde, espaciado y tipografía de ChartCard
+   sin perder encabezado, filtros, tooltip, menú o callbacks.
+3. Conservar datasets, unidades, rangos y distinción entre serie principal y
+   contexto; comprobar que lienzo y leyenda mantienen colores y tramas.
+4. Verificar valores exactos sin depender solo del puntero. Cuando el primitive
+   no los exponga, evaluar una alternativa DOM de datos en producto, sin crear
+   otro cálculo divergente.
+5. Revisar filtros de dashboard, vacío de negocio, resize y movimiento reducido.
+   Comprobar tema en aislamiento no equivale a habilitar modo oscuro en la app.
+
+**Salida:** las tres tarjetas de barras usan los roles del diccionario también
+en su composición; pruebas de datos/leyenda y build pasan.
+
+## E4 — Líneas: cerrar equivalencias antes de sustituir
+
+**Estado:** bloqueada para sustitución completa, no para análisis.
+**Dependencias:** E3 para composición; vía DS solo si el caso la demuestra.
+**Superficies:** consumo mensual de 12 meses y costo por kilómetro.
+
+1. Capturar fixtures con `null`, cero real, serie vacía, múltiples series y
+   unidades de eje/tooltip. Registrar alcance de filtros por tarjeta.
+2. Verificar capacidades en el paquete instalado, no solo en fuentes locales.
+3. Si la API actual cubre el caso, migrar sin casts ni `option` para esconder
+   una equivalencia inexistente.
+4. Si no lo cubre, mantener LineChart y mejorar sus roles semánticos donde sea
+   posible sin cambiar datos; tramitar únicamente la brecha transversal.
+5. Tras una resolución compatible de Flow, integrar el artefacto reproducible
+   y comprobar todos los fixtures antes de retirar el SVG local.
+
+**Salida:** huecos siguen siendo huecos, cero sigue siendo cero, tooltip y eje
+mantienen su significado y hay acceso a valores exactos. “Dos líneas migradas”
+no es un criterio de éxito si se altera cualquiera de esos contratos.
+
+## E5 — Cobertura residual de formularios y acciones
+
+**Estado:** evaluaciones parciales en el inventario.
+**Dependencia:** no depende de completar todas las tablas; ejecutar como lotes
+separados después de cerrar el piloto, sin mezclarlo con E1.
+
+- Clasificar los controles nativos restantes por acción, navegación, selección
+  o entrada; repetir el conteo antes de implementar porque el inventario cambia.
+- Migrar primero los casos cubiertos por Button/IconButton, Radio/Chip,
+  Input/Field y componentes existentes.
+- Preservar `min`, `max`, `step`, atributos ARIA, autorrelleno y validación.
+  Reenvío en runtime no resuelve una API TypeScript incompatible.
+- Para atributos necesarios no publicados, documentar la brecha y evaluar su
+  aporte al contrato genérico; no usar casts ni quitar restricciones.
+- Probar envío/cancelación, requerido, errores, límites y teclado. No retomar
+  Tabs/Accordion ya completados salvo regresión del lote.
+
+**Salida:** cada control residual queda migrado o con una excepción comprobable;
+no una lista indefinida de “pendientes” por diferencias de apariencia.
+
+## E6 — Patterns específicos y shell de aplicación
+
+**Estado:** candidatos, no migraciones autorizadas por equivalencia.
+**Dependencia:** contrato por superficie; puede avanzar sin E4.
+
+| Superficie | Comparación requerida | Qué impide una sustitución automática |
+|---|---|---|
+| TED | ChatComposer/ChatThread/Conversation frente a envío, sugerencias, contenido rico, pensamiento y scroll actuales. | Adoptar ChatMessage no demuestra equivalencia del flujo completo. |
+| KPIs | StatTile y roles de cifras frente a SummaryCard: unidad, periodo, comparación, delta y ausencia de datos. | Un KPI parecido no garantiza la misma valoración favorable/desfavorable. |
+| TopBar y navegación | Búsqueda global, rutas, menú, pin, estado activo y perfil frente a piezas Flow. | Input no sustituye descubrimiento/navegación; Sidebar no se adopta solo por dibujar un menú. |
+| Diálogos | Composición Dialog/Drawer frente al Modal ya basado en OverlayShell. | No duplicar una migración de foco/portal ya resuelta ni cambiar modal por sheet por estética. |
+
+Cada adopción exige su propio fixture de negocio, prueba de interacción y
+retirada de CSS reemplazado. Si el contrato no coincide, se conserva la
+composición local consumiendo las capas inferiores.
+
+## Vía DS — Solo aportes demostrados
+
+Es una vía condicional, no una fase obligatoria ni un permiso para actualizar
+Flow durante cada lote.
+
+| Candidato | Evidencia que falta para autorizar un cambio |
+|---|---|
+| Contexto de densidad y portal | Reproducción aislada del ámbito prometido, contextos anidados y comparación entre paquete y fuente; definir si el contrato ya exige preservarlo. |
+| Huecos y formatos de líneas | Fixtures de negocio, capacidad actual medida y diseño de API reutilizable sin degradar otras visualizaciones. |
+| Atributos nativos/ARIA necesarios | Usos concretos, alternativa existente descartada y prueba de tipos/interacción que falle con el contrato actual. |
+| Diferencias Input/Select | Demostrar promesa incumplida o fallo ergonómico; una altura distinta no basta. |
+
+Proceso: caso de producto → reproducción mínima → clasificación → propuesta
+acotada → prueba de regresión → cambio en la capa dueña, si corresponde →
+validación de Flow → artefacto reproducible → regresión del producto.
+El contrato se cambia solo cuando sea necesario, no para acomodar un fix.
+Sin publicación, push o actualización de dependencias implícitos.
+
+## Matriz de cierre de cada entrega
+
+- **Negocio:** fixtures antes/después; sin pérdida de campos, restricciones,
+  estados, permisos, cálculo ni acciones.
+- **Cascada:** rol existente por uso; sin hex, tamaños/pesos locales añadidos,
+  tokens inventados ni selectores sobre hashes privados de Flow.
+- **Interacción:** teclado, foco/retorno, selección, filtros y vacíos pertinentes.
+- **Geometría:** base/compact/comfortable y 390/768/1280 px en las superficies
+  afectadas; medir controles y accesorios, no inferir dimensiones desde CSS.
+- **Regresión:** comando focalizado con Vitest, después build para TS y bundle
+  cuando cambie código. Suite completa al integrar lotes transversales o ante
+  indicios de efectos compartidos, no por cada ajuste documental.
+- **Trazabilidad:** archivos cambiados, resultado de validación, limitaciones,
+  excepción local o caso DS y siguiente lote habilitado.
+
+No hay un script lint en el producto. Usar los comandos existentes y ejecutar
+npm desde la raíz del proyecto después de `source ~/.nvm/nvm.sh`.
+No silenciar los warnings SSR de Flow ni declarar corregido el overflow global
+sin medirlo.
+
+## Secuencia de ejecución
+
+```text
+E0 base del piloto
+  └─ E1 Facturas: contenido + superficies + composición + validación
+       ├─ E2.1 administración → E2.2 paginados → E2.3 dominio
+       │    → E2.4 asignación/optimizador → E2.5 historial → E2.6 overlays
+       ├─ E3 barras/dashboard → E4 líneas si existe equivalencia
+       └─ E5 controles residuales → E6 patterns/shell por caso
+
+Vía DS: se abre solo desde un bloqueo demostrado; no detiene las otras ramas.
+```
+
+La bifurcación indica independencia de entregas, no una obligación de trabajo
+simultáneo. Prioridad inmediata: revisar el resultado E0/E1 antes de ampliar
+el alcance a la siguiente familia.

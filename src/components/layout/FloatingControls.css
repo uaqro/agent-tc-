@@ -3,39 +3,47 @@
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  writing-mode: vertical-rl;
-  padding: 16px 8px;
-  background: var(--brand-navy-soft);
-  color: var(--text-inverse);
-  font-size: 12.5px;
-  letter-spacing: 0.06em;
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-  box-shadow: var(--shadow-md);
   z-index: 45;
+}
+
+.feedback-tab > button[data-variant='secondary'] {
+  writing-mode: vertical-rl !important;
+  padding: 16px 8px !important;
+  background: var(--tc-local-brand-navy-soft) !important;
+  color: var(--tc-local-text-inverse) !important;
+  font-size: 12.5px !important;
+  letter-spacing: 0.06em !important;
+  border-radius: var(--tc-local-radius-sm) 0 0 var(--tc-local-radius-sm) !important;
+  box-shadow: var(--tc-local-shadow-md) !important;
   transition: background 140ms ease;
 }
 
-.feedback-tab:hover {
-  background: var(--brand-blue);
+.feedback-tab > button[data-variant='secondary']:hover {
+  background: var(--tc-local-brand-blue) !important;
 }
 
 .chat-button {
   position: fixed;
   right: 22px;
   bottom: 22px;
-  width: 54px;
-  height: 54px;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: var(--brand-red);
-  color: #fff;
-  box-shadow: var(--shadow-lg);
   z-index: 45;
-  transition: transform 140ms ease, background 140ms ease;
+  transition: transform 140ms ease;
 }
 
 .chat-button:hover {
   transform: translateY(-2px);
-  background: var(--brand-red-hover);
+}
+
+.chat-button > button[data-variant='primary'] {
+  background: var(--tc-local-brand-red) !important;
+  color: #fff !important;
+  box-shadow: var(--tc-local-shadow-lg) !important;
+  border-radius: 50% !important;
+  transition: background 140ms ease;
+}
+
+.chat-button > button[data-variant='primary']:hover {
+  background: var(--tc-local-brand-red-hover) !important;
 }

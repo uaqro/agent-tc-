@@ -72,8 +72,8 @@ export const refillsAndCuts = {
   yMin: 75,
   yMax: 175,
   series: [
-    { name: 'Recargas', color: '#16a34a', values: [120, 145, 98, 160, 132, 150, 118] },
-    { name: 'Recortes', color: '#e4572e', values: [88, 95, 82, 110, 101, 124, 96] },
+    { name: 'Recargas', color: 'var(--viz-positive)', values: [120, 145, 98, 160, 132, 150, 118] },
+    { name: 'Recortes', color: 'var(--viz-negative)', values: [88, 95, 82, 110, 101, 124, 96] },
   ] satisfies ChartSeries[],
 };
 
