@@ -97,39 +97,24 @@
 }
 
 .sim__table {
-  width: 100%;
   margin-top: 10px;
-  border-collapse: collapse;
-  font-size: 13px;
 }
 
-.sim__table th,
-.sim__table td {
-  text-align: left;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--tc-local-border-subtle);
-}
-
-.sim__table th {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--tc-local-text-muted);
-}
-
-.sim__table td:last-child,
-.sim__table th:last-child {
-  text-align: right;
-}
-
-.sim__table-rest td {
+.sim__table-rest {
+  margin: 8px 0 0;
   color: var(--tc-local-text-muted);
   font-size: 12.5px;
-  text-align: left !important;
 }
 
 @media (max-width: 680px) {
   .sim__stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .modal:has(.sim__table) {
+    width: calc(100vw - 32px);
+    max-width: calc(100vw - 32px);
   }
 }

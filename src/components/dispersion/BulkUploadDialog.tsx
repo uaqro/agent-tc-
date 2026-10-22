@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, FileUpload, type RejectedFile, type UploadedFile } from '@er-mobility-mx/design-system';
+import { Button, FileUpload, Table, type GridColumn, type RejectedFile, type UploadedFile } from '@er-mobility-mx/design-system';
 import type { BulkRow, Vehicle } from '../../types/dispersion';
 import { toLiters } from '../../data/dispersion';
 import { downloadTemplate, parseBulkCsv } from '../../utils/bulkUpload';
@@ -26,6 +26,45 @@ export function BulkUploadDialog({ open, vehicles, availableMXN, onClose, onAppl
   const errors = rows.length - valid.length;
   const total = valid.reduce((sum, row) => sum + row.amountMXN, 0);
   const overBudget = total > availableMXN;
+  const columns: GridColumn<BulkRow>[] = [
+    {
+      key: 'line',
+      label: 'Línea',
+      render: (row) => <span className={row.status === 'ok' ? undefined : 'bulk__cell--error'}>{row.line}</span>,
+    },
+    {
+      key: 'plate',
+      label: 'Placa',
+      render: (row) => <span className={row.status === 'ok' ? undefined : 'bulk__cell--error'}>{row.plate}</span>,
+    },
+    {
+      key: 'driver',
+      label: 'Conductor',
+      render: (row) => (
+        <span className={row.status === 'ok' ? undefined : 'bulk__cell--error'}>
+          {row.status === 'ok' ? row.driver : row.message}
+        </span>
+      ),
+    },
+    {
+      key: 'amount',
+      label: 'Monto',
+      render: (row) => (
+        <span className={row.status === 'ok' ? undefined : 'bulk__cell--error'}>
+          {row.status === 'ok' ? formatMoney(row.amountMXN, true) : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'liters',
+      label: 'Litros',
+      render: (row) => (
+        <span className={row.status === 'ok' ? undefined : 'bulk__cell--error'}>
+          {row.status === 'ok' ? formatLiters(toLiters(row.amountMXN)) : '—'}
+        </span>
+      ),
+    },
+  ];
 
   const readFile = (file: File) => {
     const reader = new FileReader();
@@ -145,28 +184,16 @@ export function BulkUploadDialog({ open, vehicles, availableMXN, onClose, onAppl
           )}
 
           <div className="bulk__scroll">
-            <table className="bulk__table">
-              <thead>
-                <tr>
-                  <th scope="col">Línea</th>
-                  <th scope="col">Placa</th>
-                  <th scope="col">Conductor</th>
-                  <th scope="col">Monto</th>
-                  <th scope="col">Litros</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={`${row.line}-${row.plate}`} className={row.status !== 'ok' ? 'bulk__row--error' : undefined}>
-                    <td>{row.line}</td>
-                    <td>{row.plate}</td>
-                    <td>{row.status === 'ok' ? row.driver : row.message}</td>
-                    <td>{row.status === 'ok' ? formatMoney(row.amountMXN, true) : '—'}</td>
-                    <td>{row.status === 'ok' ? formatLiters(toLiters(row.amountMXN)) : '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <Table
+              caption="Vista previa de dispersiones masivas"
+              columns={columns}
+              rows={rows}
+              rowKey="line"
+              surface="none"
+              sortable={false}
+              density="compact"
+              style={{ maxHeight: 240 }}
+            />
           </div>
         </>
       )}

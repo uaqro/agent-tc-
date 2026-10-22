@@ -1,5 +1,5 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
-import { Table, WidgetFrame, type GridColumn } from '@er-mobility-mx/design-system';
+import { Select, Table, WidgetFrame, type GridColumn } from '@er-mobility-mx/design-system';
 import { ApiCoverageBanner } from '../../components/api/ApiCoverage';
 import { BarChart } from '../../components/charts/BarChart';
 import { EmptyChart } from '../../components/charts/EmptyChart';
@@ -71,6 +71,10 @@ const TABS: { id: Tab; label: string }[] = [
 const CATEGORY_LABEL = { oportunidad: 'Oportunidad', mixta: 'Mixta', optima: 'Óptima' } as const;
 const CATEGORY_CHIP = { oportunidad: 'chip--danger', mixta: 'chip--review', optima: 'chip--active' } as const;
 const VEHICLE_CLASSES: UnitClass[] = ['pesado', 'mediano', 'ligero', 'van'];
+const DAILY_METRICS = Object.keys(DAILY_METRIC_LABELS) as DailyMetric[];
+
+const isDailyMetric = (value: string): value is DailyMetric =>
+  Object.prototype.hasOwnProperty.call(DAILY_METRIC_LABELS, value);
 
 const percent = (ratio: number | null, decimals = 0) => (ratio === null ? '—' : `${(ratio * 100).toFixed(decimals)} %`);
 const pricePerLiter = (value: number | null) => (value === null ? '—' : `$${value.toFixed(2)}/L`);
@@ -84,6 +88,16 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
   const [tab, setTab] = useState<Tab>('resumen');
   const windows = useMemo(() => optimizerWindows(), []);
   const [windowId, setWindowId] = useState(windows[0].id);
+  const windowOptions = windows.map(({ id, label }) => ({ value: id, label }));
+  const fuelOptions = [
+    { value: '', label: 'Todos' },
+    ...FUEL_TYPES.map((fuel) => ({ value: fuel, label: FUEL_LABELS[fuel] })),
+  ];
+  const vehicleOptions = [
+    { value: '', label: 'Todos' },
+    ...VEHICLE_CLASSES.map((vehicleClass) => ({ value: vehicleClass, label: UNIT_CLASS_LABELS[vehicleClass] })),
+  ];
+  const dailyMetricOptions = DAILY_METRICS.map((metric) => ({ value: metric, label: DAILY_METRIC_LABELS[metric] }));
   const [mode, setMode] = useState<SavingMode>('bruto');
   const [assumptions, setAssumptions] = useState<Assumptions>(DEFAULT_ASSUMPTIONS);
   const [facets, setFacets] = useState({ fuel: '', vehicleType: '', zone: '' });
@@ -120,6 +134,10 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
   const regions = useMemo(() => regionSummaries(loads, assumptions, mode), [loads, assumptions, mode]);
   const farForTiny = useMemo(() => farForTinyLoads(loads), [loads]);
   const zones = optimizerOrgView.zones.filter((zone) => optimizerLoads.some((load) => load.zone === zone));
+  const zoneOptions = [
+    { value: '', label: 'Todas' },
+    ...zones.map((zone) => ({ value: zone, label: optimizerOrgView.zoneLabel(zone) })),
+  ];
 
   const canSend = can(principal, 'tc.recomendaciones', 'escribir');
   const canApply = can(principal, 'tc.limites', 'escribir');
@@ -194,16 +212,10 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
       <ApiCoverageBanner page="optimizer" />
 
       <section className="optimizer__controls" aria-label="Recorte del optimizador">
-        <label className="optimizer__control">
-          <span>Periodo</span>
-          <select value={windowId} onChange={(event) => setWindowId(event.target.value)}>
-            {windows.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="optimizer__control">
+          <span id="optimizer-period-label">Periodo</span>
+          <Select options={windowOptions} value={windowId} aria-labelledby="optimizer-period-label" onChange={setWindowId} />
+        </div>
         <div className="optimizer__control">
           <span>Ahorro</span>
           <div className="optimizer__segmented" role="group" aria-label="Modo de ahorro">
@@ -214,39 +226,33 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
             ))}
           </div>
         </div>
-        <label className="optimizer__control">
-          <span>Combustible</span>
-          <select value={facets.fuel} onChange={(event) => setFacets((current) => ({ ...current, fuel: event.target.value }))}>
-            <option value="">Todos</option>
-            {FUEL_TYPES.map((fuel) => (
-              <option key={fuel} value={fuel}>
-                {FUEL_LABELS[fuel]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="optimizer__control">
-          <span>Tipo de vehículo</span>
-          <select value={facets.vehicleType} onChange={(event) => setFacets((current) => ({ ...current, vehicleType: event.target.value }))}>
-            <option value="">Todos</option>
-            {VEHICLE_CLASSES.map((vehicleClass) => (
-              <option key={vehicleClass} value={vehicleClass}>
-                {UNIT_CLASS_LABELS[vehicleClass]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="optimizer__control">
-          <span>Zona</span>
-          <select value={facets.zone} onChange={(event) => setFacets((current) => ({ ...current, zone: event.target.value }))}>
-            <option value="">Todas</option>
-            {zones.map((zone) => (
-              <option key={zone} value={zone}>
-                {optimizerOrgView.zoneLabel(zone)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="optimizer__control">
+          <span id="optimizer-fuel-label">Combustible</span>
+          <Select
+            options={fuelOptions}
+            value={facets.fuel}
+            aria-labelledby="optimizer-fuel-label"
+            onChange={(fuel) => setFacets((current) => ({ ...current, fuel }))}
+          />
+        </div>
+        <div className="optimizer__control">
+          <span id="optimizer-vehicle-label">Tipo de vehículo</span>
+          <Select
+            options={vehicleOptions}
+            value={facets.vehicleType}
+            aria-labelledby="optimizer-vehicle-label"
+            onChange={(vehicleType) => setFacets((current) => ({ ...current, vehicleType }))}
+          />
+        </div>
+        <div className="optimizer__control">
+          <span id="optimizer-zone-label">Zona</span>
+          <Select
+            options={zoneOptions}
+            value={facets.zone}
+            aria-labelledby="optimizer-zone-label"
+            onChange={(zone) => setFacets((current) => ({ ...current, zone }))}
+          />
+        </div>
         <label className="optimizer__control optimizer__control--narrow">
           <span>km/L supuesto</span>
           <input
@@ -375,13 +381,17 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
           <WidgetFrame
             title="Evolución diaria"
             actions={
-              <select className="optimizer__chart-metric" value={dailyMetric} onChange={(event) => setDailyMetric(event.target.value as DailyMetric)} aria-label="Métrica">
-                {(Object.keys(DAILY_METRIC_LABELS) as DailyMetric[]).map((metric) => (
-                  <option key={metric} value={metric}>
-                    {DAILY_METRIC_LABELS[metric]}
-                  </option>
-                ))}
-              </select>
+              <>
+                <span id="optimizer-daily-metric-label" className="visually-hidden">Métrica</span>
+                <Select
+                  options={dailyMetricOptions}
+                  value={dailyMetric}
+                  aria-labelledby="optimizer-daily-metric-label"
+                  onChange={(metric) => {
+                    if (isDailyMetric(metric)) setDailyMetric(metric);
+                  }}
+                />
+              </>
             }
           >
             <LineChart

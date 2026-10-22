@@ -1,4 +1,4 @@
-import { Accordion, Button, DetailRow } from '@er-mobility-mx/design-system';
+import { Accordion, Button, DetailRow, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import type { CSSProperties } from 'react';
 import type { RunSimulation } from '../../types/dispersion';
 import { Modal } from '../ui/Modal';
@@ -24,6 +24,11 @@ export function SimulationDialog({ open, mode, simulation, onClose, onConfirm }:
 
   const { rule } = simulation;
   const confirmLabel = mode === 'review' ? 'Aprobar corrida' : 'Confirmar y ejecutar';
+  const sampleColumns: GridColumn<(typeof simulation.sample)[number]>[] = [
+    { key: 'plate', label: 'Placa' },
+    { key: 'driver', label: 'Conductor' },
+    { key: 'amount', label: 'Monto', align: 'right', render: (line) => formatMoney(line.amountMXN, true) },
+  ];
 
   return (
     <Modal
@@ -122,30 +127,21 @@ export function SimulationDialog({ open, mode, simulation, onClose, onConfirm }:
               id: 'unit-details',
               title: 'Ver detalle de unidades',
               content: (
-                <table className="sim__table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Placa</th>
-                      <th scope="col">Conductor</th>
-                      <th scope="col">Monto</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {simulation.sample.map((line) => (
-                      <tr key={line.plate}>
-                        <td>{line.plate}</td>
-                        <td>{line.driver}</td>
-                        <td>{formatMoney(line.amountMXN, true)}</td>
-                      </tr>
-                    ))}
-                    <tr className="sim__table-rest">
-                      <td colSpan={3}>
-                        y {formatCount(Math.max(simulation.unitsAffected - simulation.sample.length, 0))} unidades más
-                        con la misma lógica de monto.
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div className="sim__table">
+                  <Table
+                    caption="Muestra de unidades de la corrida"
+                    columns={sampleColumns}
+                    rows={simulation.sample}
+                    rowKey="plate"
+                    surface="none"
+                    sortable={false}
+                    density="compact"
+                  />
+                  <p className="sim__table-rest">
+                    y {formatCount(Math.max(simulation.unitsAffected - simulation.sample.length, 0))} unidades más con la
+                    misma lógica de monto.
+                  </p>
+                </div>
               ),
             },
           ]}

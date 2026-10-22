@@ -410,10 +410,10 @@ El orden de candidatos puede ajustarse si el contrato medido revela riesgos.
 |---|---|---|---|
 | E2.1 Administración · publicado en `261d499` | Usuarios y Parámetros | Table para estructura/estilo; conserva invitaciones, permisos, catálogos, switches, validaciones y edición de registros. Sin selección masiva nueva. | Datos/acciones y nombres accesibles iguales; abrir, confirmar y cancelar edición sin regresión. |
 | E2.2 Listados paginados · publicado en `b01696f` | Conductores, Vehículos y Medios de pago | Table recibe solo las filas de la página actual; el producto conserva búsqueda, filtros, `usePagination` y `Pagination` existentes. No se activa sorting, selección ni paginación interna. | Probar filtro desde una página posterior, resultado vacío, última página y acción sobre la fila correcta. |
-| E2.3 Peaje y mantenimiento · local | TAGs, reglas, saldos y órdenes | Table para TAGs, asignaciones, saldos, movimientos y órdenes. Conserva estados, asignaciones, topes, edición/activación y transiciones de servicio. Campos numéricos de recarga mantienen `min`/`step` nativos por límite tipado de Input. | 8 pruebas focalizadas y build; en navegador se validan bloqueo/desbloqueo, filtros, asignación, recarga, pausa/reactivación y apertura de orden sin guardar. A 390 px, el documento permanece en 390 px; las tablas mantienen scroll horizontal propio. Nombres accesibles de asignación fuera del scrollport reubicados en la primera celda. |
-| E2.4 Asignación y optimizador · local | AssignmentsTable, ranking y transiciones de GasOptimizerPage, detalle de cargas e historial de envíos en LoadDetail | Table para cinco superficies; conserva Select por unidad, medidores, recomendación seleccionada, métricas, acciones manuales, historial vacío y paginación existente. No añade orden ni paginación integrada. | 2 pruebas SSR de AssignmentsTable y 35 regresiones de dominio del optimizador; build. En navegador: 8 asignaciones, 15 estaciones, 4 transiciones y 25 cargas por página; la selección sigue abriendo el panel sin añadir clic a la fila. En móvil, el documento conserva el ancho del viewport y las asignaciones mantienen scroll interno. |
-| E2.5 Actividad e historial | ActivitySection, movimientos de peaje e historial de envíos | Mantener comparación por columnas y «Ver más/menos» donde exista. No convertir un historial tabular en feed por nombre de pattern. | Mismo alcance temporal, agrupación, expansión e identidad de registros. |
-| E2.6 Tablas en overlays y previews | BulkUploadDialog, ReceiptDialog, SimulationDialog, StationNetworkDialog y DynamicReportBuilder | Preservar volumen, edición de estaciones, importación CSV, semántica del recibo y preview sin filas. No imponer el layout de una página completa. | Foco/teclado dentro del diálogo, scroll contenido y datos/validación sin pérdida. |
+| E2.3 Peaje y mantenimiento · publicado | TAGs, reglas, saldos y órdenes | Table para TAGs, asignaciones, saldos, movimientos y órdenes. Conserva estados, asignaciones, topes, edición/activación y transiciones de servicio. Campos numéricos de recarga mantienen `min`/`step` nativos por límite tipado de Input. | 8 pruebas focalizadas y build; en navegador se validan bloqueo/desbloqueo, filtros, asignación, recarga, pausa/reactivación y apertura de orden sin guardar. A 390 px, el documento permanece en 390 px; las tablas mantienen scroll horizontal propio. Nombres accesibles de asignación fuera del scrollport reubicados en la primera celda. |
+| E2.4 Asignación y optimizador · publicado | AssignmentsTable, ranking y transiciones de GasOptimizerPage, detalle de cargas e historial de envíos en LoadDetail | Table para cinco superficies; conserva Select por unidad, medidores, recomendación seleccionada, métricas, acciones manuales, historial vacío y paginación existente. No añade orden ni paginación integrada. | 2 pruebas SSR de AssignmentsTable y 35 regresiones de dominio del optimizador; build. En navegador: 8 asignaciones, 15 estaciones, 4 transiciones y 25 cargas por página; la selección sigue abriendo el panel sin añadir clic a la fila. En móvil, el documento conserva el ancho del viewport y las asignaciones mantienen scroll interno. |
+| E2.5 Actividad e historial · local | Dos tablas condicionales de ActivitySection; movimientos de peaje e historial de envíos ya migrados en E2.3/E2.4 | `Table` para últimas dispersiones y pagos programados; conserva comparación por columnas, «Ver más/menos», acciones y comprobantes. No convertir un historial tabular en feed por nombre de pattern. | 3 pruebas SSR: límite inicial de seis recibos, caption/datos/acciones de ambas tablas y estado vacío; regresiones focalizadas y build. En navegador se validaron las dos vistas, comprobantes, revisión y ancho móvil; el control de expansión se conserva. |
+| E2.6 Tablas en overlays y previews · local | BulkUploadDialog, ReceiptDialog, SimulationDialog y StationNetworkDialog; el preview de DynamicReportBuilder permanece como cabecera vacía con EmptyState | Table solo en las cuatro superficies que presentan filas. Preservar volumen, edición de estaciones, selección sobre todo el conjunto filtrado, importación CSV, semántica del recibo y resumen de unidades de la simulación. No imponer el layout de una página completa. | 3 pruebas SSR de recibo, simulación y selector de estaciones; build y regresiones focalizadas. En navegador se verificaron selección/filtrado/paginación, CSV válido e inválido, revisión del comprobante y muestra/resumen de simulación; se conserva la acción de descarga. |
 
 Los lotes agrupan casos de revisión; no implican que todas sus superficies sean
 equivalentes ni añaden instancias al conteo de 23.
@@ -529,7 +529,10 @@ no es un criterio de éxito si se altera cualquiera de esos contratos.
 
 ## E5 — Cobertura residual de formularios y acciones
 
-**Estado:** evaluaciones parciales en el inventario.
+**Estado:** evaluaciones parciales en el inventario; pilotos locales de `Radio`
+en `StationNetworkDialog` y `Select` en `LoadDetail`, `GasOptimizerPage`,
+`StationExceptionDialog`, `StationNetworkDialog`, `InviteUserDialog` y
+`UnitSelector`.
 **Dependencia:** no depende de completar todas las tablas; ejecutar como lotes
 separados después de cerrar el piloto, sin mezclarlo con E1.
 
@@ -537,6 +540,43 @@ separados después de cerrar el piloto, sin mezclarlo con E1.
   o entrada; repetir el conteo antes de implementar porque el inventario cambia.
 - Migrar primero los casos cubiertos por Button/IconButton, Radio/Chip,
   Input/Field y componentes existentes.
+- `StationNetworkDialog` ya usa `Radio` de Flow para el modo permitido/bloqueado;
+  se conserva el grupo exclusivo y el modo inicial. La prueba SSR comprueba una
+  sola opción marcada; en navegador se verificó el cambio a «No permitidas».
+  No quedan radios nativos.
+- `LoadDetail` usa `Select` de Flow para filtrar las cargas por vista; conserva
+  las cuatro opciones, sus conteos dinámicos y el nombre accesible del control.
+  En navegador se verificó cambiar a «No compensan el desvío» y filtrar las
+  filas. El inventario baja de 29 a 28 `<select>` nativos.
+- `GasOptimizerPage` usa `Select` para periodo, combustible, tipo de vehículo,
+  zona y métrica de la gráfica diaria; conserva los filtros, opciones, etiqueta
+  accesible y recálculo del dashboard. En navegador se comprobó que cambiar a
+  «Premium» actualiza los indicadores y que elegir «Gasto» actualiza la serie
+  diaria. El inventario baja de 28 a 23 `<select>` nativos en 9 módulos.
+- `StationExceptionDialog` usa `Select` de Flow para la vigencia de la
+  excepción. Se conservan el valor inicial, el cálculo y el texto de vencimiento
+  (asociado como ayuda del campo); el cambio sigue requiriendo confirmación
+  explícita. En navegador se verificó que «7 días» actualiza la fecha y que
+  confirmar permanece deshabilitado hasta marcar la casilla. El inventario baja
+  de 23 a 22 `<select>` nativos.
+- Los filtros de estado, ciudad y marca, y el tamaño de página de
+  `StationNetworkDialog` usan `Select` de Flow. Se conserva el reinicio de página,
+  el reinicio de ciudad al cambiar estado y los tamaños permitidos 10/25/50.
+  En navegador, cambiar a Monterrey actualizó las filas; cambiar después a
+  Jalisco limpió la ciudad y reinició el resultado. Cambiar el tamaño a 25
+  mostró `1–25 de 47`. El inventario baja de 22 a 18 `<select>` nativos en 7
+  módulos.
+- `InviteUserDialog` usa `Select` de Flow para el alcance organizacional.
+  Mantiene el valor inicial «Toda la empresa», la jerarquía visual de opciones
+  por nivel y la conversión de la selección vacía a `scopeNodeId: null`. El
+  inventario baja de 18 a 17 `<select>` nativos en 6 módulos.
+- `UnitSelector` usa `Select` de Flow para el nodo del organigrama. Conserva el
+  prompt inicial, la jerarquía visual y la selección de unidades bajo el nodo;
+  el inventario baja de 17 a 16 `<select>` nativos en 5 módulos.
+- `StationNetworksPage` usa `Select` de Flow para elegir la columna del filtro
+  de redes. Conserva las siete opciones, la etiqueta accesible y la relación
+  con el filtro de texto; el inventario baja de 16 a 15 `<select>` nativos y
+  de 5 a 4 módulos.
 - Preservar `min`, `max`, `step`, atributos ARIA, autorrelleno y validación.
   Reenvío en runtime no resuelve una API TypeScript incompatible.
 - Para atributos necesarios no publicados, documentar la brecha y evaluar su

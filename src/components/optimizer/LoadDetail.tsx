@@ -1,5 +1,5 @@
 import { useMemo, useState, useSyncExternalStore } from 'react';
-import { Button, Table, type GridColumn } from '@er-mobility-mx/design-system';
+import { Button, Select, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import { unitById } from '../../data/client';
 import { driverNameOf } from '../../data/optimizer';
 import { RECOMMENDATION_DISCLAIMER, recommendationLog, subscribeRecommendations, type RecommendationInput } from '../../data/recommendations';
@@ -41,6 +41,8 @@ const VIEW_LABELS: Record<View, string> = {
   todas: 'Todas las cargas',
 };
 
+const isView = (value: string): value is View => Object.prototype.hasOwnProperty.call(VIEW_LABELS, value);
+
 /** Load by load, with the two manual actions on redirectable loads and the log of every send. */
 export function LoadDetail({
   loads,
@@ -58,6 +60,13 @@ export function LoadDetail({
   const [view, setView] = useState<View>('redirigibles');
   const losing = useMemo(() => loads.filter((load) => losesMoney(load, assumptions)), [loads, assumptions]);
   const log = useSyncExternalStore(subscribeRecommendations, recommendationLog);
+  const viewOptions = (Object.keys(VIEW_LABELS) as View[]).map((candidate) => {
+    const count = candidate === 'no_compensan' ? losing.length : candidate === 'descartadas' ? discarded.size : null;
+    return {
+      value: candidate,
+      label: `${VIEW_LABELS[candidate]}${count === null ? '' : ` (${count})`}`,
+    };
+  });
   const rows = useMemo(
     () =>
       (view === 'redirigibles'
@@ -266,17 +275,15 @@ export function LoadDetail({
             Detalle carga por carga
           </h2>
           <div className="table-page__filters">
-            <label>
-              <span className="visually-hidden">Qué cargas ver</span>
-              <select value={view} onChange={(event) => setView(event.target.value as View)}>
-                {(Object.keys(VIEW_LABELS) as View[]).map((candidate) => (
-                  <option key={candidate} value={candidate}>
-                    {VIEW_LABELS[candidate]}
-                    {candidate === 'no_compensan' ? ` (${losing.length})` : candidate === 'descartadas' ? ` (${discarded.size})` : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <span id="optimizer-load-view-label" className="visually-hidden">Qué cargas ver</span>
+            <Select
+              options={viewOptions}
+              value={view}
+              aria-labelledby="optimizer-load-view-label"
+              onChange={(value) => {
+                if (isView(value)) setView(value);
+              }}
+            />
             {losing.length > 0 && (
               <button type="button" className="btn btn--secondary btn--sm" onClick={() => onDiscard(losing.map((load) => load.id))}>
                 Descartar las que no compensan ({losing.length})

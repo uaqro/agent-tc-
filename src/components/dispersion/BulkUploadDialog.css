@@ -41,39 +41,24 @@
 
 .bulk__scroll {
   margin-top: 14px;
-  max-height: 240px;
-  overflow: auto;
 }
 
-.bulk__table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.bulk__table th,
-.bulk__table td {
-  text-align: left;
-  padding: 7px 10px;
-  border-bottom: 1px solid var(--tc-local-border-subtle);
-  white-space: nowrap;
-}
-
-.bulk__table th {
+.bulk__scroll [data-density="compact"] th {
   position: sticky;
   top: 0;
-  background: var(--tc-local-surface);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--tc-local-text-muted);
+  background: var(--surface-card);
 }
 
-.bulk__row--error td {
+.bulk__cell--error {
   color: #b4001a;
 }
 
 @media (max-width: 640px) {
+  .modal:has(.bulk__scroll) {
+    width: calc(100vw - 32px);
+    max-width: calc(100vw - 32px);
+  }
+
   .bulk__stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

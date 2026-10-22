@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Field, Input, Radio } from '@er-mobility-mx/design-system';
+import { Button, Field, Input, Radio, Select } from '@er-mobility-mx/design-system';
 import { scopeNodeOptions } from '../../data/client';
 import { USER_ROLE_DESCRIPTION, USER_ROLE_LABEL, type PlatformUser, type UserRole } from '../../data/company';
 import { Modal } from '../ui/Modal';
@@ -14,6 +14,13 @@ interface InviteUserDialogProps {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const roleOptions = Object.keys(USER_ROLE_LABEL) as UserRole[];
+const scopeOptions = [
+  { value: '', label: 'Toda la empresa' },
+  ...scopeNodeOptions.map((node) => ({
+    value: node.id,
+    label: `${'\u00a0\u00a0'.repeat(node.level - 1)}${node.name}`,
+  })),
+];
 
 export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUserDialogProps) {
   const [name, setName] = useState('');
@@ -101,18 +108,9 @@ export function InviteUserDialog({ existingEmails, onClose, onInvite }: InviteUs
 
       <fieldset className="policy-form__block company-form__fields">
         <legend>Alcance</legend>
-        <label className="policy-form__field">
-          <span>Nodo del organigrama</span>
-          <select value={scopeNodeId} onChange={(event) => setScopeNodeId(event.target.value)}>
-            <option value="">Toda la empresa</option>
-            {scopeNodeOptions.map((node) => (
-              <option key={node.id} value={node.id}>
-                {'  '.repeat(node.level - 1)}
-                {node.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Field label="Nodo del organigrama" htmlFor="invite-user-scope">
+          <Select id="invite-user-scope" options={scopeOptions} value={scopeNodeId} onChange={setScopeNodeId} />
+        </Field>
         <p className="policy-form__preview">
           El usuario solo verá las unidades, cargas e indicadores de ese nodo y de lo que cuelga de él.
         </p>

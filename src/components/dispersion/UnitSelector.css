@@ -36,16 +36,6 @@
   color: var(--text-strong);
 }
 
-.unit-selector__node select {
-  height: 34px;
-  max-width: 220px;
-  padding: 0 8px;
-  border: 1px solid var(--border-control);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  font-size: 13px;
-}
-
 .unit-selector__bar {
   display: flex;
   align-items: center;

@@ -102,10 +102,7 @@
   color: var(--tc-local-text-muted);
 }
 
-.optimizer__control select,
-.optimizer__control input,
-.optimizer__chart-metric,
-.optimizer__panel-head select {
+.optimizer__control input {
   height: 34px;
   padding: 0 10px;
   border: 1px solid var(--border-control);
