@@ -83,18 +83,6 @@
   color: var(--text-muted);
 }
 
-.global-filters__field select {
-  height: 34px;
-  width: 100%;
-  max-width: 240px;
-  padding: 0 10px;
-  border: 1px solid var(--border-control);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  font-size: 13px;
-  color: var(--text-body);
-}
-
 .global-filters__more {
   display: inline-flex;
   align-items: center;
@@ -172,7 +160,4 @@
     margin-left: 0;
   }
 
-  .global-filters__field select {
-    max-width: 100%;
-  }
 }

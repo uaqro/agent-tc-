@@ -577,6 +577,11 @@ separados después de cerrar el piloto, sin mezclarlo con E1.
   de redes. Conserva las siete opciones, la etiqueta accesible y la relación
   con el filtro de texto; el inventario baja de 16 a 15 `<select>` nativos y
   de 5 a 4 módulos.
+- `GlobalFilterBar` usa `Select` de Flow en sus nueve dimensiones, incluidas
+  las opciones organizacionales jerárquicas, los recuentos dinámicos de unidad
+  y conductor, y «Sin conductor asignado». Conserva valores «todos», opciones
+  dependientes y etiquetas accesibles; el inventario baja de 15 a 6 `<select>`
+  nativos y de 4 a 3 módulos.
 - Preservar `min`, `max`, `step`, atributos ARIA, autorrelleno y validación.
   Reenvío en runtime no resuelve una API TypeScript incompatible.
 - Para atributos necesarios no publicados, documentar la brecha y evaluar su
