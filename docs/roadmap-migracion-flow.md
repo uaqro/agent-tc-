@@ -616,6 +616,11 @@ separados después de cerrar el piloto, sin mezclarlo con E1.
   `DatePicker` de Flow con los límites de cobertura, estado controlado y bloqueo
   durante la generación. El inventario baja a 39 entradas nativas en 11 módulos;
   ya no quedan campos `type="date"` nativos.
+- Las tres casillas de `StationNetworkDialog` ahora usan `Checkbox` de Flow:
+  selección de filas, selección parcial de estaciones filtradas y filtro «Solo
+  seleccionadas». Se conservan etiquetas accesibles y estados checked,
+  indeterminate y disabled; el inventario baja a 36 inputs nativos y 22
+  casillas nativas en 11 módulos.
 - Preservar `min`, `max`, `step`, atributos ARIA, autorrelleno y validación.
   Reenvío en runtime no resuelve una API TypeScript incompatible.
 - Para atributos necesarios no publicados, documentar la brecha y evaluar su

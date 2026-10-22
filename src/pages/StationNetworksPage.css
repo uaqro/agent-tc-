@@ -55,7 +55,6 @@
 .network-editor > [data-density="compact"] { width: 100%; min-width: 0; }
 .network-editor [data-density="compact"] table { min-width: 820px; }
 .network-editor [data-density="compact"] th, .network-editor [data-density="compact"] td { padding: 10px; font-size: 12px; }
-.network-editor input[type='checkbox'] { accent-color: var(--brand-blue); }
 .network-editor__error { margin: 12px 0 0; font-size: 13px; color: var(--brand-red); }
 
 @media (max-width: 760px) {

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { Input, Radio, Select, Table, type GridColumn } from '@er-mobility-mx/design-system';
+import { useState } from 'react';
+import { Checkbox, Input, Radio, Select, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import { Modal } from '../ui/Modal';
 import { ArrowLeftIcon, ChevronIcon } from '../icons/Icons';
 import { networkStations, stationBrands, stationLocations, type StationNetwork } from '../../data/stationNetworks';
@@ -51,7 +51,6 @@ export function StationNetworkDialog({ network, networks, initialStationIds = []
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(10);
   const [error, setError] = useState('');
-  const selectAllRef = useRef<HTMLInputElement>(null);
   const needle = query.trim().toLocaleLowerCase('es-MX');
   const filtered = networkStations.filter((station) => (!state || station.state === state) &&
     (!city || station.city === city) && (!brand || station.brand === brand) && (!selectedOnly || selected.has(station.id)) &&
@@ -66,9 +65,8 @@ export function StationNetworkDialog({ network, networks, initialStationIds = []
       label: 'Seleccionar',
       align: 'center',
       render: (station) => (
-        <input
-          type="checkbox"
-          aria-label={`Seleccionar ${station.id} · ${station.name}`}
+        <Checkbox
+          ariaLabel={`Seleccionar ${station.id} · ${station.name}`}
           checked={selected.has(station.id)}
           onChange={() => toggleStation(station.id)}
         />
@@ -81,10 +79,6 @@ export function StationNetworkDialog({ network, networks, initialStationIds = []
     { key: 'brand', label: 'Marca' },
   ];
   const cities = state ? stationLocations[state] : [...new Set(Object.values(stationLocations).flat())].sort((left, right) => left.localeCompare(right, 'es-MX'));
-
-  useEffect(() => {
-    if (selectAllRef.current) selectAllRef.current.indeterminate = selectedCount > 0 && !allSelected;
-  }, [selectedCount, allSelected]);
 
   const toggleFiltered = () => setSelected((current) => {
     const next = new Set(current);
@@ -177,18 +171,19 @@ export function StationNetworkDialog({ network, networks, initialStationIds = []
       </div>
       <div className="network-editor__selection" aria-live="polite">
         <strong>{formatCount(selected.size)} estaciones seleccionadas</strong>
-        <label>
-          <input
-            ref={selectAllRef}
-            type="checkbox"
-            aria-label={`Seleccionar todas las estaciones filtradas (${filtered.length})`}
-            checked={allSelected}
-            disabled={!filtered.length}
-            onChange={toggleFiltered}
-          />
-          Seleccionar todas las filtradas
-        </label>
-        <label><input type="checkbox" checked={selectedOnly} onChange={(event) => { setSelectedOnly(event.target.checked); setPage(1); }} />Solo seleccionadas</label>
+        <Checkbox
+          ariaLabel={`Seleccionar todas las estaciones filtradas (${filtered.length})`}
+          label="Seleccionar todas las filtradas"
+          checked={allSelected}
+          indeterminate={selectedCount > 0 && !allSelected}
+          disabled={!filtered.length}
+          onChange={toggleFiltered}
+        />
+        <Checkbox
+          label="Solo seleccionadas"
+          checked={selectedOnly}
+          onChange={(checked) => { setSelectedOnly(checked); setPage(1); }}
+        />
         <button type="button" className="btn btn--ghost btn--sm" disabled={!selected.size} onClick={() => setSelected(new Set())}>Limpiar selección</button>
       </div>
       {rows.length > 0 ? (

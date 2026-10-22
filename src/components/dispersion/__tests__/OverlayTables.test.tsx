@@ -79,7 +79,10 @@ describe('Flow tables in dialogs', () => {
     expect(table).toContain(networkStations[0].id);
     expect(table).toContain('checked=""');
     expect(html).toContain('1–10 de 7,500');
+    expect(table).toContain('aria-label="Seleccionar ES-00001 · Pemex Álvaro Obregón 01"');
     expect(html).toContain('Seleccionar todas las filtradas');
+    expect(html).toContain('aria-label="Seleccionar todas las estaciones filtradas (7500)"');
+    expect(html).toContain('Solo seleccionadas');
     expect(html).toContain('aria-labelledby="estaciones-page-size-label"');
     expect(html).toContain('aria-labelledby="station-state-filter-label"');
     expect(html).toContain('aria-labelledby="station-city-filter-label"');
