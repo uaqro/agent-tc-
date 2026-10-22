@@ -1,5 +1,5 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
-import { Checkbox, Select, Table, WidgetFrame, type GridColumn } from '@er-mobility-mx/design-system';
+import { Checkbox, Input, Select, Table, WidgetFrame, type GridColumn } from '@er-mobility-mx/design-system';
 import { ApiCoverageBanner } from '../../components/api/ApiCoverage';
 import { BarChart } from '../../components/charts/BarChart';
 import { EmptyChart } from '../../components/charts/EmptyChart';
@@ -255,13 +255,14 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
         </div>
         <label className="optimizer__control optimizer__control--narrow">
           <span>km/L supuesto</span>
-          <input
+          <Input
             type="number"
             min={1}
             max={30}
             step={0.5}
-            value={assumptions.kmPerLiter}
-            onChange={(event) => setAssumptions((current) => sanitizeAssumptions({ ...current, kmPerLiter: Number(event.target.value) }))}
+            size="sm"
+            value={String(assumptions.kmPerLiter)}
+            onChange={(value) => setAssumptions((current) => sanitizeAssumptions({ ...current, kmPerLiter: Number(value) }))}
           />
         </label>
         <div className="optimizer__check">

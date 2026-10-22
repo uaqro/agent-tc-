@@ -102,17 +102,19 @@
   color: var(--tc-local-text-muted);
 }
 
-.optimizer__control input {
+.optimizer__control [data-control-shell][data-size] {
   height: 34px;
+  min-height: 34px;
   padding: 0 10px;
-  border: 1px solid var(--border-control);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+}
+
+.optimizer__control input {
   font-size: 13px;
   color: var(--text-body);
 }
 
-.optimizer__control--narrow input {
+.optimizer__control--narrow [data-control-shell][data-size] {
   width: 90px;
 }
 

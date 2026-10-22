@@ -32,11 +32,10 @@ function FormattedValue({ label, value, onChange, unit }: {
   const formatted = unit === 'money'
     ? new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
     : `${new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)} L`;
-  return <input type="text" inputMode="decimal" aria-label={label} value={entry ?? formatted}
+  return <Input type="text" inputMode="decimal" aria-label={label} value={entry ?? formatted} size="sm"
     onFocus={(event) => event.target.select()}
     onBlur={() => setEntry(null)}
-    onChange={(event) => {
-      const next = event.target.value;
+    onChange={(next) => {
       if (!/^\d*(\.\d{0,2})?$/.test(next)) return;
       setEntry(next);
       onChange(Number(next));
@@ -60,8 +59,8 @@ function OptionalValue({ label, value, onChange, integer = false, unit }: {
       />
       {value !== null && (
         unit ? <FormattedValue label={label} value={value} onChange={onChange} unit={unit} /> :
-        <input type="number" aria-label={label} min={integer ? 1 : 0.01} step={integer ? 1 : 0.01}
-          value={value || ''} required onChange={(event) => onChange(Number(event.target.value))} />
+        <Input type="number" aria-label={label} min={integer ? 1 : 0.01} step={integer ? 1 : 0.01}
+          value={value ? String(value) : ''} required size="sm" onChange={(next) => onChange(Number(next))} />
       )}
     </div>
   );
@@ -229,12 +228,14 @@ export function PolicyDialog({ policy, policies, onClose, onSave }: PolicyDialog
             />
             {controls.kmRange && <div className="policy-form__fields policy-form__fields--two policy-form__nested">
               <label className="policy-form__field"><span>Recorrido mínimo (km)</span>
-                <input type="number" min={1} max={controls.kmRange.max} step={1} value={controls.kmRange.min || ''}
-                  onChange={(event) => patchControls({ kmRange: { ...controls.kmRange!, min: Number(event.target.value) } })} />
+                <Input type="number" min={1} max={controls.kmRange.max} step={1}
+                  value={controls.kmRange.min ? String(controls.kmRange.min) : ''} size="sm"
+                  onChange={(value) => patchControls({ kmRange: { ...controls.kmRange!, min: Number(value) } })} />
               </label>
               <label className="policy-form__field"><span>Recorrido máximo (km)</span>
-                <input type="number" min={controls.kmRange.min || 1} step={1} value={controls.kmRange.max || ''}
-                  onChange={(event) => patchControls({ kmRange: { ...controls.kmRange!, max: Number(event.target.value) } })} />
+                <Input type="number" min={controls.kmRange.min || 1} step={1}
+                  value={controls.kmRange.max ? String(controls.kmRange.max) : ''} size="sm"
+                  onChange={(value) => patchControls({ kmRange: { ...controls.kmRange!, max: Number(value) } })} />
               </label>
             </div>}
           </div>}
@@ -341,7 +342,9 @@ export function PolicyDialog({ policy, policies, onClose, onSave }: PolicyDialog
         />
         {intervalEnabled && <label className="policy-form__field">
           <span>Intervalo mínimo entre cargas (horas)</span>
-          <input type="number" min={1} step={1} value={draft.minHoursBetweenFills || ''} onChange={(event) => patch({ minHoursBetweenFills: Number(event.target.value) })} />
+          <Input type="number" min={1} step={1}
+            value={draft.minHoursBetweenFills ? String(draft.minHoursBetweenFills) : ''} size="sm"
+            onChange={(value) => patch({ minHoursBetweenFills: Number(value) })} />
         </label>}
         <Checkbox
           style={CHECKBOX_SWITCH_STYLE}

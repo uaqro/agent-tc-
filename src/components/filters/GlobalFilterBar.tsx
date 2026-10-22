@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Select } from '@er-mobility-mx/design-system';
+import { Input, Select } from '@er-mobility-mx/design-system';
 import { DRIVING_BEHAVIORS, FUEL_LABELS, FUEL_PRODUCTS, FUEL_PRODUCT_LABELS, FUEL_TYPES } from '../../domain/dashboard/types';
 import type { FilterChip } from '../../domain/filters/describe';
 import { visibleDrivers, visibleUnits } from '../../domain/filters/options';
@@ -96,13 +96,14 @@ export function GlobalFilterBar({ scopeNote }: GlobalFilterBarProps) {
           ))}
           <label className={`global-filters__custom${granularity === 'personalizado' ? ' is-active' : ''}`}>
             <span>Últimos</span>
-            <input
+            <Input
               type="number"
               min={MIN_PERIOD_DAYS}
               max={MAX_PERIOD_DAYS}
-              value={filters.periodDays}
-              onChange={(event) => {
-                const days = Number(event.target.value);
+              size="sm"
+              value={String(filters.periodDays)}
+              onChange={(value) => {
+                const days = Number(value);
                 if (Number.isFinite(days) && days > 0) update({ periodDays: clampPeriodDays(days) });
               }}
             />

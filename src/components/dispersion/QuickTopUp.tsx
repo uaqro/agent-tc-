@@ -1,5 +1,5 @@
 import { useId, useMemo, useRef, useState } from 'react';
-import { Button, Listbox, type ListboxItem } from '@er-mobility-mx/design-system';
+import { Button, Input, Listbox, type ListboxItem } from '@er-mobility-mx/design-system';
 import type { Receipt, Vehicle } from '../../types/dispersion';
 import { suggestedTopUps, toLiters } from '../../data/dispersion';
 import { BoltIcon, CheckCircleIcon, SearchIcon } from '../icons/Icons';
@@ -139,7 +139,7 @@ export function QuickTopUp({
 
       <div className="quick__search">
         <SearchIcon width={17} height={17} />
-        <input
+        <Input
           ref={inputRef}
           type="text"
           role="combobox"
@@ -149,8 +149,8 @@ export function QuickTopUp({
           aria-autocomplete="list"
           placeholder="Buscar unidad, placa, dispositivo o conductor…"
           value={query}
-          onChange={(event) => {
-            setQuery(event.target.value);
+          onChange={(value) => {
+            setQuery(value);
             setSelected(null);
             setHighlight(0);
           }}
@@ -228,14 +228,15 @@ export function QuickTopUp({
             {customMode && (
               <label className="quick__custom">
                 <span className="visually-hidden">Monto personalizado en pesos</span>
-                <input
+                <Input
                   type="number"
                   min={1}
                   step={50}
                   autoFocus
                   value={customAmount}
+                  size="sm"
                   placeholder="0"
-                  onChange={(event) => setCustomAmount(event.target.value)}
+                  onChange={setCustomAmount}
                 />
               </label>
             )}

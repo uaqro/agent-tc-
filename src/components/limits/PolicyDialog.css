@@ -37,10 +37,12 @@
   margin: 0 0 6px;
 }
 
-.policy-form__field > input,
+.policy-form__field > [data-control-shell][data-size],
+.policy-form__optional > [data-control-shell][data-size],
 .policy-form__inline-number,
-.policy-form__native-control {
+.policy-form__native-control > [data-control-shell][data-size] {
   height: 36px;
+  min-height: 36px;
   padding: 0 10px;
   border: 1px solid var(--tc-local-border);
   border-radius: var(--tc-local-radius-sm);
@@ -50,9 +52,10 @@
   outline: none;
 }
 
-.policy-form__field > input:focus,
+.policy-form__field > [data-control-shell][data-size]:focus-within,
+.policy-form__optional > [data-control-shell][data-size]:focus-within,
 .policy-form__inline-number:focus,
-.policy-form__native-control:focus {
+.policy-form__native-control > [data-control-shell][data-size]:focus-within {
   border-color: var(--tc-local-brand-blue);
 }
 
@@ -279,19 +282,12 @@
   min-width: 0;
 }
 
-.policy-form__optional > input {
+.policy-form__optional > [data-control-shell][data-size] {
   width: 100%;
   min-width: 0;
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text-strong);
-  font: inherit;
 }
 
-.policy-form__optional > input:focus-visible {
+.policy-form__optional > [data-control-shell][data-size]:focus-within {
   outline: 2px solid var(--brand-blue);
   outline-offset: 1px;
 }

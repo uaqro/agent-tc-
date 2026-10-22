@@ -261,8 +261,8 @@ separa lo comprobado en navegador de las pruebas SSR persistentes.
 - El constructor de automatizaciones de dispersión usa `Field` y `Select` Flow
   para grupo de unidades, umbral, modo de recarga, ventana de consumo, colchón
   y cadencia; los importes usan `InputAmount`. El tope en litros conserva el
-  input nativo con `min=50` y `step=50`, porque `Input` no declara esos
-  atributos en su API pública; `Field` Flow mantiene la asociación accesible.
+  `Input` de Flow con `min=50` y `step=50`, ahora tipados en la API beta.10;
+  `Field` Flow mantiene la asociación accesible.
   La selección individual de unidades usa `Checkbox` de Flow; las cantidades
   de alcance y los resúmenes mantienen su cálculo actual.
 - El formulario de órdenes de servicio usa `Select`, `DatePicker` de fecha
@@ -272,14 +272,13 @@ separa lo comprobado en navegador de las pruebas SSR persistentes.
   `ChipGroup` y conserva su selección única controlada.
 - El diálogo de excepción temporal usa `Field` y `Select` Flow para vigencia y
   motivo. El importe en MXN usa `InputAmount`; la ampliación en litros conserva
-  el input numérico y su incremento de 10 L, asociados con `Field`, ya que
-  `Input` no publica los atributos `min`/`step`.
+  `Input` de Flow con `min=1` y `step=10`, asociado con `Field`.
 - El formulario de políticas de límites usa `Input`, `InputAmount`, `Select` y
   `Field` para nombre, medida/periodo, límite monetario, número de cargas,
-  intervalo y estaciones. Se conservan inputs nativos para litros por sus
-  restricciones `min`/`step` y para horarios por su estilo local específico;
-  `Input` sí acepta `type="time"`. Los grupos de selección de combustible/días
-  usan `Chip`/`ChipGroup` y los switches usan `Switch`.
+  intervalo, recorrido, valores formateados y estaciones. Los límites `min`,
+  `max` y `step`, el teclado decimal y la selección al enfocar se conservan en
+  `Input`; los horarios usan `Input` con `type="time"`. Los grupos de selección
+  de combustible/días usan `Chip`/`ChipGroup` y los switches usan `Switch`.
 - La tabla de asignación de unidades usa `Input` y `Select` Flow para la
   búsqueda, el filtro por grupo y la asignación de política. Se conservan los
   filtros y la opción «Sin política»; el resto de controles de la tabla no
@@ -462,9 +461,9 @@ ningún sitio se debe reemplazar en bloque sin preservar su contrato.
 | `Button` — acciones (6 sitios) | TED (preguntas sugeridas); `ApiTag` (trigger de `Popover`); `PageHeader` (toggle de menú); perfil de `TopBar`; «Cambiar» unidad en `QuickTopUp`; trigger del diálogo de `DevMode`. | TED debe usar `ChatComposer.suggestions`, que ya aplica los tokens y tiene la misma acción de envío inmediato. `ApiTag` debe conservar su botón nativo como trigger del `Popover` y `Badge` como presentación; no forzarlo al primitive de acción. Su foco local debe pasar a `--focus-ring`/`--border-focus`, no usar la tinta de texto como sustituto del rol de foco. Para `PageHeader`, preferir comparar el pattern `PageHeader` o `IconButton` ghost; el contrato instalado no declara `aria-controls`, así que habría que añadirlo si se migra. El perfil puede usar `TopBar` de Flow o `Button` secondary alrededor de `Avatar`; la etiqueta responsive puede seguir siendo layout local. «Cambiar» es mejor candidato para `TextAction` que para `Button link`: es una acción textual secundaria, no un enlace ni un CTA; validar que su objetivo de 44 px y la carcasa de búsqueda compongan bien. `DevMode` puede usar una acción secundaria con una etiqueta de estado Flow; su activo morado actual no es un token de acción, así que se debe retirar o mapear a un rol semántico (no reutilizar `viz-*`). |
 | `Button` — navegación y toggle (5 sitios) | Selector de catálogo en `ParametersPage`; pin y opción actual de `SideMenu`; las dos opciones de `scope` en `RuleBuilderDialog`. | En `ParametersPage`, decidir primero si se navega a páginas (`Sidebar`/enlaces con `aria-current`) o se cambia una vista dentro de la página (`Tabs` con tab/panel enlazados y teclado); no marcar como página sin confirmar esa semántica. Los elementos de `SideMenu` son navegación, no acciones genéricas: evaluar el component `Sidebar` o conservar navegación nativa. El pin sí es toggle binario y puede usar `IconButton selected`, que ya refleja `aria-pressed`; si se necesita relacionarlo con otro elemento, falta tipar `aria-controls`. `scope` es selección de formulario; no usar `SegmentedControl`, porque renderiza `tablist`/`tab` y su semántica es pestañas. Preferir un grupo de `Radio`. |
 | `Button` — elección de importe/tipo (3 sitios) | Montos sugeridos y «Otro monto» en `QuickTopUp`; tipo de regla en `RuleBuilderDialog`. | Son elecciones mutuamente excluyentes dentro de formularios, no un conjunto de acciones ni filtros. `Radio` es el contrato semántico inicial. El tipo de regla tiene label, hint y ejemplo dentro de una tarjeta: `Radio` cubre valor, label y descripción, pero no la tercera línea enriquecida; preservar ese contenido componiendo una tarjeta con `Radio` o proponer un componente reutilizable, sin ampliar `Button` con `aria-pressed`. La superficie activa puede usar `--surface-accent-subtle`/`--border-focus` y textos `--text-primary`/`--text-muted`/`--text-accent` si esa composición se valida. |
-| `Input` — números (11 sitios) | `GlobalFilterBar`: días del periodo (`min`/`max` y clamp de negocio); `GasOptimizerPage`: km/L (`min=1`, `max=30`, `step=0.5` y sanitización); `TollBalancesPage`: umbral y objetivo (`min=0`, `step=100`, deshabilitados en solo lectura); `RuleBuilderDialog`: tope por unidad (`min=50`, `step=50`); `PolicyDialog`: límites numéricos opcionales, rango mínimo/máximo de recorrido e intervalo entre cargas (`min`/`step`, y `max` dinámico en el rango); `QuickTopUp`: monto personalizado (`min=1`, `step=50`); `OverrideDialog`: ampliación en litros (`min=1`, `step=10`). | `InputProps` no publica `min`/`max`/`step`; los números deben permanecer nativos hasta que Flow añada el contrato tipado, o exista un primitive con las mismas restricciones. La API tipada también debe conservar cambios como `onChange(value: string)`, disabled, labels y accesibilidad. No usar casts ni asumir que el reenvío en runtime resuelve TypeScript. |
-| `Input` — texto formateado (1 sitio) | `PolicyDialog`: monto/volumen formateado; al enfocar selecciona el texto, mantiene un buffer decimal con hasta dos posiciones y actualiza el valor numérico. | `InputProps` no publica `inputMode` ni `onFocus`, necesarios para teclado decimal y selección al enfocar. Mantenerlo nativo hasta que la API pueda representarlos o se adopte un primitive numérico que preserve el formato y la edición. |
-| `Input` — combobox (1 sitio) | `QuickTopUp`: búsqueda de unidad enlazada a `Listbox`, con `role="combobox"`, `aria-expanded`, `aria-controls`, `aria-activedescendant`, `aria-autocomplete`, ref y manejo de flechas/Enter/Escape. | `InputProps` publica `onKeyDown` y `ref`, pero no `role` ni los atributos ARIA de combobox. Migrar solo cuando la API tipada los admita; conservar la asociación y probar la navegación completa del listbox. |
+| `Input` — números (11 sitios) | `GlobalFilterBar`: días del periodo (`min`/`max` y clamp de negocio); `GasOptimizerPage`: km/L (`min=1`, `max=30`, `step=0.5` y sanitización); `TollBalancesPage`: umbral y objetivo (`min=0`, `step=100`, deshabilitados en solo lectura); `RuleBuilderDialog`: tope por unidad (`min=50`, `step=50`); `PolicyDialog`: límites numéricos opcionales, rango mínimo/máximo de recorrido e intervalo entre cargas (`min`/`step`, y `max` dinámico en el rango); `QuickTopUp`: monto personalizado (`min=1`, `step=50`); `OverrideDialog`: ampliación en litros (`min=1`, `step=10`). | Los 11 campos usan `Input` de Flow beta.10. La API tipada reenvía restricciones HTML y atributos ARIA; se conserva `onChange(value: string)`, estado disabled, asociaciones de etiqueta y validación de negocio. |
+| `Input` — texto formateado (1 sitio) | `PolicyDialog`: monto/volumen formateado; al enfocar selecciona el texto, mantiene un buffer decimal con hasta dos posiciones y actualiza el valor numérico. | Usa `Input` con `inputMode="decimal"`, `onFocus`, `onBlur` y el mismo buffer/validación. |
+| `Input` — combobox (1 sitio) | `QuickTopUp`: búsqueda de unidad enlazada a `Listbox`, con `role="combobox"`, `aria-expanded`, `aria-controls`, `aria-activedescendant`, `aria-autocomplete`, ref y manejo de flechas/Enter/Escape. | Usa `Input` con la semántica ARIA, referencia y teclado originales; el listbox conserva su asociación y selección controlada. |
 
 | Primitive | Madurez web | Uso/relación observada | Evaluación |
 |---|---|---|---|
@@ -1088,10 +1087,10 @@ públicos y madurez; no se migran componentes por bloque o semejanza visual.
 
 ### Adopción de Listbox y evaluación de barras de uso
 
-- `QuickTopUp` conserva su input de búsqueda porque el usuario filtra por placa,
-  dispositivo, conductor y grupo. `Listbox` reemplaza la estructura manual de
-  opciones y expone IDs estables, estado activo controlado y selección ARIA; el
-  input conserva el contrato de combobox y sus flechas/Enter/Escape existentes.
+- `QuickTopUp` usa `Input` de Flow para la búsqueda por placa, dispositivo,
+  conductor y grupo. `Listbox` reemplaza la estructura manual de opciones y
+  expone IDs estables, estado activo controlado y selección ARIA; se conservan
+  el contrato de combobox y las flechas/Enter/Escape existentes.
 - No se migra la barra de gasto de peaje a `LimitBar` ni a `Progress`: el
   producto usa estados en 75% y 90%, mientras que `LimitBar` solo marca
   sobrepaso al 100% y `Progress` no ofrece umbrales. Mantener la señal actual

@@ -50,18 +50,22 @@
   color: var(--tc-local-text-muted);
 }
 
-.toll-auto__field input {
+.toll-auto__field [data-control-shell][data-size] {
   width: 130px;
   height: 34px;
+  min-height: 34px;
   padding: 0 10px;
   border: 1px solid var(--tc-local-border-control);
   border-radius: var(--tc-local-radius-sm);
   background: var(--tc-local-surface);
+}
+
+.toll-auto__field input {
   font-size: 13px;
   color: var(--tc-local-text-strong);
 }
 
-.toll-auto__field input:disabled {
+.toll-auto__field [data-control-shell][data-size][data-disabled] {
   background: var(--tc-local-surface-sunken);
   color: var(--tc-local-text-muted);
 }

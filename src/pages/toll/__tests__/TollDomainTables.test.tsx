@@ -21,6 +21,10 @@ describe('Flow tables in toll and maintenance domains', () => {
     expect(tables[0]).toContain(tollTags.find((tag) => tag.vehicleId !== null)?.number);
     expect(tables[0]).toContain('Recargar');
     expect(tables[0]).toContain('Recortar');
+    expect(html).toContain('data-control-shell=""');
+    expect(html).toContain('min="0"');
+    expect(html).toContain('step="100"');
+    expect(html).toContain('data-disabled="true"');
     expect(tables[0]).not.toContain('data-sortable');
     expect(tables[1]).toContain('<caption data-sr-only="">Últimos movimientos</caption>');
     expect(tables[1].match(/<tr\b/g)).toHaveLength(Math.min(tollMovements.length, 10) + 1);

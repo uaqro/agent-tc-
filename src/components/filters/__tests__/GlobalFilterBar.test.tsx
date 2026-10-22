@@ -25,6 +25,9 @@ describe('GlobalFilterBar', () => {
     expect(html).toContain('aria-labelledby="global-filter-org-label"');
     expect(html).toContain('aria-labelledby="global-filter-product-label"');
     expect(html).toContain('aria-labelledby="global-filter-group-label"');
+    expect(html).toContain('data-control-shell=""');
+    expect(html).toContain('min="1"');
+    expect(html).toContain('max="90"');
     expect(html).toContain('Toda la empresa');
     expect(html).not.toContain('<select');
   });

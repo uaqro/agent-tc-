@@ -640,11 +640,16 @@ separados después de cerrar el piloto, sin mezclarlo con E1.
   nativas; el inventario baja a 14 inputs nativos en 8 módulos.
 - El nombre de red en `StationNetworkDialog` ahora usa `Input` de Flow.
   Conserva el límite de 50 caracteres y el contador; el inventario baja a 13
-  inputs nativos en 8 módulos.
+  inputs nativos en 7 módulos.
+- Los 13 campos numéricos, formateados y de búsqueda restantes en
+  `GlobalFilterBar`, `PolicyDialog`, `OverrideDialog`, `QuickTopUp`,
+  `GasOptimizerPage`, `TollBalancesPage` y `RuleBuilderDialog` ahora usan
+  `Input` de Flow beta.10. Se conservan límites `min`/`max`/`step`, formatos,
+  validaciones, disabled, ARIA, foco y teclado; no quedan `<input>` nativos
+  escritos directamente en `src/`.
 - Preservar `min`, `max`, `step`, atributos ARIA, autorrelleno y validación.
-  Reenvío en runtime no resuelve una API TypeScript incompatible.
-- Para atributos necesarios no publicados, documentar la brecha y evaluar su
-  aporte al contrato genérico; no usar casts ni quitar restricciones.
+- `InputProps` de beta.10 ya declara los atributos nativos restantes, por lo
+  que el reenvío tiene contrato TypeScript además de runtime.
 - Probar envío/cancelación, requerido, errores, límites y teclado. No retomar
   Tabs/Accordion ya completados salvo regresión del lote.
 

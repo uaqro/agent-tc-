@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Field, InputAmount, Select } from '@er-mobility-mx/design-system';
+import { Button, Field, Input, InputAmount, Select } from '@er-mobility-mx/design-system';
 import type { FundingRule, Vehicle } from '../../types/dispersion';
 import { vehicleGroups } from '../../data/dispersion';
 import {
@@ -213,15 +213,17 @@ export function RuleBuilderDialog({ open, vehicles, onClose, onCreate }: RuleBui
 
           {draft.type === 'top-off' && (
             <Field label="Tope por unidad (L)" htmlFor="rule-builder-cap-liters">
-              <input
-                id="rule-builder-cap-liters"
-                className="builder__native-control"
-                type="number"
-                min={50}
-                step={50}
-                value={draft.capLiters}
-                onChange={(event) => patch({ capLiters: Number(event.target.value) })}
-              />
+              <div className="builder__native-control">
+                <Input
+                  id="rule-builder-cap-liters"
+                  type="number"
+                  min={50}
+                  step={50}
+                  size="sm"
+                  value={String(draft.capLiters)}
+                  onChange={(value) => patch({ capLiters: Number(value) })}
+                />
+              </div>
             </Field>
           )}
 

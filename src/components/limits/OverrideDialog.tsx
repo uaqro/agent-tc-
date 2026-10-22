@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Field, InputAmount, Select } from '@er-mobility-mx/design-system';
+import { Button, Field, Input, InputAmount, Select } from '@er-mobility-mx/design-system';
 import type { Vehicle } from '../../types/dispersion';
 import type { LimitOverride, LimitPolicy, OverrideDuration, UnitAssignment } from '../../types/limits';
 import {
@@ -63,15 +63,17 @@ export function OverrideDialog({ vehicle, assignment, policy, onClose, onConfirm
               onChange={(value) => setExtra(Number(value) || 0)}
             />
           ) : (
-            <input
-              id="override-extra"
-              className="policy-form__native-control"
-              type="number"
-              min={1}
-              step={10}
-              value={extra}
-              onChange={(event) => setExtra(Number(event.target.value))}
-            />
+            <div className="policy-form__native-control">
+              <Input
+                id="override-extra"
+                type="number"
+                min={1}
+                step={10}
+                size="sm"
+                value={String(extra)}
+                onChange={(value) => setExtra(Number(value))}
+              />
+            </div>
           )}
         </Field>
         <Field label="Vigencia" htmlFor="override-duration">

@@ -57,6 +57,18 @@
   box-shadow: 0 0 0 3px rgba(47, 107, 255, 0.12);
 }
 
+.quick__search > [data-control-shell][data-size] {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .quick__search input {
   flex: 1;
   min-width: 0;
@@ -175,15 +187,25 @@
   color: #fff;
 }
 
-.quick__custom input {
+.quick__custom [data-control-shell][data-size] {
   width: 130px;
   height: 38px;
+  min-height: 38px;
   padding: 0 12px;
   border: 1px solid var(--tc-local-brand-blue);
   border-radius: 999px;
+}
+
+.quick__custom input {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
   outline: none;
   font-size: 13.5px;
   color: var(--tc-local-text-strong);
+  background: transparent;
 }
 
 .quick__confirm {

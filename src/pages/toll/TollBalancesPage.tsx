@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Badge, Button, Card, Switch, Table, type GridColumn } from '@er-mobility-mx/design-system';
+import { Badge, Button, Card, Input, Switch, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { TollAmountDialog, type TollAmountMode } from '../../components/toll/TollAmountDialog';
 import { fleetVehicles as vehicles } from '../../data/dispersion';
@@ -301,24 +301,26 @@ export function TollBalancesPage({ onNotice, readOnly = false }: TollBalancesPag
                 </div>
                 <label className="toll-auto__field">
                   <span>Si baja de</span>
-                  <input
+                  <Input
                     type="number"
                     min={0}
                     step={100}
                     disabled={readOnly || !config.enabled}
-                    value={config.thresholdMXN}
-                    onChange={(event) => patchAutoTopUp(config.groupId, { thresholdMXN: Number(event.target.value) })}
+                    size="sm"
+                    value={String(config.thresholdMXN)}
+                    onChange={(value) => patchAutoTopUp(config.groupId, { thresholdMXN: Number(value) })}
                   />
                 </label>
                 <label className="toll-auto__field">
                   <span>Recargar a</span>
-                  <input
+                  <Input
                     type="number"
                     min={0}
                     step={100}
                     disabled={readOnly || !config.enabled}
-                    value={config.targetMXN}
-                    onChange={(event) => patchAutoTopUp(config.groupId, { targetMXN: Number(event.target.value) })}
+                    size="sm"
+                    value={String(config.targetMXN)}
+                    onChange={(value) => patchAutoTopUp(config.groupId, { targetMXN: Number(value) })}
                   />
                 </label>
                 {config.enabled && invalid && (

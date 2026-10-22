@@ -98,18 +98,21 @@
   gap: 12px;
 }
 
-.builder__native-control {
+.builder__native-control [data-control-shell][data-size] {
   height: 36px;
+  min-height: 36px;
   padding: 0 10px;
   border: 1px solid var(--tc-local-border);
   border-radius: var(--tc-local-radius-sm);
   background: var(--tc-local-surface);
-  font-size: 13.5px;
-  color: var(--tc-local-text-strong);
-  outline: none;
 }
 
-.builder__native-control:focus {
+.builder__native-control input {
+  font-size: 13.5px;
+  color: var(--tc-local-text-strong);
+}
+
+.builder__native-control [data-control-shell][data-size]:focus-within {
   border-color: var(--tc-local-brand-blue);
 }
 
