@@ -40,9 +40,8 @@
 .modal:has(.network-editor) > .modal__body { overflow-y: auto; min-height: 0; }
 .network-editor__identity { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px; }
 .network-editor__field { display: flex; flex-direction: column; gap: 7px; font-size: 12px; color: var(--text-body); }
-.network-editor__field > span { display: flex; justify-content: space-between; gap: 10px; }
+.network-editor__field > label { display: flex; justify-content: space-between; gap: 10px; }
 .network-editor__field small { color: var(--text-muted); }
-.network-editor__field input { min-width: 0; height: 36px; padding: 0 10px; border: 1px solid var(--border-control); border-radius: var(--radius-sm); color: var(--text-strong); background: var(--surface); font: inherit; }
 .network-editor__mode { display: flex; gap: 16px; align-items: center; min-width: 0; border: none; padding: 0; margin: 0; }
 .network-editor__mode legend { font-size: 12px; color: var(--text-body); margin-bottom: 7px; }
 .network-editor__mode label { display: flex; align-items: center; gap: 7px; font-size: 13px; }

@@ -112,9 +112,18 @@ export function StationNetworkDialog({ network, networks, initialStationIds = []
       <button type="button" className="btn btn--primary" onClick={save}>{network ? 'Guardar cambios' : 'Crear red'}</button></>}>
     <div className="network-editor">
       <div className="network-editor__identity">
-        <label className="network-editor__field"><span>Nombre de la red <small>{name.length}/50</small></span>
-          <input autoFocus type="text" maxLength={50} value={name} onChange={(event) => { setName(event.target.value); setError(''); }} placeholder="Ej. Red de estaciones Bajío" />
-        </label>
+        <div className="network-editor__field">
+          <label htmlFor="station-network-name">Nombre de la red <small>{name.length}/50</small></label>
+          <Input
+            id="station-network-name"
+            autoFocus
+            type="text"
+            value={name}
+            onChange={(value) => { setName(value.slice(0, 50)); setError(''); }}
+            placeholder="Ej. Red de estaciones Bajío"
+            style={{ width: '100%', maxWidth: 'none' }}
+          />
+        </div>
         <fieldset className="network-editor__mode">
           <legend>La red contiene estaciones</legend>
           <Radio name="network-mode" value="allow" checked={mode === 'allow'} label="Permitidas" onChange={() => setMode('allow')} />

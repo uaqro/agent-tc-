@@ -638,6 +638,9 @@ separados después de cerrar el piloto, sin mezclarlo con E1.
 - La casilla de supuesto «Desvío de ida y vuelta» de `GasOptimizerPage` también
   usa `Checkbox` de Flow y conserva su estado controlado. No quedan casillas
   nativas; el inventario baja a 14 inputs nativos en 8 módulos.
+- El nombre de red en `StationNetworkDialog` ahora usa `Input` de Flow.
+  Conserva el límite de 50 caracteres y el contador; el inventario baja a 13
+  inputs nativos en 8 módulos.
 - Preservar `min`, `max`, `step`, atributos ARIA, autorrelleno y validación.
   Reenvío en runtime no resuelve una API TypeScript incompatible.
 - Para atributos necesarios no publicados, documentar la brecha y evaluar su
