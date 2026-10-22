@@ -1,0 +1,54 @@
+.toll-report-builder .toll-report__types {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.toll-report-builder .toll-report__types legend {
+  margin-bottom: 8px;
+  padding: 0;
+  color: var(--text-primary);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.toll-report-builder .toll-report__types > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+
+.toll-report__filter {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(100px, 0.65fr) minmax(150px, 1.2fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.toll-report__filter select {
+  height: 36px;
+  min-width: 0;
+  padding: 0 9px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12px;
+}
+
+.toll-report__group h4 {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+@media (max-width: 640px) {
+  .toll-report__filter {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}

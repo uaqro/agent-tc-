@@ -53,23 +53,23 @@
 }
 
 .attention__icon--zero-balance {
-  background: rgba(226, 0, 26, 0.1);
-  color: #b4001a;
+  background: var(--status-danger-bg);
+  color: var(--status-danger-text);
 }
 
 .attention__icon--balance-request {
-  background: rgba(47, 107, 255, 0.12);
-  color: #1d55e0;
+  background: var(--status-info-bg);
+  color: var(--status-info-text);
 }
 
 .attention__icon--anomalous-consumption {
-  background: rgba(242, 134, 13, 0.14);
-  color: #a85c02;
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
 }
 
 .attention__icon--trapped-balance {
-  background: rgba(47, 107, 255, 0.12);
-  color: #1d55e0;
+  background: var(--status-info-bg);
+  color: var(--status-info-text);
 }
 
 .attention__content {

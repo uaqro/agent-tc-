@@ -34,7 +34,7 @@
 }
 
 .assignments__override {
-  color: #1d55e0;
+  color: var(--status-info-text);
 }
 
 .assignments__bar {
@@ -64,5 +64,5 @@
 
 .assignments__rejections {
   font-weight: 700;
-  color: #b4001a;
+  color: var(--status-danger-text);
 }

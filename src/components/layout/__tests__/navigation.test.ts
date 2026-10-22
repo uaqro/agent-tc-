@@ -9,20 +9,26 @@ import { PageUtilities } from '../PageUtilities';
 import { SessionProvider } from '../../session/Session';
 
 describe('Flow navigation adapter', () => {
-  it('preserves destination IDs, order and labels, without making captions navigable', () => {
+  it('groups each module in a collapsible section and keeps every destination ID in order', () => {
     const items = navigationItems(menuGroups);
-    const destinations = items.flatMap((item) => item.caption ? item.children ?? [] : [item]);
+    const destinations = items.flatMap((item) => item.children ?? [item]);
     expect(destinations.map((item) => item.id)).toEqual(menuGroups.flatMap((group) => group.items.map((item) => item.id)));
-    expect(destinations.map((item) => item.label)).toEqual(menuGroups.flatMap((group) => group.items.map((item) => item.label)));
     expect(destinations.every((item) => !!item.icon && !item.children)).toBe(true);
-    expect(items.filter((item) => item.caption).every((item) => !item.href)).toBe(true);
+    expect(items.every((item) => !item.caption && !!item.icon)).toBe(true);
+    expect(items.length).toBeLessThan(destinations.length);
+  });
+
+  it('turns a single-destination module into a direct link named after the module', () => {
+    const items = navigationItems(menuGroups.filter((group) => group.id === 'mantenimiento'));
+    expect(items).toEqual([expect.objectContaining({ id: 'mantenimiento-resumen', label: 'Mantenimiento' })]);
+    expect(items[0].children).toBeUndefined();
   });
 
   it('includes only the supplied authorized groups and removes empty groups', () => {
     const authorized = menuGroups.filter((group) => group.id === 'flota');
     const items = navigationItems([...authorized, { id: 'empty', label: 'Vacío', items: [] }]);
     expect(items.map((item) => item.id)).toEqual(['flota']);
-    expect(items[0].children?.map((item) => item.id)).toEqual(['vehiculos', 'conductores']);
+    expect(items[0].children?.map((item) => item.id)).toEqual(authorized[0].items.map((item) => item.id));
   });
 
   it('renders the actual active destination and removes the legacy pin', () => {

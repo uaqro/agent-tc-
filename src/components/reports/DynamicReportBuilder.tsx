@@ -1,68 +1,106 @@
-import { useMemo, useState } from 'react';
-import { Button, Checkbox, DatePicker, Field, Input, Select } from '@er-mobility-mx/design-system';
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 import {
   ADVANCED_FILTER_FIELDS,
-  DEFAULT_YIELD_UNIT,
-  EVALUATE_BY,
   FILTER_OPERATORS,
-  REPORT_GROUPERS,
-  REPORT_TYPES,
-  TRANSACTION_STATES,
-  YIELD_UNITS,
   allReportColumns,
   defaultReportColumns,
   reportColumnGroups,
 } from '../../data/reports';
-import { today as businessToday } from '../../domain/demo/clock';
-import { formatDateLong } from '../../utils/format';
+import {
+  createDemoFuelTransactions,
+  filterFuelTransactions,
+  reorderColumns,
+  valuesForFilter,
+  type AdvancedTransactionFilter,
+  type TransactionQuery,
+  type TransactionStatus,
+} from '../../domain/reporting/data';
+import { defaultReportPeriod, type ReportPeriod } from '../../domain/reporting/periods';
+import { PERIOD_PRESETS } from '../../domain/reporting/periods';
+import { CloseIcon, PlusIcon, SearchIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
+import { useSession } from '../session/Session';
+import { ReportDownloadButtons } from './ReportDownloadButtons';
+import { ReportPeriodPicker } from './ReportPeriodPicker';
 import './DynamicReportBuilder.css';
 
-interface AdvancedFilter {
-  id: number;
-  field: string;
-  operator: string;
-  value: string;
+interface SavedColumnView {
+  id: string;
+  name: string;
+  columns: string[];
+  period: ReportPeriod;
+  statuses: TransactionStatus[];
+  filters: AdvancedTransactionFilter[];
 }
 
 interface GeneratedReport {
-  type: string;
-  from: string;
-  to: string;
-  grouper: string;
+  query: TransactionQuery;
   columns: string[];
 }
 
-const toISODate = (date: Date) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+const STATUS_OPTIONS: TransactionStatus[] = ['Conciliada', 'En tránsito', 'Rechazada'];
+const SAVED_VIEWS_KEY = 'tcplus.reporting.transaction-views.v1';
 
-/** Month to date of the business date (the demo date by default). */
-function defaultRange(today = businessToday()) {
-  return { from: toISODate(new Date(today.getFullYear(), today.getMonth(), 1)), to: toISODate(today) };
+function isSavedView(value: unknown): value is SavedColumnView {
+  if (typeof value !== 'object' || value === null) return false;
+  const view = value as Partial<SavedColumnView>;
+  return typeof view.id === 'string' && typeof view.name === 'string' &&
+    Array.isArray(view.columns) && view.columns.length > 0 &&
+    view.columns.every((column) => typeof column === 'string' && allReportColumns.includes(column)) &&
+    typeof view.period === 'object' && view.period !== null &&
+    PERIOD_PRESETS.some((preset) => preset.id === view.period!.preset) &&
+    typeof view.period.from === 'string' && typeof view.period.to === 'string' &&
+    Array.isArray(view.statuses) && view.statuses.length > 0 &&
+    view.statuses.every((status) => STATUS_OPTIONS.includes(status)) &&
+    Array.isArray(view.filters) && view.filters.every((filter) =>
+      typeof filter.id === 'number' && ADVANCED_FILTER_FIELDS.includes(filter.field) &&
+      FILTER_OPERATORS.includes(filter.operator) && typeof filter.value === 'string',
+    );
 }
-const REPORT_FIELD_IDS = {
-  type: 'dynamic-report-type',
-  yieldUnit: 'dynamic-report-yield-unit',
-  grouper: 'dynamic-report-grouper',
-  period: 'dynamic-report-period',
-  evaluateBy: 'dynamic-report-evaluate-by',
-  state: 'dynamic-report-state',
-};
 
-let filterSequence = 0;
+function loadSavedViews(storageKey: string): SavedColumnView[] {
+  try {
+    const value = window.localStorage.getItem(storageKey);
+    const parsed: unknown = value ? JSON.parse(value) : [];
+    return Array.isArray(parsed) ? parsed.filter(isSavedView) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Flow: montos, placas, IDs, fechas y cantidades se leen en tipografía de datos. */
+const DATA_COLUMN = /FECHA|HORA|PLACA|DISPOSITIVO|TARJETA|FOLIO|N[ÚU]MERO|NO\.|ID\b|IMPORTE|MONTO|PRECIO|LITROS|SALDO|KM|OD[ÓO]METRO|RENDIMIENTO|IVA|IEPS|TOTAL|CANTIDAD|AUTORIZACI[ÓO]N/i;
+
+function formatCell(column: string, value: string | number): string | number {
+  if (column === 'FECHA' && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [year, month, day] = value.split('-').map(Number);
+    return new Date(year!, month! - 1, day!, 12).toLocaleDateString('es-MX');
+  }
+  return value === '' ? '—' : value;
+}
+
+function defaultGeneratedReport(): GeneratedReport {
+  const period = defaultReportPeriod();
+  return { query: { ...period, statuses: [...STATUS_OPTIONS], filters: [] }, columns: [...defaultReportColumns] };
+}
 
 export function DynamicReportBuilder() {
-  const [type, setType] = useState(REPORT_TYPES[0]);
-  const [yieldUnit, setYieldUnit] = useState(DEFAULT_YIELD_UNIT);
-  const [grouper, setGrouper] = useState(REPORT_GROUPERS[0]);
-  const [from, setFrom] = useState(() => defaultRange().from);
-  const [to, setTo] = useState(() => defaultRange().to);
-  const [evaluateBy, setEvaluateBy] = useState(EVALUATE_BY[0]);
-  const [state, setState] = useState(TRANSACTION_STATES[0]);
-  const [filters, setFilters] = useState<AdvancedFilter[]>([]);
+  const { principal } = useSession();
+  const savedViewsKey = `${SAVED_VIEWS_KEY}.${principal.userId}`;
+  const [period, setPeriod] = useState<ReportPeriod>(defaultReportPeriod);
+  const [statuses, setStatuses] = useState<TransactionStatus[]>(STATUS_OPTIONS);
+  const [filters, setFilters] = useState<AdvancedTransactionFilter[]>([]);
   const [selected, setSelected] = useState<string[]>(defaultReportColumns);
   const [columnQuery, setColumnQuery] = useState('');
-  const [generated, setGenerated] = useState<GeneratedReport | null>(null);
+  const [savedViews, setSavedViews] = useState<SavedColumnView[]>(() => loadSavedViews(savedViewsKey));
+  const [selectedViewId, setSelectedViewId] = useState('');
+  const [viewName, setViewName] = useState('');
+  const [generated, setGenerated] = useState<GeneratedReport>(defaultGeneratedReport);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [columnsOpen, setColumnsOpen] = useState(false);
+  const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
+  const pointerDraggedColumn = useRef<string | null>(null);
+  const transactions = useMemo(() => createDemoFuelTransactions(), []);
 
   const visibleGroups = useMemo(() => {
     const needle = columnQuery.trim().toLowerCase();
@@ -72,266 +110,336 @@ export function DynamicReportBuilder() {
       .filter((group) => group.columns.length > 0);
   }, [columnQuery]);
 
-  const periodValid = from !== '' && to !== '' && from <= to;
-  const periodError = !from || !to ? 'Selecciona las fechas inicial y final del período.' : undefined;
+  const periodValid = period.from !== '' && period.to !== '' && period.from <= period.to;
   const allSelected = selected.length === allReportColumns.length;
+  const generatedRows = filterFuelTransactions(transactions, generated.query);
+  const totalAmount = generatedRows.reduce((sum, row) => sum + (typeof row['M.N.'] === 'number' ? row['M.N.'] : 0), 0);
+  const activeFilterCount = filters.filter((filter) => filter.value.trim()).length;
+  const periodLabel = PERIOD_PRESETS.find((preset) => preset.id === period.preset)?.label ?? 'Personalizado';
 
-  const setColumns = (columns: string[], checked: boolean) =>
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(savedViewsKey, JSON.stringify(savedViews));
+    } catch {
+      // El constructor sigue disponible si el navegador bloquea el almacenamiento local.
+    }
+  }, [savedViews, savedViewsKey]);
+
+  const setColumns = (columns: string[], checked: boolean) => {
+    setSelectedViewId('');
     setSelected((current) => {
-      const next = new Set(current);
-      columns.forEach((column) => (checked ? next.add(column) : next.delete(column)));
-      // Keeps the catalogue order, which is the order of the columns in the report.
-      return allReportColumns.filter((column) => next.has(column));
+      const next = checked ? [...current, ...columns.filter((column) => !current.includes(column))] : current.filter((column) => !columns.includes(column));
+      return next;
     });
+  };
 
-  const patchFilter = (id: number, changes: Partial<AdvancedFilter>) =>
+  const patchFilter = (id: number, changes: Partial<AdvancedTransactionFilter>) => {
+    setSelectedViewId('');
     setFilters((current) => current.map((filter) => (filter.id === id ? { ...filter, ...changes } : filter)));
+  };
+
+  const moveColumn = (index: number, direction: -1 | 1) => {
+    setSelectedViewId('');
+    setSelected((current) => {
+      const target = index + direction;
+      if (target < 0 || target >= current.length) return current;
+      const next = [...current];
+      [next[index], next[target]] = [next[target]!, next[index]!];
+      return next;
+    });
+  };
+
+  const startColumnDrag = (event: PointerEvent<HTMLButtonElement>, column: string) => {
+    event.preventDefault();
+    pointerDraggedColumn.current = column;
+    setDraggedColumn(column);
+  };
+
+  const enterColumn = (target: string) => {
+    const source = pointerDraggedColumn.current;
+    if (source && source !== target) {
+      setSelectedViewId('');
+      setSelected((current) => reorderColumns(current, source, target));
+    }
+  };
+
+  useEffect(() => {
+    const finishColumnDrag = () => {
+      if (pointerDraggedColumn.current === null) return;
+      pointerDraggedColumn.current = null;
+      setDraggedColumn(null);
+    };
+    window.addEventListener('pointerup', finishColumnDrag);
+    window.addEventListener('pointercancel', finishColumnDrag);
+    return () => {
+      window.removeEventListener('pointerup', finishColumnDrag);
+      window.removeEventListener('pointercancel', finishColumnDrag);
+    };
+  }, []);
 
   const reset = () => {
-    setType(REPORT_TYPES[0]);
-    setYieldUnit(DEFAULT_YIELD_UNIT);
-    setGrouper(REPORT_GROUPERS[0]);
-    const range = defaultRange();
-    setFrom(range.from);
-    setTo(range.to);
-    setEvaluateBy(EVALUATE_BY[0]);
-    setState(TRANSACTION_STATES[0]);
+    setPeriod(defaultReportPeriod());
+    setStatuses(STATUS_OPTIONS);
     setFilters([]);
     setSelected(defaultReportColumns);
     setColumnQuery('');
-    setGenerated(null);
+    setSelectedViewId('');
+    setGenerated(defaultGeneratedReport());
   };
+
+  const saveView = () => {
+    const name = viewName.trim();
+    if (!name || selected.length === 0) return;
+    const id = `view-${Date.now()}`;
+    setSavedViews((current) => [...current.filter((view) => view.name.toLocaleLowerCase('es-MX') !== name.toLocaleLowerCase('es-MX')), {
+      id,
+      name,
+      columns: [...selected],
+      period: { ...period },
+      statuses: [...statuses],
+      filters: filters.map((filter) => ({ ...filter })),
+    }]);
+    setSelectedViewId(id);
+    setViewName('');
+  };
+
+  const loadView = (id: string) => {
+    setSelectedViewId(id);
+    const view = savedViews.find((candidate) => candidate.id === id);
+    if (view) {
+      setSelected([...view.columns]);
+      setPeriod({ ...view.period });
+      setStatuses([...view.statuses]);
+      setFilters(view.filters.map((filter) => ({ ...filter })));
+    }
+  };
+
+  const removeSelectedView = () => {
+    setSavedViews((current) => current.filter((view) => view.id !== selectedViewId));
+    setSelectedViewId('');
+  };
+
+  const generateReport = () => {
+    if (!periodValid || statuses.length === 0 || selected.length === 0) return;
+    const columns = [...selected];
+    if (statuses.includes('Rechazada') && !columns.includes('MOTIVO DE RECHAZO')) columns.push('MOTIVO DE RECHAZO');
+    setGenerated({
+      query: { ...period, statuses: [...statuses], filters: filters.map((filter) => ({ ...filter })) },
+      columns,
+    });
+  };
+
+  const generatedData = generatedRows.map((row) => generated.columns.map((column) => formatCell(column, row[column] ?? '')));
 
   return (
     <div className="report-builder">
-      <div className="report-builder__form">
-        <fieldset className="report-builder__block">
-          <legend>Reporte</legend>
-          <div className="report-builder__fields">
-            <Field label="Tipo de reporte" htmlFor={REPORT_FIELD_IDS.type}>
-              <Select id={REPORT_FIELD_IDS.type} options={REPORT_TYPES} value={type} onChange={setType} />
-            </Field>
-            <Field label="Rendimiento" htmlFor={REPORT_FIELD_IDS.yieldUnit}>
-              <Select id={REPORT_FIELD_IDS.yieldUnit} options={YIELD_UNITS} value={yieldUnit} onChange={setYieldUnit} />
-            </Field>
-            <Field label="Agrupar por" htmlFor={REPORT_FIELD_IDS.grouper}>
-              <Select id={REPORT_FIELD_IDS.grouper} options={REPORT_GROUPERS} value={grouper} onChange={setGrouper} />
-            </Field>
-          </div>
-        </fieldset>
-
-        <fieldset className="report-builder__block">
-          <legend>Filtros básicos</legend>
-          <div className="report-builder__fields report-builder__fields--four">
-            <div className="report-builder__period">
-              <Field label="Período" htmlFor={REPORT_FIELD_IDS.period} required error={periodError}>
-                <DatePicker
-                  id={REPORT_FIELD_IDS.period}
-                  mode="range"
-                  value={from && to ? `${from}|${to}` : ''}
-                  onChange={(value) => {
-                    if (!value) {
-                      setFrom('');
-                      setTo('');
-                      return;
-                    }
-                    const [rangeStart, rangeEnd] = value.split('|');
-                    setFrom(rangeStart ?? '');
-                    setTo(rangeEnd ?? '');
-                  }}
-                />
-              </Field>
-            </div>
-            <Field label="Evaluar por" htmlFor={REPORT_FIELD_IDS.evaluateBy}>
-              <Select id={REPORT_FIELD_IDS.evaluateBy} options={EVALUATE_BY} value={evaluateBy} onChange={setEvaluateBy} />
-            </Field>
-            <Field label="Estado de la transacción" htmlFor={REPORT_FIELD_IDS.state}>
-              <Select id={REPORT_FIELD_IDS.state} options={TRANSACTION_STATES} value={state} onChange={setState} />
-            </Field>
-          </div>
-        </fieldset>
-
-        <fieldset className="report-builder__block">
-          <legend>Filtros avanzados</legend>
-
-          {filters.length === 0 ? (
-            <p className="report-builder__note">
-              Sin filtros avanzados: el reporte incluye todas las transacciones del período.
-            </p>
-          ) : (
-            <ul className="report-builder__filters">
-              {filters.map((filter) => (
-                <li key={filter.id}>
-                  <Field label="Filtro" htmlFor={`report-filter-field-${filter.id}`}>
-                    <Select
-                      id={`report-filter-field-${filter.id}`}
-                      options={ADVANCED_FILTER_FIELDS}
-                      value={filter.field}
-                      onChange={(value) => patchFilter(filter.id, { field: value })}
+      <div className="report-builder__toolbar">
+        <details className="report-builder__disclosure" open={filtersOpen} onToggle={(event) => setFiltersOpen(event.currentTarget.open)}>
+          <summary>
+            <span>Filtros</span>
+            <small>{periodLabel} · {statuses.length === STATUS_OPTIONS.length ? 'Todos los estados' : `${statuses.length} estados`} · {activeFilterCount} avanzados</small>
+          </summary>
+          <div className="report-builder__disclosure-body">
+            <ReportPeriodPicker value={period} onChange={(nextPeriod) => { setPeriod(nextPeriod); setSelectedViewId(''); }} />
+            <fieldset className="report-builder__block">
+              <legend>Estatus de conciliación</legend>
+              <div className="report-builder__statuses" role="group" aria-label="Estados de conciliación">
+                {STATUS_OPTIONS.map((status) => (
+                  <label className="report-builder__check" key={status}>
+                    <input
+                      type="checkbox"
+                      checked={statuses.includes(status)}
+                      onChange={(event) => {
+                        setSelectedViewId('');
+                        setStatuses((current) => event.target.checked ? [...current, status] : current.filter((item) => item !== status));
+                      }}
                     />
-                  </Field>
-                  <Field label="Operador" htmlFor={`report-filter-operator-${filter.id}`}>
-                    <Select
-                      id={`report-filter-operator-${filter.id}`}
-                      options={FILTER_OPERATORS}
-                      value={filter.operator}
-                      onChange={(value) => patchFilter(filter.id, { operator: value })}
-                    />
-                  </Field>
-                  <Field label={`Valor de ${filter.field}`} htmlFor={`report-filter-value-${filter.id}`}>
-                    <Input
-                      id={`report-filter-value-${filter.id}`}
-                      type="text"
-                      placeholder="Valor"
-                      value={filter.value}
-                      onChange={(value) => patchFilter(filter.id, { value })}
-                    />
-                  </Field>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    icon="close"
-                    ariaLabel={`Quitar filtro de ${filter.field}`}
-                    onClick={() => setFilters((current) => current.filter((candidate) => candidate.id !== filter.id))}
-                  >
-                    Quitar
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
+                    {status}
+                  </label>
+                ))}
+              </div>
+              {statuses.includes('Rechazada') && <p className="report-builder__note">El motivo de rechazo se incluye en la tabla y las descargas.</p>}
+              {statuses.length === 0 && <p className="report-builder__error" role="alert">Selecciona al menos un estado.</p>}
+            </fieldset>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            icon="add"
-            ariaLabel="Agregar filtro"
-            onClick={() =>
-              setFilters((current) => [
-                ...current,
-                { id: ++filterSequence, field: ADVANCED_FILTER_FIELDS[0], operator: FILTER_OPERATORS[0], value: '' },
-              ])
-            }
-          >
-            Agregar filtro
-          </Button>
-        </fieldset>
-
-        <fieldset className="report-builder__block">
-          <legend>
-            Columnas a mostrar · {selected.length} de {allReportColumns.length}
-          </legend>
-
-          <div className="report-builder__columns-tools">
-            <div className="report-builder__search">
-              <Input
-                type="search"
-                icon="search"
-                ariaLabel="Buscar columna"
-                placeholder="Buscar columna"
-                value={columnQuery}
-                onChange={setColumnQuery}
-                style={{ width: '100%' }}
-              />
-            </div>
-            <div className="report-builder__check">
-              <Checkbox
-                checked={allSelected}
-                label="Seleccionar todo"
-                onChange={(checked) => setColumns(allReportColumns, checked)}
-              />
-            </div>
+            <fieldset className="report-builder__block">
+              <legend>Filtros avanzados</legend>
+              {filters.length === 0 ? (
+                <p className="report-builder__note">Agrega filtros opcionales para acotar la consulta.</p>
+              ) : (
+                <ul className="report-builder__filters">
+                  {filters.map((filter) => (
+                    <li key={filter.id}>
+                      <select aria-label="Filtro" value={filter.field} onChange={(event) => patchFilter(filter.id, { field: event.target.value as AdvancedTransactionFilter['field'], value: '' })}>
+                        {ADVANCED_FILTER_FIELDS.map((option) => <option key={option}>{option}</option>)}
+                      </select>
+                      <select aria-label="Operador" value={filter.operator} onChange={(event) => patchFilter(filter.id, { operator: event.target.value as AdvancedTransactionFilter['operator'] })}>
+                        {FILTER_OPERATORS.map((option) => <option key={option}>{option}</option>)}
+                      </select>
+                      <select aria-label={`Valor de ${filter.field}`} value={filter.value} onChange={(event) => patchFilter(filter.id, { value: event.target.value })}>
+                        <option value="">Selecciona un valor</option>
+                        {valuesForFilter(transactions, filter.field).map((value) => <option key={value}>{value}</option>)}
+                      </select>
+                      <button type="button" className="report-builder__remove" onClick={() => {
+                        setSelectedViewId('');
+                        setFilters((current) => current.filter((candidate) => candidate.id !== filter.id));
+                      }}>
+                        <CloseIcon width={15} height={15} />
+                        <span className="visually-hidden">Quitar filtro de {filter.field}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <button type="button" className="btn btn--secondary btn--sm" onClick={() => {
+                setSelectedViewId('');
+                setFilters((current) => [...current, { id: Date.now() + current.length, field: ADVANCED_FILTER_FIELDS[0], operator: FILTER_OPERATORS[0], value: '' }]);
+              }}>
+                <PlusIcon width={14} height={14} />
+                Agregar filtro
+              </button>
+            </fieldset>
           </div>
+        </details>
 
-          <div className="report-builder__columns">
-            {visibleGroups.map((group) => {
-              const groupSelected = group.columns.every((column) => selected.includes(column));
-              return (
-                <section className="report-builder__group" key={group.id}>
-                  <header>
-                    <h3>{group.label}</h3>
-                    <Button variant="link" size="sm" onClick={() => setColumns(group.columns, !groupSelected)}>
-                      {groupSelected ? 'Quitar todas' : 'Marcar todas'}
-                    </Button>
-                  </header>
-                  <div className="report-builder__group-grid">
-                    {group.columns.map((column) => (
-                      <div className="report-builder__check" key={column}>
-                        <Checkbox
-                          checked={selected.includes(column)}
-                          label={column}
-                          onChange={(checked) => setColumns([column], checked)}
-                        />
+        <details className="report-builder__disclosure" open={columnsOpen} onToggle={(event) => setColumnsOpen(event.currentTarget.open)}>
+          <summary>
+            <span>Campos y orden</span>
+            <small>{selected.length} seleccionados</small>
+          </summary>
+          <div className="report-builder__disclosure-body report-builder__column-settings">
+            <div className="report-builder__columns-tools">
+              <label className="report-builder__search">
+                <SearchIcon width={15} height={15} />
+                <span className="visually-hidden">Buscar campo disponible</span>
+                <input type="search" placeholder="Buscar campos" value={columnQuery} onChange={(event) => setColumnQuery(event.target.value)} />
+              </label>
+              <label className="report-builder__check">
+                <input type="checkbox" checked={allSelected} onChange={(event) => setColumns(allReportColumns, event.target.checked)} />
+                Seleccionar todos
+              </label>
+            </div>
+
+            <section className="report-builder__selected-fields" aria-labelledby="selected-fields-title">
+              <header>
+                <h3 id="selected-fields-title">Seleccionados · arrastra para ordenar</h3>
+                <span>{selected.length} campos</span>
+              </header>
+              {selected.length === 0 ? (
+                <p className="report-builder__note">Marca campos disponibles para agregarlos al reporte.</p>
+              ) : (
+                <ol className="report-builder__order">
+                  {selected.map((column, index) => (
+                    <li
+                      key={column}
+                      className={draggedColumn === column ? 'is-dragging' : ''}
+                      onPointerEnter={() => enterColumn(column)}
+                    >
+                      <button
+                        type="button"
+                        className="report-builder__drag-handle"
+                        title="Arrastrar para reordenar"
+                        aria-label={`Arrastrar ${column} para reordenar`}
+                        aria-pressed={draggedColumn === column}
+                        onPointerDown={(event) => startColumnDrag(event, column)}
+                      >
+                        ⋮⋮
+                      </button>
+                      <label className="report-builder__check">
+                        <input type="checkbox" checked onChange={() => setColumns([column], false)} />
+                        {column}
+                      </label>
+                      <div>
+                        <button type="button" aria-label={`Mover ${column} hacia arriba`} title="Mover hacia arriba" disabled={index === 0} onClick={() => moveColumn(index, -1)}>↑</button>
+                        <button type="button" aria-label={`Mover ${column} hacia abajo`} title="Mover hacia abajo" disabled={index === selected.length - 1} onClick={() => moveColumn(index, 1)}>↓</button>
                       </div>
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
 
-            {visibleGroups.length === 0 && (
-              <EmptyState
-                compact
-                icon="search"
-                title={`Ninguna columna coincide con “${columnQuery.trim()}”`}
-                actions={
-                  <Button variant="secondary" size="sm" onClick={() => setColumnQuery('')}>
-                    Limpiar búsqueda
-                  </Button>
-                }
-              />
-            )}
+            <section className="report-builder__available-fields" aria-label="Campos disponibles">
+              <h3>Agregar campos disponibles</h3>
+              <div className="report-builder__columns">
+                {visibleGroups.map((group) => {
+                  const available = group.columns.filter((column) => !selected.includes(column));
+                  if (available.length === 0) return null;
+                  const groupSelected = available.every((column) => selected.includes(column));
+                  return (
+                    <section className="report-builder__group" key={group.id}>
+                      <header>
+                        <h4>{group.label}</h4>
+                        <button type="button" onClick={() => setColumns(available, !groupSelected)}>{groupSelected ? 'Quitar todas' : 'Agregar todas'}</button>
+                      </header>
+                      <div className="report-builder__group-grid">
+                        {available.map((column) => (
+                          <label className="report-builder__check" key={column}>
+                            <input type="checkbox" checked={selected.includes(column)} onChange={(event) => setColumns([column], event.target.checked)} />
+                            {column}
+                          </label>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
+                {visibleGroups.length === 0 && <p className="report-builder__note">No hay campos que coincidan con “{columnQuery.trim()}”.</p>}
+              </div>
+            </section>
+
+            <section className="report-builder__saved-settings" aria-label="Vistas personales">
+              <label className="report-builder__saved-select">
+                <span>Vistas personales</span>
+                <select aria-label="Cargar vista guardada" value={selectedViewId} onChange={(event) => loadView(event.target.value)}>
+                  <option value="">Selecciona una vista</option>
+                  {savedViews.map((view) => <option key={view.id} value={view.id}>{view.name}</option>)}
+                </select>
+              </label>
+              <button type="button" className="btn btn--secondary btn--sm" disabled={!selectedViewId} onClick={removeSelectedView}>
+                <CloseIcon width={14} height={14} />
+                Eliminar vista
+              </button>
+              <input aria-label="Nombre de la vista" placeholder="Nombre de la vista" value={viewName} onChange={(event) => setViewName(event.target.value)} />
+              <button type="button" className="btn btn--secondary btn--sm" disabled={!viewName.trim() || selected.length === 0} onClick={saveView}>
+                Guardar vista
+              </button>
+            </section>
           </div>
+        </details>
 
-          {selected.length === 0 && (
-            <p className="report-builder__error" role="alert">
-              Elige al menos una columna para generar el reporte.
-            </p>
-          )}
-        </fieldset>
-
-        <div className="report-builder__actions">
-          <Button variant="ghost" onClick={reset}>
-            Restablecer
-          </Button>
-          <Button
-            variant="primary"
-            disabled={!periodValid || selected.length === 0}
-            onClick={() => setGenerated({ type, from, to, grouper, columns: selected })}
-          >
-            Generar reporte
-          </Button>
-        </div>
+        <button type="button" className="btn btn--primary" disabled={!periodValid || statuses.length === 0 || selected.length === 0} onClick={generateReport}>
+          Actualizar reporte
+        </button>
+        <button type="button" className="btn btn--ghost" onClick={reset}>Restablecer</button>
       </div>
 
       <section className="report-builder__result" aria-live="polite" aria-label="Resultado del reporte">
-        {generated ? (
-          <>
-            <div className="report-builder__preview">
-              <table>
-                <thead>
-                  <tr>
-                    {generated.columns.map((column) => (
-                      <th scope="col" key={column}>
-                        {column}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-              </table>
-            </div>
-            <EmptyState
-              icon="query_stats"
-              title="No hay transacciones que coincidan"
-              description={`${generated.type} del ${formatDateLong(generated.from)} al ${formatDateLong(generated.to)}, agrupado por ${generated.grouper}. Amplía el período, cambia el estado de la transacción o quita filtros avanzados.`}
-            />
-          </>
-        ) : (
-          <EmptyState
-            icon="rule"
-            title="Aún no has generado el reporte"
-            description="Define el período, los filtros, el agrupador y las columnas; al generar, las transacciones aparecen aquí."
+        <div className="report-builder__result-head">
+          <div>
+            <strong>{generatedRows.length} transacciones</strong>
+            <span>Importe total: {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(totalAmount)}</span>
+          </div>
+          <ReportDownloadButtons
+            columns={generated.columns}
+            rows={generatedData}
+            fileName={`reporte-transaccional-${generated.query.from}-${generated.query.to}`}
           />
+        </div>
+        {generatedRows.length === 0 ? (
+          <EmptyState icon="query_stats" title="No hay transacciones que coincidan" description="Ajusta el período, los estados o los filtros avanzados." />
+        ) : (
+          <div className="report-builder__preview">
+            <table>
+              <thead><tr>{generated.columns.map((column) => <th scope="col" key={column}>{column}</th>)}</tr></thead>
+              <tbody>
+                {generatedRows.map((row) => (
+                  <tr key={row.id}>
+                    {generated.columns.map((column) => <td key={`${row.id}-${column}`} data-mono={typeof row[column] === 'number' || DATA_COLUMN.test(column) ? '' : undefined}>{formatCell(column, row[column] ?? '')}</td>)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>

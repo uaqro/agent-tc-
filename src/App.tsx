@@ -18,7 +18,7 @@ import { ROUTE_CAPABILITY, canAccessRoute } from './data/access';
 import { clientAccount, scopeLabel } from './data/client';
 import { DEFAULT_PRINCIPAL } from './data/session';
 import { canSession, sessionRoleName } from './domain/rbac/portal-roles';
-import { DispersionPage } from './pages/DispersionPage';
+import { AssignmentsPage } from './pages/AssignmentsPage';
 import { FuelDashboardPage } from './pages/FuelDashboardPage';
 import { LimitsPage } from './pages/LimitsPage';
 import { StationNetworksPage } from './pages/StationNetworksPage';
@@ -27,6 +27,10 @@ import { DriversPage } from './pages/DriversPage';
 import { MaintenancePage } from './pages/MaintenancePage';
 import { PaymentMediaPage } from './pages/PaymentMediaPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { TollReportsPage } from './pages/TollReportsPage';
+import { IntelligenceReportsPage } from './pages/intelligence/IntelligenceReportsPage';
+import { CarbonFootprintPage } from './pages/move-for-good/CarbonFootprintPage';
+import { OperationalAlertsPage } from './pages/OperationalAlertsPage';
 import { VehiclesPage } from './pages/VehiclesPage';
 import { TollBalancesPage } from './pages/toll/TollBalancesPage';
 import { TollMediaPage } from './pages/toll/TollMediaPage';
@@ -51,8 +55,8 @@ const ROUTES: Record<AppRoute, { menuItem: string; title: string; subtitle: stri
   },
   dispersion: {
     menuItem: 'saldos',
-    title: 'Saldos',
-    subtitle: 'Fondeo automático, envíos puntuales y recortes de saldo',
+    title: 'Asignaciones',
+    subtitle: 'Administración del saldo global y asignaciones a medios de pago',
   },
   limits: {
     menuItem: 'reglas-limites',
@@ -91,8 +95,28 @@ const ROUTES: Record<AppRoute, { menuItem: string; title: string; subtitle: stri
   },
   reports: {
     menuItem: 'reportes',
+    title: 'Reportería · Combustible',
+    subtitle: 'Reportes del producto contratado',
+  },
+  'toll-reports': {
+    menuItem: 'reportes-peaje',
+    title: 'Reportería · Peaje',
+    subtitle: 'Reportes de cruces, TAGs y movimientos de peaje',
+  },
+  'intelligence-reports': {
+    menuItem: 'intelligence-reportes',
     title: 'Reportes',
-    subtitle: 'Consumo, presupuesto y reportes dinámicos de transacciones',
+    subtitle: 'Consumo y presupuesto por periodo y grupo',
+  },
+  'carbon-footprint': {
+    menuItem: 'huella-carbono',
+    title: 'Huella de carbono',
+    subtitle: 'Combustible consumido, emisiones generadas y compensadas',
+  },
+  'operational-alerts': {
+    menuItem: 'alertas-operativas',
+    title: 'Alertas',
+    subtitle: 'Reglas operativas, grupos de notificación e historial de envíos',
   },
   insights: {
     menuItem: 'insights',
@@ -353,7 +377,7 @@ function AppContent() {
         {route === 'dashboard' && (
           <FuelDashboardPage onCardOption={(chart, option) => notify(`${chart}: ${option}.`)} />
         )}
-        {route === 'dispersion' && <DispersionPage onNotice={notify} />}
+        {route === 'dispersion' && <AssignmentsPage onNotice={notify} />}
         {route === 'limits' && (
           <LimitsPage onNotice={notify} stationRequest={stationRequest} onStationRequestHandled={() => setStationRequest(null)} />
         )}
@@ -363,7 +387,13 @@ function AppContent() {
         {route === 'toll-rules' && <TollRulesPage onNotice={notify} readOnly={!writable(route)} />}
         {route === 'toll-media' && <TollMediaPage onNotice={notify} readOnly={!writable(route)} />}
         {route === 'maintenance' && <MaintenancePage onNotice={notify} />}
-        {route === 'reports' && <ReportsPage />}
+        {route === 'reports' && <ReportsPage key={principal.userId} />}
+        {route === 'toll-reports' && <TollReportsPage key={principal.userId} />}
+        {route === 'intelligence-reports' && <IntelligenceReportsPage />}
+        {route === 'carbon-footprint' && <CarbonFootprintPage />}
+        {route === 'operational-alerts' && (
+          <OperationalAlertsPage canConfigure={canSession(principal.role, 'alertas.configurar', 'escribir')} key={principal.userId} />
+        )}
         {route === 'insights' && (
           <InsightsPage
             alerts={alerts}

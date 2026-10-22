@@ -1,4 +1,5 @@
 import { Avatar, IconButton, Sidebar, useBreakpoint, type SidebarItem } from '@er-mobility-mx/design-system';
+import { useEffect, useState } from 'react';
 import type { MenuGroup, MenuIconName } from '../../types';
 import './SideMenu.css';
 
@@ -24,12 +25,27 @@ const ICONS: Record<MenuIconName, string> = {
   code: 'code',
 };
 
+const GROUP_ICONS: Record<string, string> = {
+  combustible: 'local_gas_station',
+  peaje: 'toll',
+  mantenimiento: 'build',
+  'move-for-good': 'eco',
+  reporteria: 'description',
+  inteligencia: 'auto_awesome',
+  flota: 'local_shipping',
+  empresa: 'business',
+};
+
+/** Each module is a collapsible section; a module with a single destination becomes a direct link. */
 export function navigationItems(groups: MenuGroup[]): SidebarItem[] {
   return groups.flatMap<SidebarItem>((group) => {
     const children = group.items
       .map((item) => ({ id: item.id, label: item.label, icon: ICONS[item.icon] }));
     if (!children.length) return [];
-    return group.label ? [{ id: group.id, label: group.label, caption: true, children }] : children;
+    if (!group.label) return children;
+    const icon = GROUP_ICONS[group.id] ?? children[0]!.icon;
+    if (children.length === 1) return [{ ...children[0]!, label: group.label, icon }];
+    return [{ id: group.id, label: group.label, icon, children }];
   });
 }
 
@@ -48,6 +64,12 @@ interface SideMenuProps {
 export function SideMenu({ open, onOpenChange, groups, activeItemId, onSelectItem, onHome, userName, userRole, onAccount }: SideMenuProps) {
   const rail = useBreakpoint() === 'medium';
   const items = navigationItems(groups);
+  const activeGroup = groups.find((group) => group.label && group.items.length > 1 && group.items.some((item) => item.id === activeItemId))?.id;
+  const [expanded, setExpanded] = useState<string[]>(activeGroup ? [activeGroup] : []);
+
+  useEffect(() => {
+    if (activeGroup) setExpanded([activeGroup]);
+  }, [activeGroup]);
 
   return (
     <Sidebar
@@ -56,6 +78,8 @@ export function SideMenu({ open, onOpenChange, groups, activeItemId, onSelectIte
       onOpenChange={onOpenChange}
       items={items}
       activeId={activeItemId}
+      expandedKeys={expanded}
+      onExpandedChange={(keys) => setExpanded((current) => keys.filter((key) => !current.includes(key)).slice(-1))}
       onNavigate={onSelectItem}
       footerActions={
         <button
