@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Field, Select } from '@er-mobility-mx/design-system';
+import { Checkbox, Field, Select } from '@er-mobility-mx/design-system';
 import { OVERRIDE_DURATIONS, overrideUntil, stationsLabel } from '../../data/limits';
 import type { Vehicle } from '../../types/dispersion';
 import type { LimitPolicy, OverrideDuration, StationException, StationRecommendationRequest } from '../../types/limits';
@@ -93,11 +93,11 @@ export function StationExceptionDialog({ request, vehicle, policy, onClose, onCo
         />
       </Field>
 
-      <label className="company-form__check">
-        <input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
-        Confirmo que quiero permitir {request.toStation} a {vehicle.plate}. El optimizador no aplica este cambio: lo aplico
-        yo desde Límites.
-      </label>
+      <Checkbox
+        checked={confirmed}
+        label={`Confirmo que quiero permitir ${request.toStation} a ${vehicle.plate}. El optimizador no aplica este cambio: lo aplico yo desde Límites.`}
+        onChange={setConfirmed}
+      />
     </Modal>
   );
 }
