@@ -26,6 +26,9 @@ describe('PolicyDialog', () => {
       ),
     );
 
+    expect(html).toContain('<label for="policy-name">Nombre de la política</label>');
+    expect(html).toContain('id="policy-name"');
+    expect(html).toContain('placeholder="Ej. Reparto urbano"');
     expect(html).toContain('role="combobox"');
     expect(html).toContain('aria-labelledby="policy-station-network-label"');
     expect(html).toContain('Red de estaciones configurada');

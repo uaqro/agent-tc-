@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Select } from '@er-mobility-mx/design-system';
+import { Input, Select } from '@er-mobility-mx/design-system';
 import type { LimitMeasure, LimitPeriod, LimitPolicy, PeriodRestriction, PolicySettings, TransactionControls } from '../../types/limits';
 import { PERIOD_META, assignableGroups, emptyPolicy, policyForGroup, policySettings } from '../../data/limits';
 import { useFuelPolicies } from '../../data/FuelPolicyContext';
@@ -153,10 +153,16 @@ export function PolicyDialog({ policy, policies, onClose, onSave }: PolicyDialog
         </button>
       </>}>
       <div className="policy-form__identity">
-        <label className="policy-form__field">
-          <span>Nombre de la política</span>
-          <input type="text" value={draft.name} placeholder="Ej. Reparto urbano" onChange={(event) => patch({ name: event.target.value })} />
-        </label>
+        <div className="policy-form__field">
+          <label htmlFor="policy-name">Nombre de la política</label>
+          <Input
+            id="policy-name"
+            type="text"
+            value={draft.name}
+            placeholder="Ej. Reparto urbano"
+            onChange={(value) => patch({ name: value })}
+          />
+        </div>
         <p className="policy-form__label">Grupos de vehículos</p>
         <div className="policy-form__checks">
           {assignableGroups.map((group) => <label key={group.id}>

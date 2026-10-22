@@ -27,6 +27,7 @@
 }
 
 .policy-form__field span,
+.policy-form__field > label,
 .policy-form__label {
   font-size: 12px;
   color: var(--tc-local-text-muted);
@@ -36,7 +37,7 @@
   margin: 0 0 6px;
 }
 
-.policy-form__field input,
+.policy-form__field > input,
 .policy-form__inline-number,
 .policy-form__native-control {
   height: 36px;
@@ -49,7 +50,7 @@
   outline: none;
 }
 
-.policy-form__field input:focus,
+.policy-form__field > input:focus,
 .policy-form__inline-number:focus,
 .policy-form__native-control:focus {
   border-color: var(--tc-local-brand-blue);

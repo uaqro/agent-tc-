@@ -605,6 +605,9 @@ separados después de cerrar el piloto, sin mezclarlo con E1.
   `StationNetworkDialog` ahora usan `Input` de Flow. Conservan sus nombres
   accesibles, placeholders y reinicio de página donde aplica; el inventario
   baja a 44 entradas nativas en 13 módulos, sin búsquedas nativas pendientes.
+- El nombre de política de `PolicyDialog` ahora usa `Input` de Flow; el estilo
+  local sigue limitado a los controles nativos del formulario. El inventario
+  baja a 43 entradas, con 3 campos de texto nativos restantes por revisar.
 - Preservar `min`, `max`, `step`, atributos ARIA, autorrelleno y validación.
   Reenvío en runtime no resuelve una API TypeScript incompatible.
 - Para atributos necesarios no publicados, documentar la brecha y evaluar su
