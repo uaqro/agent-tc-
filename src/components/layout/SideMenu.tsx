@@ -23,12 +23,15 @@ const ICONS: Record<MenuIconName, string> = {
   receipt: 'receipt_long',
   users: 'group',
   code: 'code',
+  bolt: 'bolt',
+  pin: 'location_on',
 };
 
 const GROUP_ICONS: Record<string, string> = {
   combustible: 'local_gas_station',
   peaje: 'toll',
   mantenimiento: 'build',
+  electromovilidad: 'bolt',
   'move-for-good': 'eco',
   reporteria: 'description',
   inteligencia: 'auto_awesome',

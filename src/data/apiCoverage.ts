@@ -32,7 +32,7 @@ export const PAGE_LABEL: Record<FuelPage, string> = {
   dashboard: 'Combustible · Resumen',
   dispersion: 'Combustible · Saldos',
   limits: 'Combustible · Políticas de uso',
-  'payment-media': 'Combustible · Medios de pago',
+  'payment-media': 'Flota · Medios de pago · Combustible',
   vehicles: 'Flota · Vehículos',
   drivers: 'Flota · Conductores',
   parameters: 'Empresa · Parámetros',

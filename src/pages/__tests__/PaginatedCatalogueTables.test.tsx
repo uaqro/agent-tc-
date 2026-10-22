@@ -4,12 +4,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { drivers, paymentMedia, vehicleDetails } from '../../data/fleet';
 import { PAGE_SIZE } from '../../components/ui/Pagination';
 import { DriversPage } from '../DriversPage';
-import { PaymentMediaPage } from '../PaymentMediaPage';
+import { FuelMediaPanel } from '../fleet/FuelMediaPanel';
+import { DevicesProvider } from '../../data/DevicesContext';
 import { VehiclesPage } from '../VehiclesPage';
 
 describe('Paginated catalogue Flow tables', () => {
   it('renders vehicle details in their original order without adding table behavior', () => {
-    const html = renderToStaticMarkup(createElement(VehiclesPage, { onNotice: vi.fn() }));
+    const html = renderToStaticMarkup(createElement(DevicesProvider, null, createElement(VehiclesPage, { onNotice: vi.fn() })));
     const table = html.match(/<table\b[\s\S]*?<\/table>/)?.[0];
 
     expect(table).toBeDefined();
@@ -48,7 +49,7 @@ describe('Paginated catalogue Flow tables', () => {
   });
 
   it('keeps payment state and row actions while preserving the existing pager', () => {
-    const html = renderToStaticMarkup(createElement(PaymentMediaPage, { onNotice: vi.fn() }));
+    const html = renderToStaticMarkup(createElement(DevicesProvider, null, createElement(FuelMediaPanel, { onNotice: vi.fn() })));
     const table = html.match(/<table\b[\s\S]*?<\/table>/)?.[0];
 
     expect(table).toBeDefined();

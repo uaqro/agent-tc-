@@ -33,7 +33,7 @@ Fleet data comes from the eOne Fleet Management prototype, ported into `src/doma
 | --- | --- |
 | `src/App.tsx` | Application shell and routing: top bar, side menu, page header, floating controls |
 | `src/pages/intelligence/` | Inteligencia modules: `InsightsPage` (alerts and optimization insights), `GasOptimizerPage`, `TedPage` (assistant chat) |
-| `src/pages/PaymentMediaPage.tsx`, `VehiclesPage.tsx`, `DriversPage.tsx` | Catalogue pages (Medios de pago, Vehículos, Conductores) sharing `TablePage.css` |
+| `src/pages/VehiclesPage.tsx`, `DriversPage.tsx`, `fleet/DevicesPage.tsx` | Flota catalogue pages (Vehículos, Conductores, Medios de pago) sharing `TablePage.css`. Medios de pago gathers fuel media, toll TAGs and EV charging cards (`data/DevicesContext.tsx`), one tab per product |
 | `src/pages/FuelDashboardPage.tsx` | Dashboard layout: four summary cards and four chart cards |
 | `src/pages/DispersionPage.tsx` | Funding control tower: next run, exceptions, rules, receipts |
 | `src/pages/LimitsPage.tsx` | Limit assignment: fuelling-lock policies per group, per-unit assignment, temporary exceptions |

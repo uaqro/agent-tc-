@@ -3,7 +3,7 @@ import { drivers, paymentMedia, PAYMENT_TYPE_LABEL, vehicleDetails } from './fle
 import { sessionPrincipal } from './session';
 import { normalize } from './unitSelection';
 
-export type SearchRoute = 'vehicles' | 'drivers' | 'payment-media';
+export type SearchRoute = 'vehicles' | 'drivers' | 'devices';
 export interface EntitySearchResult {
   id: string;
   entityId: string;
@@ -30,10 +30,10 @@ export function globalSearchCatalog(): EntitySearchResult[] {
       meta: `${unit.vehicleId} · ${unit.brand} ${unit.model} · ${unit.driver}`,
       searchText: `${unit.vehicleId} ${unit.plate} ${unit.brand} ${unit.model} ${unit.driver}`,
     })) : []),
-    ...(canAccessRoute(role, 'payment-media') ? paymentMedia.map((medium) => {
+    ...(canAccessRoute(role, 'devices') ? paymentMedia.map((medium) => {
       const unit = medium.vehicleId ? units.get(medium.vehicleId) : undefined;
       return {
-        id: `payment-media:${medium.id}`, entityId: medium.id, route: 'payment-media' as const,
+        id: `devices:${medium.id}`, entityId: medium.id, route: 'devices' as const,
         label: medium.number, group: 'Medios de pago', icon: 'credit_card',
         meta: `${PAYMENT_TYPE_LABEL[medium.type]} · ${unit?.plate ?? 'Sin unidad'}`,
         searchText: `${medium.number} ${unit?.vehicleId ?? ''} ${unit?.plate ?? ''} ${unit?.driver ?? ''}`,

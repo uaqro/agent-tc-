@@ -13,7 +13,7 @@ describe('global entity search', () => {
     expect(new Set(catalog.map((item) => item.id)).size).toBe(catalog.length);
     expect(catalog.filter((item) => item.route === 'vehicles')).toHaveLength(vehicleDetails.length);
     expect(catalog.filter((item) => item.route === 'drivers')).toHaveLength(drivers.length);
-    expect(catalog.filter((item) => item.route === 'payment-media')).toHaveLength(paymentMedia.length);
+    expect(catalog.filter((item) => item.route === 'devices')).toHaveLength(paymentMedia.length);
     for (const unit of vehicleDetails.filter((unit) => unit.vin)) {
       expect(catalog.find((item) => item.id === `vehicles:${unit.vehicleId}`)?.searchText).not.toContain(unit.vin);
     }
@@ -31,7 +31,7 @@ describe('global entity search', () => {
   it('does not let a result group starve other matching entity types', () => {
     const results = searchEntities('ECO', globalSearchCatalog());
     expect(results.some((item) => item.route === 'vehicles')).toBe(true);
-    expect(results.some((item) => item.route === 'payment-media')).toBe(true);
+    expect(results.some((item) => item.route === 'devices')).toBe(true);
     for (const group of new Set(results.map((item) => item.group))) {
       expect(results.filter((item) => item.group === group).length).toBeLessThanOrEqual(10);
     }

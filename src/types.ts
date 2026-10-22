@@ -40,7 +40,6 @@ export type AppRoute =
   | 'carbon-footprint'
   | 'operational-alerts'
   | 'toll-reports'
-  | 'payment-media'
   | 'maintenance'
   | 'company-parameters'
   | 'company-invoices'
@@ -48,7 +47,12 @@ export type AppRoute =
   | 'dev-api-improvements'
   | 'toll-balances'
   | 'toll-rules'
-  | 'toll-media'
+  | 'ev-summary'
+  | 'ev-account'
+  | 'ev-charging'
+  | 'ev-policies'
+  | 'ev-chargers'
+  | 'devices'
   | 'vehicles'
   | 'drivers'
   | 'insights'
@@ -74,7 +78,9 @@ export type MenuIconName =
   | 'sliders'
   | 'receipt'
   | 'users'
-  | 'code';
+  | 'code'
+  | 'bolt'
+  | 'pin';
 
 export interface MenuItem {
   id: string;

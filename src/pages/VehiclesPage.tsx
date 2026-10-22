@@ -15,7 +15,10 @@ import {
   type VehicleStatus,
 } from '../data/fleet';
 import { assignableGroups } from '../data/limits';
+import { useDevices } from '../data/DevicesContext';
+import { TOLL_TAG_TYPE_LABEL } from '../data/toll';
 import { formatCount } from '../utils/format';
+import { EvUnitsSection } from './fleet/EvUnitsSection';
 import './TablePage.css';
 import type { SearchDestination } from '../data/globalSearch';
 import { useSearchDestination } from '../components/ui/useSearchDestination';
@@ -74,7 +77,16 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false, searc
   const searchRoot = useSearchDestination(searchDestination, rows.map((row) => row.vehicleId), pagination.page, pagination.setPage, () => {
     setQuery(''); setGroup(''); setStatus(''); setRecord('');
   }, onNotice);
-  const mediumByVehicle = useMemo(() => new Map(vehicleMedia.map((medium) => [medium.vehicleId, medium])), []);
+  const { fuelMedia, tollTags } = useDevices();
+  // Ticket Car media follow Flota · Medios de pago; Autoconsumo tags are not managed there yet.
+  const mediumByVehicle = useMemo(
+    () => new Map([...vehicleMedia, ...fuelMedia].filter((medium) => medium.vehicleId).map((medium) => [medium.vehicleId, medium])),
+    [fuelMedia],
+  );
+  const tagByVehicle = useMemo(
+    () => new Map(tollTags.filter((tag) => tag.vehicleId && tag.status !== 'replacement').map((tag) => [tag.vehicleId, tag])),
+    [tollTags],
+  );
 
   const count = (key: VehicleStatus) => vehicleDetails.filter((detail) => detail.status === key).length;
   const columns: GridColumn<VehicleDetail>[] = [
@@ -125,16 +137,26 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false, searc
     { key: 'driver', label: 'Conductor', render: (detail) => detail.driver },
     {
       key: 'paymentMedium',
-      label: 'Medio de pago',
+      label: 'Dispositivos',
       render: (detail) => {
         const medium = mediumByVehicle.get(detail.vehicleId);
-        return medium ? (
+        const tag = tagByVehicle.get(detail.vehicleId);
+        if (!medium && !tag) return <span className="table-page__sub">Sin dispositivo</span>;
+        return (
           <>
-            <span className="table-page__nowrap table-page__data">{medium.number}</span>
-            <span className="table-page__sub">{PAYMENT_TYPE_LABEL[medium.type]}</span>
+            {medium && (
+              <>
+                <span className="table-page__nowrap table-page__data">{medium.number}</span>
+                <span className="table-page__sub">Combustible · {PAYMENT_TYPE_LABEL[medium.type]}</span>
+              </>
+            )}
+            {tag && (
+              <>
+                <span className="table-page__nowrap table-page__data">{tag.number}</span>
+                <span className="table-page__sub">Peaje · {TOLL_TAG_TYPE_LABEL[tag.type]}</span>
+              </>
+            )}
           </>
-        ) : (
-          <span className="table-page__sub">Sin medio</span>
         );
       },
     },
@@ -259,6 +281,8 @@ export function VehiclesPage({ onNotice, canEdit = false, showVin = false, searc
         )}
         <Pagination {...pagination} noun="vehículos" onPage={pagination.setPage} />
       </section>
+
+      <EvUnitsSection showVin={showVin} />
     </div>
   );
 }

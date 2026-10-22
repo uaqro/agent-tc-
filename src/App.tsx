@@ -17,15 +17,15 @@ import { useSession } from './components/session/Session';
 import { ROUTE_CAPABILITY, canAccessRoute } from './data/access';
 import { clientAccount, scopeLabel } from './data/client';
 import { DEFAULT_PRINCIPAL } from './data/session';
-import { canSession, sessionRoleName } from './domain/rbac/portal-roles';
+import { canSession, sessionRoleName, type PortalCapabilityId } from './domain/rbac/portal-roles';
 import { AssignmentsPage } from './pages/AssignmentsPage';
 import { FuelDashboardPage } from './pages/FuelDashboardPage';
 import { LimitsPage } from './pages/LimitsPage';
 import { StationNetworksPage } from './pages/StationNetworksPage';
 import { FuelPolicyProvider } from './data/FuelPolicyContext';
+import { DevicesProvider } from './data/DevicesContext';
 import { DriversPage } from './pages/DriversPage';
 import { MaintenancePage } from './pages/MaintenancePage';
-import { PaymentMediaPage } from './pages/PaymentMediaPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { TollReportsPage } from './pages/TollReportsPage';
 import { IntelligenceReportsPage } from './pages/intelligence/IntelligenceReportsPage';
@@ -33,8 +33,13 @@ import { CarbonFootprintPage } from './pages/move-for-good/CarbonFootprintPage';
 import { OperationalAlertsPage } from './pages/OperationalAlertsPage';
 import { VehiclesPage } from './pages/VehiclesPage';
 import { TollBalancesPage } from './pages/toll/TollBalancesPage';
-import { TollMediaPage } from './pages/toll/TollMediaPage';
 import { TollRulesPage } from './pages/toll/TollRulesPage';
+import { EvAccountPage } from './pages/electromobility/EvAccountPage';
+import { EvChargersPage } from './pages/electromobility/EvChargersPage';
+import { EvChargingPage } from './pages/electromobility/EvChargingPage';
+import { DevicesPage, type DeviceAccess } from './pages/fleet/DevicesPage';
+import { EvPoliciesPage } from './pages/electromobility/EvPoliciesPage';
+import { EvSummaryPage } from './pages/electromobility/EvSummaryPage';
 import { GasOptimizerPage } from './pages/intelligence/GasOptimizerPage';
 import { InsightsPage } from './pages/intelligence/InsightsPage';
 import { TedPage } from './pages/intelligence/TedPage';
@@ -63,11 +68,6 @@ const ROUTES: Record<AppRoute, { menuItem: string; title: string; subtitle: stri
     title: 'Políticas de uso',
     subtitle: 'Controles de transacción, restricciones de consumo y configuraciones de uso por grupo y vehículo',
   },
-  'payment-media': {
-    menuItem: 'medios-pago',
-    title: 'Medios de pago',
-    subtitle: 'Tarjetas chip, tags y tarjetas virtuales de la flota',
-  },
   'station-networks': {
     menuItem: 'red-estaciones',
     title: 'Red de estaciones',
@@ -83,15 +83,35 @@ const ROUTES: Record<AppRoute, { menuItem: string; title: string; subtitle: stri
     title: 'Reglas y límites',
     subtitle: 'Gasto, cruces, autopistas y horarios permitidos por grupo y por TAG',
   },
-  'toll-media': {
-    menuItem: 'peaje-medios-pago',
-    title: 'Medios de pago',
-    subtitle: 'TAGs de telepeaje y Drive Tag de la flota',
-  },
   maintenance: {
     menuItem: 'mantenimiento-resumen',
     title: 'Mantenimiento',
     subtitle: 'Órdenes de servicio, preventivos próximos y gasto en taller',
+  },
+  'ev-summary': {
+    menuItem: 'ev-resumen',
+    title: 'Electromovilidad · Resumen',
+    subtitle: 'Energía, consumo y cargadores de la flota eléctrica e híbrida',
+  },
+  'ev-account': {
+    menuItem: 'ev-cuenta',
+    title: 'Cuenta y fondeo',
+    subtitle: 'Una sola cuenta corporativa fondea todas las recargas; las unidades no tienen saldo propio',
+  },
+  'ev-charging': {
+    menuItem: 'ev-recargas',
+    title: 'Recargas',
+    subtitle: 'Sesiones de recarga autorizadas, en curso y denegadas, con su desglose de costo',
+  },
+  'ev-policies': {
+    menuItem: 'ev-restricciones',
+    title: 'Restricciones de carga',
+    subtitle: 'Horarios, días, energía, monto y tipo de red por empresa, centro de costos, grupo o unidad',
+  },
+  'ev-chargers': {
+    menuItem: 'ev-cargadores',
+    title: 'Cargadores',
+    subtitle: 'Cargadores propios, solicitudes de instalación o integración y red pública',
   },
   reports: {
     menuItem: 'reportes',
@@ -136,7 +156,12 @@ const ROUTES: Record<AppRoute, { menuItem: string; title: string; subtitle: stri
   vehicles: {
     menuItem: 'vehiculos',
     title: 'Vehículos',
-    subtitle: 'Unidades, combustible, rendimiento esperado y medio de pago asignado',
+    subtitle: 'Unidades de combustión, eléctricas e híbridas con todos sus dispositivos asignados',
+  },
+  devices: {
+    menuItem: 'flota-medios',
+    title: 'Medios de pago',
+    subtitle: 'Tarjetas, tags y tarjetas de recarga de todos los productos, en un solo lugar',
   },
   drivers: {
     menuItem: 'conductores',
@@ -193,6 +218,14 @@ function AppContent() {
   const allowed = useCallback((target: AppRoute) => canAccessRoute(principal.role, target), [principal.role]);
   // Pages a role can see but not change render without their actions (ADR-TCP-001).
   const writable = (target: AppRoute) => canSession(principal.role, ROUTE_CAPABILITY[target], 'escribir');
+  // Flota · Medios de pago gathers every product's devices; each product keeps its own capability.
+  const deviceLevel = (capability: PortalCapabilityId) =>
+    canSession(principal.role, capability, 'escribir') ? 'write' : canSession(principal.role, capability, 'ver') ? 'read' : 'none';
+  const deviceAccess: DeviceAccess = {
+    fuel: deviceLevel('tc.medios_pago'),
+    toll: deviceLevel('tc.peaje_medios'),
+    ev: deviceLevel('tc.ev_flota'),
+  };
   // ADR-TCP-001: a page the role can't open is not in its menu, and a group left empty disappears.
   const groups = (devMode ? [...menuGroups, devMenuGroup] : menuGroups)
     .map((group) => ({
@@ -382,11 +415,14 @@ function AppContent() {
           <LimitsPage onNotice={notify} stationRequest={stationRequest} onStationRequestHandled={() => setStationRequest(null)} />
         )}
         {route === 'station-networks' && <StationNetworksPage onNotice={notify} />}
-        {route === 'payment-media' && <PaymentMediaPage onNotice={notify} searchDestination={searchDestination?.route === 'payment-media' ? searchDestination : undefined} />}
         {route === 'toll-balances' && <TollBalancesPage onNotice={notify} readOnly={!writable(route)} />}
         {route === 'toll-rules' && <TollRulesPage onNotice={notify} readOnly={!writable(route)} />}
-        {route === 'toll-media' && <TollMediaPage onNotice={notify} readOnly={!writable(route)} />}
         {route === 'maintenance' && <MaintenancePage onNotice={notify} />}
+        {route === 'ev-summary' && <EvSummaryPage />}
+        {route === 'ev-account' && <EvAccountPage onNotice={notify} readOnly={!writable(route)} />}
+        {route === 'ev-charging' && <EvChargingPage />}
+        {route === 'ev-policies' && <EvPoliciesPage onNotice={notify} readOnly={!writable(route)} />}
+        {route === 'ev-chargers' && <EvChargersPage onNotice={notify} readOnly={!writable(route)} />}
         {route === 'reports' && <ReportsPage key={principal.userId} />}
         {route === 'toll-reports' && <TollReportsPage key={principal.userId} />}
         {route === 'intelligence-reports' && <IntelligenceReportsPage />}
@@ -421,6 +457,7 @@ function AppContent() {
             showVin={canSession(principal.role, 'inventario.vin', 'ver')}
           />
         )}
+        {route === 'devices' && <DevicesPage onNotice={notify} access={deviceAccess} />}
         {route === 'drivers' && (
           <DriversPage onNotice={notify} searchDestination={searchDestination?.route === 'drivers' ? searchDestination : undefined} canEdit={canSession(principal.role, 'tc.conductores', 'escribir')} />
         )}
@@ -441,5 +478,11 @@ function AppContent() {
 }
 
 export default function App() {
-  return <FuelPolicyProvider><AppContent /></FuelPolicyProvider>;
+  return (
+    <FuelPolicyProvider>
+      <DevicesProvider>
+        <AppContent />
+      </DevicesProvider>
+    </FuelPolicyProvider>
+  );
 }

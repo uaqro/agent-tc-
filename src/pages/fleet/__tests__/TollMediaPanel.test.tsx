@@ -2,11 +2,12 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { tollTags } from '../../../data/toll';
-import { TollMediaPage } from '../TollMediaPage';
+import { TollMediaPanel } from '../TollMediaPanel';
+import { DevicesProvider } from '../../../data/DevicesContext';
 
-describe('TollMediaPage Flow table', () => {
+describe('TollMediaPanel Flow table', () => {
   it('preserves TAG rows, status actions, and filter names in the Flow table', () => {
-    const html = renderToStaticMarkup(createElement(TollMediaPage, { onNotice: vi.fn() }));
+    const html = renderToStaticMarkup(createElement(DevicesProvider, null, createElement(TollMediaPanel, { onNotice: vi.fn() })));
     const table = html.match(/<table\b[\s\S]*?<\/table>/)?.[0];
 
     expect(table).toBeDefined();
@@ -27,7 +28,7 @@ describe('TollMediaPage Flow table', () => {
   });
 
   it('keeps read-only access while hiding TAG mutation actions', () => {
-    const html = renderToStaticMarkup(createElement(TollMediaPage, { onNotice: vi.fn(), readOnly: true }));
+    const html = renderToStaticMarkup(createElement(DevicesProvider, null, createElement(TollMediaPanel, { onNotice: vi.fn(), readOnly: true })));
     const table = html.match(/<table\b[\s\S]*?<\/table>/)?.[0];
 
     expect(table).toBeDefined();

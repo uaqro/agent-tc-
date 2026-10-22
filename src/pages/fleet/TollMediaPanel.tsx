@@ -9,16 +9,16 @@ import {
   TOLL_TAG_STATUS_LABEL,
   TOLL_TAG_TYPE_LABEL,
   tollPolicies,
-  tollTags as seedTags,
 } from '../../data/toll';
+import { useDevices } from '../../data/DevicesContext';
 import { fleetAssignableGroups as assignableGroups } from '../../data/limits';
 import type { TollCategory, TollTag, TollTagStatus, TollTagType } from '../../types/toll';
 import { formatDateTime, formatMoney } from '../../utils/format';
 import { ReadOnlyNotice } from '../../components/ui/ReadOnlyNotice';
 import '../TablePage.css';
-import './toll.css';
+import '../toll/toll.css';
 
-interface TollMediaPageProps {
+interface TollMediaPanelProps {
   onNotice: (message: string) => void;
   /** The role sees TAGs, their balance and use, but can't request, block or reassign them (ADR-TCP-001). */
   readOnly?: boolean;
@@ -31,8 +31,9 @@ const STATUS_TONE: Record<TollTagStatus, 'success' | 'danger' | 'neutral' | 'war
   replacement: 'warning',
 };
 
-export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps) {
-  const [tags, setTags] = useState<TollTag[]>(seedTags);
+/** Toll TAGs and Drive Tags, as Flota · Medios de pago shows them under Peaje. */
+export function TollMediaPanel({ onNotice, readOnly = false }: TollMediaPanelProps) {
+  const { tollTags: tags, setTollTags: setTags } = useDevices();
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<TollTagStatus | ''>('');
   const [type, setType] = useState<TollTagType | ''>('');
@@ -181,7 +182,7 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
   ];
 
   return (
-    <div className="table-page table-page--catalog">
+    <>
       {readOnly && <ReadOnlyNotice what="los TAGs de telepeaje" />}
       <dl className="table-page__summary">
         <Card padding="sm" surface="outlined">
@@ -280,6 +281,6 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
           onAssign={(vehicleId, category) => assign(assigning, vehicleId, category)}
         />
       )}
-    </div>
+    </>
   );
 }
