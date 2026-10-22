@@ -30,8 +30,7 @@
 .networks__danger { background: var(--brand-red); }
 .networks__empty { padding: 32px 16px !important; text-align: center !important; color: var(--text-muted); }
 .networks__filter { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; font-size: 12px; }
-.networks__filter input { min-width: 0; height: 34px; padding: 0 10px; border: 1px solid var(--border-control); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-strong); font: inherit; }
-.networks__filter input { flex: 1; }
+.networks__filter-search { flex: 1; min-width: 0; max-width: 100%; }
 .networks__sort { margin-left: auto; }
 .networks__pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 0 0; font-size: 12px; color: var(--text-muted); }
 .networks__pager > div, .networks__pager label { display: inline-flex; align-items: center; gap: 8px; }
@@ -67,6 +66,5 @@
 
 @media (max-width: 640px) {
   .modal:has(.network-editor) { width: calc(100vw - 32px); max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); }
-  .networks__filter input { width: 100%; }
-  .networks__filter input { flex-basis: 100%; }
+  .networks__filter-search { flex-basis: 100%; }
 }
