@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Select } from '@er-mobility-mx/design-system';
+import { Input, Select } from '@er-mobility-mx/design-system';
 import { addToSelection, searchUnits, selectableNodes, unitsUnderNode } from '../../data/unitSelection';
 import type { Vehicle } from '../../types/dispersion';
 import { formatCount } from '../../utils/format';
-import { SearchIcon } from '../icons/Icons';
 import { Pagination, usePagination } from '../ui/Pagination';
 import './UnitSelector.css';
 
@@ -45,11 +44,18 @@ export function UnitSelector({ vehicles, selected, onChange }: UnitSelectorProps
   return (
     <div className="unit-selector">
       <div className="unit-selector__tools">
-        <label className="unit-selector__search">
-          <SearchIcon width={14} height={14} />
-          <span className="visually-hidden">Buscar unidad</span>
-          <input type="search" value={query} placeholder="Placa, ECO-xxxx o conductor" onChange={(event) => setQuery(event.target.value)} />
-        </label>
+        <div className="unit-selector__flow-search">
+          <Input
+            type="search"
+            icon="search"
+            size="sm"
+            ariaLabel="Buscar unidad"
+            value={query}
+            placeholder="Placa, ECO-xxxx o conductor"
+            onChange={setQuery}
+            style={{ width: '100%', maxWidth: 'none' }}
+          />
+        </div>
         <span id="unit-selector-node-label" className="visually-hidden">{NODE_FILTER_LABEL}</span>
         <Select
           options={nodeOptions}

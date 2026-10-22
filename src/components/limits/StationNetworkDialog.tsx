@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Radio, Select, Table, type GridColumn } from '@er-mobility-mx/design-system';
+import { Input, Radio, Select, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import { Modal } from '../ui/Modal';
-import { ArrowLeftIcon, ChevronIcon, SearchIcon } from '../icons/Icons';
+import { ArrowLeftIcon, ChevronIcon } from '../icons/Icons';
 import { networkStations, stationBrands, stationLocations, type StationNetwork } from '../../data/stationNetworks';
 import { formatCount } from '../../utils/format';
 import { account } from '../../data/dispersion';
@@ -129,7 +129,18 @@ export function StationNetworkDialog({ network, networks, initialStationIds = []
       </div>
       <h3 className="network-editor__title">Estaciones</h3>
       <div className="network-editor__filters">
-        <label className="table-page__search"><SearchIcon width={16} height={16} /><input type="search" aria-label="Buscar estaciones" placeholder="Nombre, ID o ubicación" value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} /></label>
+        <div className="table-page__flow-search network-editor__flow-search">
+          <Input
+            type="search"
+            icon="search"
+            size="sm"
+            ariaLabel="Buscar estaciones"
+            placeholder="Nombre, ID o ubicación"
+            value={query}
+            onChange={(value) => { setQuery(value); setPage(1); }}
+            style={{ width: '100%', maxWidth: 'none' }}
+          />
+        </div>
         <span id="station-state-filter-label" className="visually-hidden">Filtrar por estado</span>
         <Select
           aria-labelledby="station-state-filter-label"

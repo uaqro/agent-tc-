@@ -87,6 +87,9 @@ describe('Flow tables in dialogs', () => {
     expect(html).toContain('>Filtrar por estado</span>');
     expect(html).toContain('>Filtrar por ciudad o municipio</span>');
     expect(html).toContain('>Filtrar por marca</span>');
+    expect(html).toContain('aria-label="Buscar estaciones"');
+    expect(html).toContain('placeholder="Nombre, ID o ubicación"');
+    expect(html).toContain('class="table-page__flow-search network-editor__flow-search"');
     expect(html).not.toContain('<select');
     expect(html).toContain('Permitidas');
     expect(html).toContain('No permitidas');

@@ -14,6 +14,10 @@ describe('UnitSelector', () => {
       }),
     );
 
+    expect(html).toContain('type="search"');
+    expect(html).toContain('aria-label="Buscar unidad"');
+    expect(html).toContain('placeholder="Placa, ECO-xxxx o conductor"');
+    expect(html).toContain('class="unit-selector__flow-search"');
     expect(html).toContain('role="combobox"');
     expect(html).toContain('aria-labelledby="unit-selector-node-label"');
     expect(html).toContain('Nodo del organigrama…');

@@ -601,6 +601,10 @@ separados después de cerrar el piloto, sin mezclarlo con E1.
   icono, nombre accesible ligado a la columna activa y reinicio de página. El
   inventario de entradas nativas baja de 47 a 46 sitios y de 14 a 13 módulos;
   permanecen dos búsquedas nativas entre las que aún requieren revisión.
+- Las búsquedas de unidades en `UnitSelector` y de estaciones en
+  `StationNetworkDialog` ahora usan `Input` de Flow. Conservan sus nombres
+  accesibles, placeholders y reinicio de página donde aplica; el inventario
+  baja a 44 entradas nativas en 13 módulos, sin búsquedas nativas pendientes.
 - Preservar `min`, `max`, `step`, atributos ARIA, autorrelleno y validación.
   Reenvío en runtime no resuelve una API TypeScript incompatible.
 - Para atributos necesarios no publicados, documentar la brecha y evaluar su
