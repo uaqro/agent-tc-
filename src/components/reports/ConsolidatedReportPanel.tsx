@@ -9,7 +9,7 @@
  * time and holds no target.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Select } from '@er-mobility-mx/design-system';
+import { DatePicker, Select } from '@er-mobility-mx/design-system';
 import { can } from '../../data/access';
 import { clientAccount, clientOrgTree, scopeLabel } from '../../data/client';
 import { reportPrincipal, reportScopeOptions } from '../../data/consolidatedReport';
@@ -197,25 +197,25 @@ export function ConsolidatedReportPanel() {
 
         <div className="consolidated__dates">
           <label className="policy-form__field">
-            <span>Desde</span>
-            <input
-              type="date"
+            <span id="consolidated-report-from-label">Desde</span>
+            <DatePicker
+              aria-labelledby="consolidated-report-from-label"
               value={range.from}
               min={COVERAGE.from}
               max={COVERAGE.to}
               disabled={generating}
-              onChange={(event) => event.target.value && setRange((current) => ({ ...current, from: event.target.value }))}
+              onChange={(from) => from && setRange((current) => ({ ...current, from }))}
             />
           </label>
           <label className="policy-form__field">
-            <span>Hasta</span>
-            <input
-              type="date"
+            <span id="consolidated-report-to-label">Hasta</span>
+            <DatePicker
+              aria-labelledby="consolidated-report-to-label"
               value={range.to}
               min={COVERAGE.from}
               max={COVERAGE.to}
               disabled={generating}
-              onChange={(event) => event.target.value && setRange((current) => ({ ...current, to: event.target.value }))}
+              onChange={(to) => to && setRange((current) => ({ ...current, to }))}
             />
           </label>
         </div>

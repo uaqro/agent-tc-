@@ -612,6 +612,10 @@ separados después de cerrar el piloto, sin mezclarlo con E1.
   `type="time"`. Se conservan los nombres accesibles, los valores controlados y
   la validación de rangos; el inventario baja a 41 entradas nativas en 12
   módulos y ya no quedan campos horarios nativos.
+- Las fechas «Desde» y «Hasta» de `ConsolidatedReportPanel` ahora usan
+  `DatePicker` de Flow con los límites de cobertura, estado controlado y bloqueo
+  durante la generación. El inventario baja a 39 entradas nativas en 11 módulos;
+  ya no quedan campos `type="date"` nativos.
 - Preservar `min`, `max`, `step`, atributos ARIA, autorrelleno y validación.
   Reenvío en runtime no resuelve una API TypeScript incompatible.
 - Para atributos necesarios no publicados, documentar la brecha y evaluar su

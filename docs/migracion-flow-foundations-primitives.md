@@ -315,16 +315,18 @@ aprobación para reemplazo mecánico.
 - `Input` cubre búsquedas simples de flota, mantenimiento, medios de pago,
   facturas, usuarios, parámetros, mejoras API, medios de peaje y menú; también
   búsqueda global, asignaciones, formularios de catálogos/invitación, campos
-  de política y composición de TED. El escaneo actual encuentra 41 `<input>`
-  nativos en 12 módulos, incluidos 11 numéricos, ningún horario, 2 fechas y 3 de
+  de política, composición de TED y rangos de fecha en reporte consolidado. El
+  escaneo actual encuentra 39 `<input>` nativos en 11 módulos, incluidos 11
+  numéricos, ningún horario, ninguna fecha y 3 de
   texto, ninguna búsqueda nativa y 25 casillas; no quedan radios nativos. También hay 1 `<select>`
   nativo en 1 módulo. Estos números requieren clasificación por caso antes
   de considerarse trabajo de migración. La API `InputProps` del paquete beta.10
   no declara `min`/`step` ni varias relaciones ARIA; no forzar casts. La carga
   de archivos usa el component `FileUpload`.
-- `DatePicker` ya está en uso en órdenes de servicio y en el constructor de
-  reportes. El escaneo aún encuentra dos inputs nativos `type="date"` en otras
-  superficies; revisar límites y validación antes de sustituirlos.
+- `DatePicker` ya está en uso en órdenes de servicio y en los reportes dinámico
+  y consolidado. Las fechas consolidadas conservan límites de cobertura,
+  estado controlado y bloqueo durante la generación; no quedan inputs nativos
+  `type="date"`.
 - `SectionHeader` se adoptó en `ChartCard`, `ActivitySection`,
   `AttentionList`, `RulesSection`, `PoliciesSection` y `AssignmentsTable`.
   La adopción cubre cinco tarjetas de gráficas y los encabezados de esas
@@ -407,7 +409,7 @@ primitives aplicables que todavía no tienen adopción:
 | `Button` | El escaneo JSX actual encuentra 74 elementos `<button>` nativos en 22 módulos de producción. | Es un universo bruto, no 74 migraciones: clasificar cada uso como acción, navegación, selección, trigger de diálogo, control de mapa u otro contrato antes de asignarlo a `Button`, `IconButton`, `Chip` o una pieza compuesta. No pedir `className`: el estilo de Flow se aplica por variante y tokens. Validar atributos ARIA y foco en los triggers que sí correspondan. |
 | `Tabs` (component) | `ReportsPage` y las cuatro tablists locales usan `Tabs`/`TabPanel`. | Migración completada en `MaintenancePage`, `ActivitySection`, `InsightsPage` y `GasOptimizerPage`, conservando selección controlada, asociación tab/panel, IDs y navegación por teclado. |
 | `Chip` / `ChipGroup` / `Radio` / `SegmentedControl` | El escaneo encuentra 25 `input[type=checkbox]` nativos y ningún `input[type=radio]`; `Radio` ya se adopta en invitaciones y en el modo de redes de estaciones. | Clasificar los controles por semántica, estado y API; no inferir que todo input booleano es Checkbox ni que toda selección exclusiva es Radio. Comprobar en particular las opciones enriquecidas y selecciones de tablas antes de elegir primitive. |
-| `Input` / `Select` | El escaneo encuentra 41 `<input>` nativos en 12 módulos: 11 `number`, 0 `time`, 3 `text`, 0 `search`, 2 `date` y 25 casillas. Hay 1 `<select>` nativo en 1 módulo y ningún `<textarea>` nativo. | Esta es una cuenta estática de elementos, no un inventario de brechas equivalentes. Revisar por caso el contrato tipado (`min`/`step`, fechas, ARIA), el estilo y las interacciones; Flow Input/Select ya se usan en otras superficies. No forzar casts ni clases para conservar la apariencia local. |
+| `Input` / `Select` | El escaneo encuentra 39 `<input>` nativos en 11 módulos: 11 `number`, 0 `time`, 3 `text`, 0 `search`, 0 `date` y 25 casillas. Hay 1 `<select>` nativo en 1 módulo y ningún `<textarea>` nativo. | Esta es una cuenta estática de elementos, no un inventario de brechas equivalentes. Revisar por caso el contrato tipado (`min`/`step`, fechas, ARIA), el estilo y las interacciones; Flow Input/Select ya se usan en otras superficies. No forzar casts ni clases para conservar la apariencia local. |
 
 Los números anteriores son sitios JSX/elementos declarados en TSX/JSX de
 producción, no instancias renderizadas; los elementos en `.map()` pueden
@@ -449,7 +451,7 @@ medido, y no a la rampa de referencia directamente.
 
 #### Casos residuales de Button e Input
 
-El escaneo actual encuentra 74 `<button>`, 41 `<input>` y 1 `<select>`
+El escaneo actual encuentra 74 `<button>`, 39 `<input>` y 1 `<select>`
 nativos en los módulos de producción; la tabla siguiente conserva una
 clasificación anterior de algunos casos y no cubre todavía todo ese inventario.
 No interpretar sus ejemplos como conteo exhaustivo ni como autorización para
@@ -1321,22 +1323,22 @@ denominador de primitives.
 | `Switch` | Estable | `components/api/ApiCoverage.tsx`, `components/dev/DevMode.tsx`, `components/limits/PolicyDialog.tsx`, `components/toll/TollPolicyDialog.tsx`, `pages/company/ParametersPage.tsx`, `pages/toll/TollBalancesPage.tsx`. | No quedan switches nativos (`role="switch"`) en TSX/JSX; los callbacks reciben booleano. |
 | `Textarea` | Estable | `components/maintenance/ServiceOrderDialog.tsx`. | Sin otro textarea candidato. |
 | `Button` | Beta | Usado en páginas y diálogos de producto. | Adoptado para acciones; se conserva el control local cuando tiene semántica distinta. |
-| `Input` | Beta | Búsquedas, formularios, asignaciones, navegación y rangos horarios en `ScheduleEditor`. | Adoptado para texto simple y horarios; el escaneo aún encuentra 11 campos numéricos, 3 de texto, 2 fechas y otros controles nativos, que requieren clasificación y cotejo de API antes de migrar. |
+| `Input` | Beta | Búsquedas, formularios, asignaciones, navegación y rangos horarios en `ScheduleEditor`. | Adoptado para texto simple y horarios; el escaneo aún encuentra 11 campos numéricos, 3 de texto y otros controles nativos, que requieren clasificación y cotejo de API antes de migrar. |
 | `Select` | Estable | Formularios, filtros, páginas de Reportes, Flota, Medios de pago, Facturas, Usuarios, TAGs y reglas; `GlobalFilterBar`, `ConsolidatedReportPanel`, `PolicyDialog`, `GasOptimizerPage`, `components/optimizer/LoadDetail.tsx`, `StationExceptionDialog.tsx`, `StationNetworkDialog.tsx`, `pages/StationNetworksPage.tsx`, `InviteUserDialog` y `UnitSelector`. | Adoptado parcialmente; queda 1 `<select>` nativo en `DevMode`, cuyo agrupamiento de usuarios del portal e internos no está disponible en el comportamiento publicado del `Select` beta.10. Es primitive y no se vuelve a contar en la tabla de components. |
 
 ### Componentes usados en formularios y navegación
 
 | Componente | Madurez | Usos Flow actuales | Pendiente / decisión |
 |---|---|---|---|
-| `DatePicker` | Beta | `components/maintenance/ServiceOrderDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`. | Adoptado; el escaneo todavía encuentra dos inputs nativos `type="date"` en otras superficies. Revisar límites y comportamiento antes de sustituirlos. |
+| `DatePicker` | Beta | `components/maintenance/ServiceOrderDialog.tsx`, `components/reports/DynamicReportBuilder.tsx`, `components/reports/ConsolidatedReportPanel.tsx`. | Adoptado; los dos rangos de fecha nativos de `ConsolidatedReportPanel` se migran conservando límites de cobertura, estado controlado y bloqueo durante la generación. |
 | `Dialog` | Estable | Uso directo en HelpDialog, AccountDialog, NotificationInbox y DevMode; 17 superficies adicionales usan `Modal` con `OverlayShell`. | Ambas vías consumen piezas Flow; revisar el contrato por superficie y preservar la separación de Dev. |
 | `InputAmount` | Estable | `components/dispersion/RuleBuilderDialog.tsx`, `components/limits/OverrideDialog.tsx`, `components/limits/PolicyDialog.tsx`, `components/toll/TollAmountDialog.tsx`, `components/toll/TollPolicyDialog.tsx`. | Adoptado; mantiene límites de moneda y formato vía la API publicada. |
 | `Tabs` / `TabPanel` | Estable | `pages/ReportsPage.tsx`, `pages/MaintenancePage.tsx`, `components/dispersion/ActivitySection.tsx`, `pages/intelligence/InsightsPage.tsx` y `pages/intelligence/GasOptimizerPage.tsx`. | Adoptado en las cinco superficies identificadas; los paneles usan IDs asociados y conservan la navegación por teclado. |
 
 Los usos existentes beta se conservan considerando su madurez publicada. El
-escaneo estático actual encuentra en TSX de producción 41 `<input>` y 1 `<select>` nativos,
+escaneo estático actual encuentra en TSX de producción 39 `<input>` y 1 `<select>` nativos,
 25 `input[type="checkbox"]`, ningún `input[type="radio"]`, 11 `input[type="number"]`,
-ningún `input[type="time"]` y 2 `input[type="date"]`; no encuentra `<textarea>`
+ningún `input[type="time"]` ni `input[type="date"]`; no encuentra `<textarea>`
 nativo. `InputProps` beta.10 no publica `min`/`step` ni varias relaciones ARIA.
 La cuenta orienta el siguiente inventario por superficie, pero no clasifica
 qué controles son equivalentes o excepciones legítimas.

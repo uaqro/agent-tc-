@@ -12,8 +12,12 @@ describe('ConsolidatedReportPanel', () => {
     expect(html).toContain('aria-labelledby="consolidated-report-scope-label"');
     expect(html).toContain('aria-labelledby="consolidated-report-period-label"');
     expect(html).toContain('aria-describedby="consolidated-report-type-description"');
+    expect(html).toContain('aria-labelledby="consolidated-report-from-label"');
+    expect(html).toContain('aria-labelledby="consolidated-report-to-label"');
     expect(html).toContain('Rango de fechas');
     expect(html).not.toContain('<select');
-    expect(html).toContain('type="date"');
+    expect(html).not.toContain('type="date"');
+    expect(html).toContain('Desde');
+    expect(html).toContain('Hasta');
   });
 });
