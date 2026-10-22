@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import { Checkbox, Input, Radio, Select, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import { Modal } from '../ui/Modal';
-import { ArrowLeftIcon, ChevronIcon, SearchIcon } from '../icons/Icons';
+import { ArrowLeftIcon, ChevronIcon } from '../icons/Icons';
 import { networkStations, stationBrands, stationLocations, type StationNetwork } from '../../data/stationNetworks';
 import { formatCount } from '../../utils/format';
 import { account } from '../../data/dispersion';
@@ -9,12 +10,22 @@ export function NetworkPager({ page, size, total, onPage, onSize, label, sizeLab
   page: number; size: number; total: number; onPage: (page: number) => void; onSize: (size: number) => void; label: string; sizeLabel?: string;
 }) {
   const pages = Math.max(1, Math.ceil(total / size));
+  const sizeControlLabel = `${label} por página`;
   return <div className="networks__pager">
     <span>{total ? `${formatCount((page - 1) * size + 1)}–${formatCount(Math.min(page * size, total))}` : '0'} de {formatCount(total)}</span>
     <div>
-      <label>{sizeLabel} <select aria-label={`${label} por página`} value={size} onChange={(event) => onSize(Number(event.target.value))}>
-        {[10, 25, 50].map((value) => <option key={value}>{value}</option>)}
-      </select></label>
+      <label>{sizeLabel} <span id={`${label}-page-size-label`} className="visually-hidden">{sizeControlLabel}</span>
+        <Select
+          aria-labelledby={`${label}-page-size-label`}
+          options={[10, 25, 50].map((value) => ({ value: String(value), label: String(value) }))}
+          value={String(size)}
+          style={{ width: '6rem' }}
+          onChange={(value) => {
+            const nextSize = Number(value);
+            if ([10, 25, 50].includes(nextSize)) onSize(nextSize);
+          }}
+        />
+      </label>
       <button type="button" className="networks__icon" aria-label={`Página anterior de ${label}`} title="Página anterior" disabled={page <= 1} onClick={() => onPage(page - 1)}><ArrowLeftIcon width={16} height={16} /></button>
       <span>{page} / {pages}</span>
       <button type="button" className="networks__icon" aria-label={`Página siguiente de ${label}`} title="Página siguiente" disabled={page >= pages} onClick={() => onPage(page + 1)}><ChevronIcon width={16} height={16} /></button>
@@ -40,7 +51,6 @@ export function StationNetworkDialog({ network, networks, initialStationIds = []
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(10);
   const [error, setError] = useState('');
-  const selectAllRef = useRef<HTMLInputElement>(null);
   const needle = query.trim().toLocaleLowerCase('es-MX');
   const filtered = networkStations.filter((station) => (!state || station.state === state) &&
     (!city || station.city === city) && (!brand || station.brand === brand) && (!selectedOnly || selected.has(station.id)) &&
@@ -49,11 +59,26 @@ export function StationNetworkDialog({ network, networks, initialStationIds = []
   const allSelected = filtered.length > 0 && selectedCount === filtered.length;
   const currentPage = Math.min(page, Math.max(1, Math.ceil(filtered.length / size)));
   const rows = filtered.slice((currentPage - 1) * size, currentPage * size);
+  const stationColumns: GridColumn<(typeof networkStations)[number]>[] = [
+    {
+      key: 'selection',
+      label: 'Seleccionar',
+      align: 'center',
+      render: (station) => (
+        <Checkbox
+          ariaLabel={`Seleccionar ${station.id} · ${station.name}`}
+          checked={selected.has(station.id)}
+          onChange={() => toggleStation(station.id)}
+        />
+      ),
+    },
+    { key: 'id', label: 'ID', mono: true },
+    { key: 'name', label: 'Estación', render: (station) => <strong>{station.name}</strong> },
+    { key: 'city', label: 'Ciudad / municipio' },
+    { key: 'state', label: 'Estado' },
+    { key: 'brand', label: 'Marca' },
+  ];
   const cities = state ? stationLocations[state] : [...new Set(Object.values(stationLocations).flat())].sort((left, right) => left.localeCompare(right, 'es-MX'));
-
-  useEffect(() => {
-    if (selectAllRef.current) selectAllRef.current.indeterminate = selectedCount > 0 && !allSelected;
-  }, [selectedCount, allSelected]);
 
   const toggleFiltered = () => setSelected((current) => {
     const next = new Set(current);
@@ -87,38 +112,102 @@ export function StationNetworkDialog({ network, networks, initialStationIds = []
       <button type="button" className="btn btn--primary" onClick={save}>{network ? 'Guardar cambios' : 'Crear red'}</button></>}>
     <div className="network-editor">
       <div className="network-editor__identity">
-        <label className="network-editor__field"><span>Nombre de la red <small>{name.length}/50</small></span>
-          <input autoFocus type="text" maxLength={50} value={name} onChange={(event) => { setName(event.target.value); setError(''); }} placeholder="Ej. Red de estaciones Bajío" />
-        </label>
-        <fieldset className="network-editor__mode"><legend>La red contiene estaciones</legend>
-          <label><input type="radio" name="network-mode" checked={mode === 'allow'} onChange={() => setMode('allow')} />Permitidas</label>
-          <label><input type="radio" name="network-mode" checked={mode === 'block'} onChange={() => setMode('block')} />No permitidas</label>
+        <div className="network-editor__field">
+          <label htmlFor="station-network-name">Nombre de la red <small>{name.length}/50</small></label>
+          <Input
+            id="station-network-name"
+            autoFocus
+            type="text"
+            value={name}
+            onChange={(value) => { setName(value.slice(0, 50)); setError(''); }}
+            placeholder="Ej. Red de estaciones Bajío"
+            style={{ width: '100%', maxWidth: 'none' }}
+          />
+        </div>
+        <fieldset className="network-editor__mode">
+          <legend>La red contiene estaciones</legend>
+          <Radio name="network-mode" value="allow" checked={mode === 'allow'} label="Permitidas" onChange={() => setMode('allow')} />
+          <Radio name="network-mode" value="block" checked={mode === 'block'} label="No permitidas" onChange={() => setMode('block')} />
         </fieldset>
       </div>
       <h3 className="network-editor__title">Estaciones</h3>
       <div className="network-editor__filters">
-        <label className="table-page__search"><SearchIcon width={16} height={16} /><input type="search" aria-label="Buscar estaciones" placeholder="Nombre, ID o ubicación" value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} /></label>
-        <select aria-label="Filtrar por estado" value={state} onChange={(event) => { setState(event.target.value); setCity(''); setPage(1); }}><option value="">Todos los estados</option>{Object.keys(stationLocations).map((location) => <option key={location}>{location}</option>)}</select>
-        <select aria-label="Filtrar por ciudad o municipio" value={city} onChange={(event) => { setCity(event.target.value); setPage(1); }}><option value="">Todas las ciudades</option>{cities.map((location) => <option key={location}>{location}</option>)}</select>
-        <select aria-label="Filtrar por marca" value={brand} onChange={(event) => { setBrand(event.target.value); setPage(1); }}><option value="">Todas las marcas</option>{stationBrands.map((item) => <option key={item}>{item}</option>)}</select>
+        <div className="table-page__flow-search network-editor__flow-search">
+          <Input
+            type="search"
+            icon="search"
+            size="sm"
+            ariaLabel="Buscar estaciones"
+            placeholder="Nombre, ID o ubicación"
+            value={query}
+            onChange={(value) => { setQuery(value); setPage(1); }}
+            style={{ width: '100%', maxWidth: 'none' }}
+          />
+        </div>
+        <span id="station-state-filter-label" className="visually-hidden">Filtrar por estado</span>
+        <Select
+          aria-labelledby="station-state-filter-label"
+          options={[
+            { value: '', label: 'Todos los estados' },
+            ...Object.keys(stationLocations).map((location) => ({ value: location, label: location })),
+          ]}
+          value={state}
+          style={{ width: '100%' }}
+          onChange={(value) => { setState(value); setCity(''); setPage(1); }}
+        />
+        <span id="station-city-filter-label" className="visually-hidden">Filtrar por ciudad o municipio</span>
+        <Select
+          aria-labelledby="station-city-filter-label"
+          options={[
+            { value: '', label: 'Todas las ciudades' },
+            ...cities.map((location) => ({ value: location, label: location })),
+          ]}
+          value={city}
+          style={{ width: '100%' }}
+          onChange={(value) => { setCity(value); setPage(1); }}
+        />
+        <span id="station-brand-filter-label" className="visually-hidden">Filtrar por marca</span>
+        <Select
+          aria-labelledby="station-brand-filter-label"
+          options={[
+            { value: '', label: 'Todas las marcas' },
+            ...stationBrands.map((item) => ({ value: item, label: item })),
+          ]}
+          value={brand}
+          style={{ width: '100%' }}
+          onChange={(value) => { setBrand(value); setPage(1); }}
+        />
       </div>
       <div className="network-editor__selection" aria-live="polite">
         <strong>{formatCount(selected.size)} estaciones seleccionadas</strong>
-        <label><input type="checkbox" checked={selectedOnly} onChange={(event) => { setSelectedOnly(event.target.checked); setPage(1); }} />Solo seleccionadas</label>
+        <Checkbox
+          ariaLabel={`Seleccionar todas las estaciones filtradas (${filtered.length})`}
+          label="Seleccionar todas las filtradas"
+          checked={allSelected}
+          indeterminate={selectedCount > 0 && !allSelected}
+          disabled={!filtered.length}
+          onChange={toggleFiltered}
+        />
+        <Checkbox
+          label="Solo seleccionadas"
+          checked={selectedOnly}
+          onChange={(checked) => { setSelectedOnly(checked); setPage(1); }}
+        />
         <button type="button" className="btn btn--ghost btn--sm" disabled={!selected.size} onClick={() => setSelected(new Set())}>Limpiar selección</button>
       </div>
-      <div className="table-page__scroll">
-        <table className="table-page__table network-editor__table"><thead><tr>
-          <th><input type="checkbox" ref={selectAllRef} aria-label={`Seleccionar todas las estaciones filtradas (${filtered.length})`} checked={allSelected} disabled={!filtered.length} onChange={toggleFiltered} /></th>
-          <th>ID</th><th>Estación</th><th>Ciudad / municipio</th><th>Estado</th><th>Marca</th>
-        </tr></thead><tbody>
-          {rows.map((station) => <tr key={station.id}>
-            <td><input type="checkbox" aria-label={`Seleccionar ${station.id} · ${station.name}`} checked={selected.has(station.id)} onChange={() => toggleStation(station.id)} /></td>
-            <td>{station.id}</td><td><strong>{station.name}</strong></td><td>{station.city}</td><td>{station.state}</td><td>{station.brand}</td>
-          </tr>)}
-          {!rows.length && <tr><td colSpan={6} className="networks__empty">No hay estaciones con estos filtros.</td></tr>}
-        </tbody></table>
-      </div>
+      {rows.length > 0 ? (
+        <Table
+          caption="Estaciones disponibles para la red"
+          columns={stationColumns}
+          rows={rows}
+          rowKey="id"
+          surface="none"
+          sortable={false}
+          density="compact"
+        />
+      ) : (
+        <p className="networks__empty">No hay estaciones con estos filtros.</p>
+      )}
       <NetworkPager page={currentPage} size={size} total={filtered.length} label="estaciones" onPage={setPage} onSize={(value) => { setSize(value); setPage(1); }} />
       {error && <p className="network-editor__error" role="alert">{error}</p>}
     </div>

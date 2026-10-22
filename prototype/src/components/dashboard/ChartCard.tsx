@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { InfoIcon, MoreIcon } from '../icons/Icons';
-import './ChartCard.css';
+import { type ReactNode } from 'react';
+import { IconButton, Menu, Tooltip, WidgetFrame } from '@er-mobility-mx/design-system';
 
 interface ChartCardProps {
   title: string;
@@ -24,84 +23,41 @@ export function ChartCard({
   onOptionSelect,
   children,
 }: ChartCardProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-
-    const handlePointerDown = (event: MouseEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false);
-    };
-
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [menuOpen]);
-
   return (
-    <section className="chart-card">
-      <header className="chart-card__head">
-        <div className="chart-card__heading">
-          <h3 className="chart-card__title">
-            {title}
-            {badge}
-          </h3>
-          {subtitle && <p className="chart-card__subtitle">{subtitle}</p>}
-        </div>
+    <WidgetFrame
+      title={title}
+      description={subtitle}
+      actions={
+        <>
+          {badge}
+          <Tooltip content={info} position="bottom">
+            <IconButton
+              icon="info"
+              ariaLabel={`Más información sobre ${title}`}
+              variant="ghost"
+              size="sm"
+            />
+          </Tooltip>
 
-        <div className="chart-card__tools">
-          <span className="chart-card__info">
-            <button type="button" className="chart-card__icon-button" aria-describedby={`${title}-info`}>
-              <InfoIcon width={18} height={18} />
-              <span className="visually-hidden">Más información sobre {title}</span>
-            </button>
-            <span role="tooltip" id={`${title}-info`} className="chart-card__tooltip">
-              {info}
-            </span>
-          </span>
-
-          <div className="chart-card__menu" ref={menuRef}>
-            <button
-              type="button"
-              className="chart-card__icon-button"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((open) => !open)}
-            >
-              <MoreIcon width={18} height={18} />
-              <span className="visually-hidden">Más opciones de {title}</span>
-            </button>
-
-            {menuOpen && (
-              <ul className="chart-card__menu-list" role="menu">
-                {options.map((option) => (
-                  <li key={option} role="none">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        onOptionSelect?.(option);
-                        setMenuOpen(false);
-                      }}
-                    >
-                      {option}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <div className="chart-card__body">{children}</div>
-    </section>
+          <Menu
+            align="right"
+            items={options.map((option) => ({
+              label: option,
+              onClick: () => onOptionSelect?.(option),
+            }))}
+            trigger={
+              <IconButton
+                icon="more_vert"
+                ariaLabel={`Más opciones de ${title}`}
+                variant="ghost"
+                size="sm"
+              />
+            }
+          />
+        </>
+      }
+    >
+      {children}
+    </WidgetFrame>
   );
 }

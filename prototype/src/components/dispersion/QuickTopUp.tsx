@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
+import { Button, Input, Listbox, type ListboxItem } from '@er-mobility-mx/design-system';
 import type { Receipt, Vehicle } from '../../types/dispersion';
 import { suggestedTopUps, toLiters } from '../../data/dispersion';
 import { BoltIcon, CheckCircleIcon, SearchIcon } from '../icons/Icons';
@@ -13,6 +14,10 @@ interface QuickTopUpProps {
   variant?: 'card' | 'embedded';
   initialVehicle?: Vehicle | null;
   initialAmount?: number | null;
+}
+
+interface VehicleOption extends ListboxItem {
+  vehicle: Vehicle;
 }
 
 function matches(vehicle: Vehicle, term: string): boolean {
@@ -30,6 +35,7 @@ export function QuickTopUp({
   initialAmount = null,
 }: QuickTopUpProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const listboxId = useId();
   const [query, setQuery] = useState(initialVehicle ? `${initialVehicle.plate} · ${initialVehicle.driver}` : '');
   const [highlight, setHighlight] = useState(0);
   const [selected, setSelected] = useState<Vehicle | null>(initialVehicle);
@@ -49,6 +55,10 @@ export function QuickTopUp({
   }, [query, selected, vehicles]);
 
   const noMatches = query.trim() !== '' && !selected && results.length === 0;
+  const resultItems = useMemo<VehicleOption[]>(
+    () => results.map((vehicle) => ({ value: vehicle.id, label: vehicle.plate, vehicle })),
+    [results],
+  );
 
   const finalAmount = customMode ? Number(customAmount) : amount;
   const valid = Boolean(selected) && Number.isFinite(finalAmount) && (finalAmount ?? 0) > 0;
@@ -103,12 +113,12 @@ export function QuickTopUp({
           </p>
         </div>
         <div className="quick__done-actions">
-          <button type="button" className="btn btn--secondary btn--sm" onClick={() => onViewReceipt(sent)}>
+          <Button variant="secondary" size="sm" onClick={() => onViewReceipt(sent)}>
             Ver comprobante
-          </button>
-          <button type="button" className="btn btn--primary btn--sm" onClick={reset}>
+          </Button>
+          <Button size="sm" onClick={reset}>
             Enviar otra
-          </button>
+          </Button>
         </div>
       </section>
     );
@@ -129,17 +139,18 @@ export function QuickTopUp({
 
       <div className="quick__search">
         <SearchIcon width={17} height={17} />
-        <input
+        <Input
           ref={inputRef}
           type="text"
           role="combobox"
           aria-expanded={results.length > 0}
-          aria-controls="quick-results"
+          aria-controls={results.length > 0 ? listboxId : undefined}
+          aria-activedescendant={results.length > 0 ? `${listboxId}-opt-${highlight}` : undefined}
           aria-autocomplete="list"
           placeholder="Buscar unidad, placa, dispositivo o conductor…"
           value={query}
-          onChange={(event) => {
-            setQuery(event.target.value);
+          onChange={(value) => {
+            setQuery(value);
             setSelected(null);
             setHighlight(0);
           }}
@@ -153,27 +164,26 @@ export function QuickTopUp({
       </div>
 
       {results.length > 0 && (
-        <ul className="quick__results" id="quick-results" role="listbox">
-          {results.map((vehicle, index) => (
-            <li key={vehicle.id} role="none">
-              <button
-                type="button"
-                role="option"
-                aria-selected={index === highlight}
-                className={`quick__result${index === highlight ? ' quick__result--active' : ''}`}
-                onMouseEnter={() => setHighlight(index)}
-                onClick={() => pick(vehicle)}
-              >
+        <div className="quick__results">
+          <Listbox
+            id={listboxId}
+            items={resultItems}
+            active={highlight}
+            value={selected?.id}
+            onActiveChange={setHighlight}
+            onChange={(item) => pick(item.vehicle)}
+            renderItem={(item, state) => (
+              <div className={`quick__result${state.active ? ' quick__result--active' : ''}`}>
                 <span className="quick__result-main">
-                  <strong>{vehicle.plate}</strong> {vehicle.driver}
+                  <strong>{item.vehicle.plate}</strong> {item.vehicle.driver}
                 </span>
                 <span className="quick__result-meta">
-                  {vehicle.group} · {vehicle.device} · {formatMoney(vehicle.balanceMXN, true)}
+                  {item.vehicle.group} · {item.vehicle.device} · {formatMoney(item.vehicle.balanceMXN, true)}
                 </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+              </div>
+            )}
+          />
+        </div>
       )}
 
       {noMatches && (
@@ -218,14 +228,15 @@ export function QuickTopUp({
             {customMode && (
               <label className="quick__custom">
                 <span className="visually-hidden">Monto personalizado en pesos</span>
-                <input
+                <Input
                   type="number"
                   min={1}
                   step={50}
                   autoFocus
                   value={customAmount}
+                  size="sm"
                   placeholder="0"
-                  onChange={(event) => setCustomAmount(event.target.value)}
+                  onChange={setCustomAmount}
                 />
               </label>
             )}
@@ -243,9 +254,9 @@ export function QuickTopUp({
               </p>
             </div>
 
-            <button type="button" className="btn btn--primary" disabled={!valid || overBudget} onClick={handleSend}>
+            <Button disabled={!valid || overBudget} onClick={handleSend}>
               Enviar ahora
-            </button>
+            </Button>
           </div>
 
           {overBudget && (

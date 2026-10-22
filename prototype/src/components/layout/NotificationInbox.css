@@ -1,0 +1,9 @@
+.notification-inbox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-inline);
+  min-width: 0;
+  max-height: 50dvh;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}

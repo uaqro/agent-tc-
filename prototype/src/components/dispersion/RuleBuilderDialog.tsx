@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Button, Field, Input, InputAmount, Select } from '@er-mobility-mx/design-system';
 import type { FundingRule, Vehicle } from '../../types/dispersion';
 import { vehicleGroups } from '../../data/dispersion';
 import {
@@ -15,6 +16,14 @@ import { Modal } from '../ui/Modal';
 import { UnitSelector } from './UnitSelector';
 import { formatCount } from '../../utils/format';
 import './RuleBuilderDialog.css';
+
+const THRESHOLD_OPTIONS = [5, 10, 15, 20, 25];
+const REFILL_MODES = [
+  { value: 'top-off', label: 'A tope' },
+  { value: 'fixed', label: 'Monto fijo' },
+] as const;
+const CONSUMPTION_WINDOWS = [15, 30, 60];
+const BUFFER_OPTIONS = [0, 5, 10, 15, 20];
 
 interface RuleBuilderDialogProps {
   open: boolean;
@@ -36,6 +45,23 @@ export function RuleBuilderDialog({ open, vehicles, onClose, onCreate }: RuleBui
   const scope = scopeOf(draft, vehicles);
   const patch = (changes: Partial<RuleDraft>) => setDraft((current) => ({ ...current, ...changes }));
   const valid = scope.units > 0;
+  const groupOptions = vehicleGroups.map((group) => ({
+    value: group.id,
+    label: `${group.label} · ${formatCount(group.units)} unidades`,
+  }));
+  const thresholdOptions = THRESHOLD_OPTIONS.map((value) => ({
+    value: String(value),
+    label: `${value}% del depósito`,
+  }));
+  const windowOptions = CONSUMPTION_WINDOWS.map((value) => ({
+    value: String(value),
+    label: `Últimos ${value} días`,
+  }));
+  const bufferOptions = BUFFER_OPTIONS.map((value) => ({
+    value: String(value),
+    label: `+ ${value}%`,
+  }));
+  const cadenceOptions = CADENCES.map((cadence) => ({ value: cadence.id, label: cadence.label }));
 
   const submit = () => {
     onCreate(buildRule(draft, vehicles));
@@ -50,12 +76,12 @@ export function RuleBuilderDialog({ open, vehicles, onClose, onCreate }: RuleBui
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button type="button" className="btn btn--primary" disabled={!valid} onClick={submit}>
+          </Button>
+          <Button disabled={!valid} onClick={submit}>
             Crear automatización
-          </button>
+          </Button>
         </>
       }
     >
@@ -103,16 +129,16 @@ export function RuleBuilderDialog({ open, vehicles, onClose, onCreate }: RuleBui
         </div>
 
         {draft.scopeKind === 'group' ? (
-          <label className="builder__field">
-            <span>Grupo</span>
-            <select value={draft.groupId} onChange={(event) => patch({ groupId: event.target.value })}>
-              {vehicleGroups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.label} · {formatCount(group.units)} unidades
-                </option>
-              ))}
-            </select>
-          </label>
+          <Field label="Grupo" htmlFor="rule-builder-group">
+            <Select
+              id="rule-builder-group"
+              options={groupOptions}
+              value={draft.groupId}
+              onChange={(groupId) => {
+                if (groupOptions.some((option) => option.value === groupId)) patch({ groupId });
+              }}
+            />
+          </Field>
         ) : (
           <UnitSelector vehicles={vehicles} selected={draft.vehicleIds} onChange={(vehicleIds) => patch({ vehicleIds })} />
         )}
@@ -123,103 +149,106 @@ export function RuleBuilderDialog({ open, vehicles, onClose, onCreate }: RuleBui
         <div className="builder__fields">
           {draft.type === 'balance-threshold' && (
             <>
-              <label className="builder__field">
-                <span>Se dispara cuando el saldo baja de</span>
-                <select value={draft.thresholdPct} onChange={(event) => patch({ thresholdPct: Number(event.target.value) })}>
-                  {[5, 10, 15, 20, 25].map((value) => (
-                    <option key={value} value={value}>
-                      {value}% del depósito
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="builder__field">
-                <span>Recarga</span>
-                <select
+              <Field label="Se dispara cuando el saldo baja de" htmlFor="rule-builder-threshold">
+                <Select
+                  id="rule-builder-threshold"
+                  options={thresholdOptions}
+                  value={String(draft.thresholdPct)}
+                  onChange={(value) => {
+                    const threshold = Number(value);
+                    if (THRESHOLD_OPTIONS.includes(threshold)) patch({ thresholdPct: threshold });
+                  }}
+                />
+              </Field>
+              <Field label="Recarga" htmlFor="rule-builder-refill-mode">
+                <Select
+                  id="rule-builder-refill-mode"
+                  options={[...REFILL_MODES]}
                   value={draft.refillMode}
-                  onChange={(event) => patch({ refillMode: event.target.value as RuleDraft['refillMode'] })}
-                >
-                  <option value="top-off">A tope</option>
-                  <option value="fixed">Monto fijo</option>
-                </select>
-              </label>
+                  onChange={(value) => {
+                    const mode = REFILL_MODES.find((option) => option.value === value);
+                    if (mode) patch({ refillMode: mode.value });
+                  }}
+                />
+              </Field>
               {draft.refillMode === 'fixed' && (
-                <label className="builder__field">
-                  <span>Monto a cargar (MXN)</span>
-                  <input
-                    type="number"
-                    min={100}
-                    step={100}
-                    value={draft.refillAmountMXN}
-                    onChange={(event) => patch({ refillAmountMXN: Number(event.target.value) })}
+                <Field label="Monto a cargar (MXN)" htmlFor="rule-builder-refill-amount" required>
+                  <InputAmount
+                    id="rule-builder-refill-amount"
+                    required
+                    value={String(draft.refillAmountMXN)}
+                    onChange={(value) => patch({ refillAmountMXN: Number(value) || 0 })}
                   />
-                </label>
+                </Field>
               )}
             </>
           )}
 
           {draft.type === 'consumption' && (
             <>
-              <label className="builder__field">
-                <span>Ventana de consumo</span>
-                <select value={draft.windowDays} onChange={(event) => patch({ windowDays: Number(event.target.value) })}>
-                  {[15, 30, 60].map((value) => (
-                    <option key={value} value={value}>
-                      Últimos {value} días
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="builder__field">
-                <span>Colchón</span>
-                <select value={draft.bufferPct} onChange={(event) => patch({ bufferPct: Number(event.target.value) })}>
-                  {[0, 5, 10, 15, 20].map((value) => (
-                    <option key={value} value={value}>
-                      + {value}%
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <Field label="Ventana de consumo" htmlFor="rule-builder-window">
+                <Select
+                  id="rule-builder-window"
+                  options={windowOptions}
+                  value={String(draft.windowDays)}
+                  onChange={(value) => {
+                    const days = Number(value);
+                    if (CONSUMPTION_WINDOWS.includes(days)) patch({ windowDays: days });
+                  }}
+                />
+              </Field>
+              <Field label="Colchón" htmlFor="rule-builder-buffer">
+                <Select
+                  id="rule-builder-buffer"
+                  options={bufferOptions}
+                  value={String(draft.bufferPct)}
+                  onChange={(value) => {
+                    const bufferPct = Number(value);
+                    if (BUFFER_OPTIONS.includes(bufferPct)) patch({ bufferPct });
+                  }}
+                />
+              </Field>
             </>
           )}
 
           {draft.type === 'top-off' && (
-            <label className="builder__field">
-              <span>Tope por unidad (L)</span>
-              <input
-                type="number"
-                min={50}
-                step={50}
-                value={draft.capLiters}
-                onChange={(event) => patch({ capLiters: Number(event.target.value) })}
-              />
-            </label>
+            <Field label="Tope por unidad (L)" htmlFor="rule-builder-cap-liters">
+              <div className="builder__native-control">
+                <Input
+                  id="rule-builder-cap-liters"
+                  type="number"
+                  min={50}
+                  step={50}
+                  size="sm"
+                  value={String(draft.capLiters)}
+                  onChange={(value) => patch({ capLiters: Number(value) })}
+                />
+              </div>
+            </Field>
           )}
 
           {draft.type === 'schedule-fixed' && (
-            <label className="builder__field">
-              <span>Monto por unidad (MXN)</span>
-              <input
-                type="number"
-                min={100}
-                step={100}
-                value={draft.fixedAmountMXN}
-                onChange={(event) => patch({ fixedAmountMXN: Number(event.target.value) })}
+            <Field label="Monto por unidad (MXN)" htmlFor="rule-builder-fixed-amount" required>
+              <InputAmount
+                id="rule-builder-fixed-amount"
+                required
+                value={String(draft.fixedAmountMXN)}
+                onChange={(value) => patch({ fixedAmountMXN: Number(value) || 0 })}
               />
-            </label>
+            </Field>
           )}
 
           {draft.type !== 'balance-threshold' && (
-            <label className="builder__field">
-              <span>Cadencia</span>
-              <select value={draft.cadence} onChange={(event) => patch({ cadence: event.target.value })}>
-                {CADENCES.map((cadence) => (
-                  <option key={cadence.id} value={cadence.id}>
-                    {cadence.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <Field label="Cadencia" htmlFor="rule-builder-cadence">
+              <Select
+                id="rule-builder-cadence"
+                options={cadenceOptions}
+                value={draft.cadence}
+                onChange={(cadence) => {
+                  if (CADENCES.some((option) => option.id === cadence)) patch({ cadence });
+                }}
+              />
+            </Field>
           )}
         </div>
       </fieldset>

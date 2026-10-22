@@ -49,11 +49,11 @@ export const TOLL_PERIOD_META: Record<TollPeriod, { noun: string; adjective: str
   month: { noun: 'mes', adjective: 'mensual' },
 };
 
-export const MOVEMENT_LABEL: Record<TollMovementKind, { label: string; chip: string }> = {
-  crossing: { label: 'Cruce', chip: 'chip--info' },
-  'top-up': { label: 'Recarga', chip: 'chip--active' },
-  cut: { label: 'Recorte', chip: 'chip--paused' },
-  rejected: { label: 'Rechazado', chip: 'chip--danger' },
+export const MOVEMENT_LABEL: Record<TollMovementKind, { label: string }> = {
+  crossing: { label: 'Cruce' },
+  'top-up': { label: 'Recarga' },
+  cut: { label: 'Recorte' },
+  rejected: { label: 'Rechazado' },
 };
 
 export const tollRoads: TollRoad[] = [

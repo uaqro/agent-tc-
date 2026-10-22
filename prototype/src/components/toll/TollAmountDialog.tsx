@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button, Chip, ChipGroup, Field, InputAmount } from '@er-mobility-mx/design-system';
 import type { TollTag } from '../../types/toll';
 import { Modal } from '../ui/Modal';
 import { formatMoney } from '../../utils/format';
@@ -19,7 +20,8 @@ const PRESETS = [200, 500, 1_000, 2_000];
 
 export function TollAmountDialog({ tag, mode, plate, availableMXN, onClose, onConfirm }: TollAmountDialogProps) {
   const isTopUp = mode === 'top-up';
-  const [amount, setAmount] = useState(isTopUp ? 500 : tag.balanceMXN);
+  const [amountValue, setAmountValue] = useState(String(isTopUp ? 500 : tag.balanceMXN));
+  const amount = Number(amountValue) || 0;
 
   const ceiling = isTopUp ? availableMXN : tag.balanceMXN;
   const valid = amount > 0 && amount <= ceiling;
@@ -34,34 +36,31 @@ export function TollAmountDialog({ tag, mode, plate, availableMXN, onClose, onCo
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button type="button" className="btn btn--primary" disabled={!valid} onClick={() => onConfirm(amount)}>
+          </Button>
+          <Button disabled={!valid} onClick={() => onConfirm(amount)}>
             {isTopUp ? `Recargar ${formatMoney(amount)}` : `Recortar ${formatMoney(amount)}`}
-          </button>
+          </Button>
         </>
       }
     >
       <p className="policy-form__label">Monto</p>
-      <div className="policy-form__pills">
+      <ChipGroup style={{ gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
         {(isTopUp ? PRESETS : [...new Set([Math.round(tag.balanceMXN / 2), tag.balanceMXN])].filter((value) => value > 0)).map((preset) => (
-          <button
-            type="button"
+          <Chip
             key={preset}
-            className={amount === preset ? 'is-active' : ''}
-            aria-pressed={amount === preset}
-            onClick={() => setAmount(preset)}
-          >
-            {preset === tag.balanceMXN && !isTopUp ? `Todo · ${formatMoney(preset)}` : formatMoney(preset)}
-          </button>
+            label={preset === tag.balanceMXN && !isTopUp ? `Todo · ${formatMoney(preset)}` : formatMoney(preset)}
+            size="sm"
+            selected={amount === preset}
+            onClick={() => setAmountValue(String(preset))}
+          />
         ))}
-      </div>
+      </ChipGroup>
 
-      <label className="policy-form__field">
-        <span>Otro monto (MXN)</span>
-        <input type="number" min={1} step={50} value={amount} onChange={(event) => setAmount(Number(event.target.value))} />
-      </label>
+      <Field label="Otro monto (MXN)" htmlFor="toll-amount" required>
+        <InputAmount id="toll-amount" value={amountValue} onChange={setAmountValue} required />
+      </Field>
 
       <p className="policy-form__preview policy-form__preview--spaced">
         TAG: {formatMoney(tag.balanceMXN, true)} → <strong>{formatMoney(Math.max(0, tagAfter), true)}</strong> · Bolsa de

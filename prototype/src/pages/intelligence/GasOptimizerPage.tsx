@@ -1,4 +1,5 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
+import { Checkbox, Input, Select, Table, WidgetFrame, type GridColumn } from '@er-mobility-mx/design-system';
 import { ApiCoverageBanner } from '../../components/api/ApiCoverage';
 import { BarChart } from '../../components/charts/BarChart';
 import { EmptyChart } from '../../components/charts/EmptyChart';
@@ -36,6 +37,7 @@ import {
   stationStats,
   type CvTransition,
   type DailyMetric,
+  type StationStats,
 } from '../../domain/optimizer/metrics';
 import { DEFAULT_ASSUMPTIONS, discardRecommendations, losesMoney, sanitizeAssumptions } from '../../domain/optimizer/rules';
 import { SAVING_MODE_LABELS, type Assumptions, type SavingMode } from '../../domain/optimizer/types';
@@ -55,6 +57,8 @@ interface GasOptimizerPageProps {
 }
 
 type Tab = 'resumen' | 'regiones' | 'estaciones' | 'detalle' | 'cv';
+type StationRankingRow = StationStats & { id: string };
+type CvTransitionRow = { id: CvTransition; transition: CvTransition; loads: number; share: number; saving: number };
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'resumen', label: 'Resumen' },
@@ -67,6 +71,10 @@ const TABS: { id: Tab; label: string }[] = [
 const CATEGORY_LABEL = { oportunidad: 'Oportunidad', mixta: 'Mixta', optima: 'Óptima' } as const;
 const CATEGORY_CHIP = { oportunidad: 'chip--danger', mixta: 'chip--review', optima: 'chip--active' } as const;
 const VEHICLE_CLASSES: UnitClass[] = ['pesado', 'mediano', 'ligero', 'van'];
+const DAILY_METRICS = Object.keys(DAILY_METRIC_LABELS) as DailyMetric[];
+
+const isDailyMetric = (value: string): value is DailyMetric =>
+  Object.prototype.hasOwnProperty.call(DAILY_METRIC_LABELS, value);
 
 const percent = (ratio: number | null, decimals = 0) => (ratio === null ? '—' : `${(ratio * 100).toFixed(decimals)} %`);
 const pricePerLiter = (value: number | null) => (value === null ? '—' : `$${value.toFixed(2)}/L`);
@@ -80,6 +88,16 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
   const [tab, setTab] = useState<Tab>('resumen');
   const windows = useMemo(() => optimizerWindows(), []);
   const [windowId, setWindowId] = useState(windows[0].id);
+  const windowOptions = windows.map(({ id, label }) => ({ value: id, label }));
+  const fuelOptions = [
+    { value: '', label: 'Todos' },
+    ...FUEL_TYPES.map((fuel) => ({ value: fuel, label: FUEL_LABELS[fuel] })),
+  ];
+  const vehicleOptions = [
+    { value: '', label: 'Todos' },
+    ...VEHICLE_CLASSES.map((vehicleClass) => ({ value: vehicleClass, label: UNIT_CLASS_LABELS[vehicleClass] })),
+  ];
+  const dailyMetricOptions = DAILY_METRICS.map((metric) => ({ value: metric, label: DAILY_METRIC_LABELS[metric] }));
   const [mode, setMode] = useState<SavingMode>('bruto');
   const [assumptions, setAssumptions] = useState<Assumptions>(DEFAULT_ASSUMPTIONS);
   const [facets, setFacets] = useState({ fuel: '', vehicleType: '', zone: '' });
@@ -116,6 +134,10 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
   const regions = useMemo(() => regionSummaries(loads, assumptions, mode), [loads, assumptions, mode]);
   const farForTiny = useMemo(() => farForTinyLoads(loads), [loads]);
   const zones = optimizerOrgView.zones.filter((zone) => optimizerLoads.some((load) => load.zone === zone));
+  const zoneOptions = [
+    { value: '', label: 'Todas' },
+    ...zones.map((zone) => ({ value: zone, label: optimizerOrgView.zoneLabel(zone) })),
+  ];
 
   const canSend = can(principal, 'tc.recomendaciones', 'escribir');
   const canApply = can(principal, 'tc.limites', 'escribir');
@@ -128,7 +150,7 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
       <div className="intel optimizer">
         <EmptyState
           card
-          icon={<CompassIcon width={24} height={24} />}
+          icon="explore"
           title="No hay cargas dentro de tu alcance"
           description={`${scopeLabel(principal.scopeNodeId)} no tiene cargas en los últimos 30 días.`}
         />
@@ -136,21 +158,64 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
     );
   }
 
+  const rankingRows: StationRankingRow[] = ranking.slice(0, 15).map((stats) => ({ ...stats, id: stats.station.id }));
+  const rankingColumns: GridColumn<StationRankingRow>[] = [
+    {
+      key: 'station',
+      label: 'Estación',
+      render: (stats) => {
+        return (
+          <>
+            <button type="button" className="optimizer__link" onClick={() => setSelectedStationId(stats.station.id)}>
+              {stats.station.name}
+            </button>
+            <span className="table-page__sub">
+              {optimizerOrgView.zoneLabel(stats.station.zone)}
+              {stats.station.cv ? ' · CV' : ''}
+            </span>
+          </>
+        );
+      },
+    },
+    { key: 'loads', label: 'Cargas', render: (stats) => formatCount(stats.loads) },
+    { key: 'redirectable', label: 'Redirigible', render: (stats) => percent(stats.redirectableShare) },
+    { key: 'grossSaving', label: 'Ahorro bruto', render: (stats) => formatMoney(stats.grossSaving) },
+    { key: 'netSaving', label: 'Ahorro neto', render: (stats) => formatMoney(stats.netSaving) },
+    {
+      key: 'category',
+      label: 'Categoría',
+      render: (stats) => {
+        const category = stationCategory(stats);
+        return <span className={`chip ${CATEGORY_CHIP[category]}`}>{CATEGORY_LABEL[category]}</span>;
+      },
+    },
+  ];
+  const transitionRows: CvTransitionRow[] = (Object.keys(CV_TRANSITION_LABELS) as CvTransition[]).map((transition) => ({
+    id: transition,
+    transition,
+    loads: cv.matrix[transition].loads,
+    share: cv.matrix[transition].share,
+    saving: cv.matrix[transition].saving,
+  }));
+  const transitionColumns: GridColumn<CvTransitionRow>[] = [
+    { key: 'transition', label: 'Transición', render: ({ transition }) => CV_TRANSITION_LABELS[transition] },
+    {
+      key: 'loads',
+      label: 'Cargas',
+      render: ({ loads, share }) => `${formatCount(loads)} · ${percent(share)}`,
+    },
+    { key: 'saving', label: 'Ahorro', render: ({ saving }) => formatMoney(saving) },
+  ];
+
   return (
     <div className="intel optimizer">
       <ApiCoverageBanner page="optimizer" />
 
       <section className="optimizer__controls" aria-label="Recorte del optimizador">
-        <label className="optimizer__control">
-          <span>Periodo</span>
-          <select value={windowId} onChange={(event) => setWindowId(event.target.value)}>
-            {windows.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="optimizer__control">
+          <span id="optimizer-period-label">Periodo</span>
+          <Select options={windowOptions} value={windowId} aria-labelledby="optimizer-period-label" onChange={setWindowId} />
+        </div>
         <div className="optimizer__control">
           <span>Ahorro</span>
           <div className="optimizer__segmented" role="group" aria-label="Modo de ahorro">
@@ -161,58 +226,52 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
             ))}
           </div>
         </div>
-        <label className="optimizer__control">
-          <span>Combustible</span>
-          <select value={facets.fuel} onChange={(event) => setFacets((current) => ({ ...current, fuel: event.target.value }))}>
-            <option value="">Todos</option>
-            {FUEL_TYPES.map((fuel) => (
-              <option key={fuel} value={fuel}>
-                {FUEL_LABELS[fuel]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="optimizer__control">
-          <span>Tipo de vehículo</span>
-          <select value={facets.vehicleType} onChange={(event) => setFacets((current) => ({ ...current, vehicleType: event.target.value }))}>
-            <option value="">Todos</option>
-            {VEHICLE_CLASSES.map((vehicleClass) => (
-              <option key={vehicleClass} value={vehicleClass}>
-                {UNIT_CLASS_LABELS[vehicleClass]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="optimizer__control">
-          <span>Zona</span>
-          <select value={facets.zone} onChange={(event) => setFacets((current) => ({ ...current, zone: event.target.value }))}>
-            <option value="">Todas</option>
-            {zones.map((zone) => (
-              <option key={zone} value={zone}>
-                {optimizerOrgView.zoneLabel(zone)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="optimizer__control">
+          <span id="optimizer-fuel-label">Combustible</span>
+          <Select
+            options={fuelOptions}
+            value={facets.fuel}
+            aria-labelledby="optimizer-fuel-label"
+            onChange={(fuel) => setFacets((current) => ({ ...current, fuel }))}
+          />
+        </div>
+        <div className="optimizer__control">
+          <span id="optimizer-vehicle-label">Tipo de vehículo</span>
+          <Select
+            options={vehicleOptions}
+            value={facets.vehicleType}
+            aria-labelledby="optimizer-vehicle-label"
+            onChange={(vehicleType) => setFacets((current) => ({ ...current, vehicleType }))}
+          />
+        </div>
+        <div className="optimizer__control">
+          <span id="optimizer-zone-label">Zona</span>
+          <Select
+            options={zoneOptions}
+            value={facets.zone}
+            aria-labelledby="optimizer-zone-label"
+            onChange={(zone) => setFacets((current) => ({ ...current, zone }))}
+          />
+        </div>
         <label className="optimizer__control optimizer__control--narrow">
           <span>km/L supuesto</span>
-          <input
+          <Input
             type="number"
             min={1}
             max={30}
             step={0.5}
-            value={assumptions.kmPerLiter}
-            onChange={(event) => setAssumptions((current) => sanitizeAssumptions({ ...current, kmPerLiter: Number(event.target.value) }))}
+            size="sm"
+            value={String(assumptions.kmPerLiter)}
+            onChange={(value) => setAssumptions((current) => sanitizeAssumptions({ ...current, kmPerLiter: Number(value) }))}
           />
         </label>
-        <label className="optimizer__check">
-          <input
-            type="checkbox"
+        <div className="optimizer__check">
+          <Checkbox
             checked={assumptions.roundTrip}
-            onChange={(event) => setAssumptions((current) => ({ ...current, roundTrip: event.target.checked }))}
+            label="Desvío de ida y vuelta"
+            onChange={(roundTrip) => setAssumptions((current) => ({ ...current, roundTrip }))}
           />
-          Desvío de ida y vuelta
-        </label>
+        </div>
       </section>
 
       <section className="intel-kpis" aria-label="Indicadores del optimizador">
@@ -298,15 +357,15 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
 
       {tab === 'resumen' && (
         <div className="optimizer__columns">
-          <section className="intel-card optimizer__panel">
-            <h2 className="intel-section-title">Ahorro por distancia de desvío</h2>
+          <WidgetFrame title="Ahorro por distancia de desvío">
             {bands.some((band) => band.loads > 0) ? (
               <BarChart
                 labels={bands.map((band) => band.label)}
-                series={[{ name: `Ahorro ${mode}`, color: '#007840', values: bands.map((band) => Math.round(band.saving)) }]}
+                series={[{ name: `Ahorro ${mode}`, color: 'var(--viz-positive)', values: bands.map((band) => Math.round(band.saving)) }]}
                 yMin={0}
                 yMax={niceMax(Math.max(0, ...bands.map((band) => band.saving)))}
                 ariaLabel="Ahorro por banda de distancia de desvío"
+                categoryLabel="Distancia de desvío"
               />
             ) : (
               <EmptyChart hint="No hay cargas redirigibles en el recorte." />
@@ -317,19 +376,24 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
                 redirigibles, pero no compensan.
               </p>
             )}
-          </section>
+          </WidgetFrame>
 
-          <section className="intel-card optimizer__panel">
-            <div className="optimizer__panel-head">
-              <h2 className="intel-section-title">Evolución diaria</h2>
-              <select value={dailyMetric} onChange={(event) => setDailyMetric(event.target.value as DailyMetric)} aria-label="Métrica">
-                {(Object.keys(DAILY_METRIC_LABELS) as DailyMetric[]).map((metric) => (
-                  <option key={metric} value={metric}>
-                    {DAILY_METRIC_LABELS[metric]}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <WidgetFrame
+            title="Evolución diaria"
+            actions={
+              <>
+                <span id="optimizer-daily-metric-label" className="visually-hidden">Métrica</span>
+                <Select
+                  options={dailyMetricOptions}
+                  value={dailyMetric}
+                  aria-labelledby="optimizer-daily-metric-label"
+                  onChange={(metric) => {
+                    if (isDailyMetric(metric)) setDailyMetric(metric);
+                  }}
+                />
+              </>
+            }
+          >
             <LineChart
               labels={daily.map((point) => dayLabel(point.day))}
               series={[{ name: DAILY_METRIC_LABELS[dailyMetric], color: '#0060df', values: daily.map((point) => Math.round(point[dailyMetric])) }]}
@@ -337,7 +401,7 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
               yMax={niceMax(Math.max(0, ...daily.map((point) => point[dailyMetric])))}
               ariaLabel={`${DAILY_METRIC_LABELS[dailyMetric]} por día`}
             />
-          </section>
+          </WidgetFrame>
 
           <section className="intel-card optimizer__panel optimizer__panel--wide">
             <h2 className="intel-section-title">Cómo se calcula</h2>
@@ -433,45 +497,15 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
                 Ranking de estaciones por ahorro
               </h2>
             </header>
-            <div className="table-page__scroll">
-              <table className="table-page__table">
-                <thead>
-                  <tr>
-                    <th scope="col">Estación</th>
-                    <th scope="col">Cargas</th>
-                    <th scope="col">Redirigible</th>
-                    <th scope="col">Ahorro bruto</th>
-                    <th scope="col">Ahorro neto</th>
-                    <th scope="col">Categoría</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ranking.slice(0, 15).map((stats) => {
-                    const category = stationCategory(stats);
-                    return (
-                      <tr key={stats.station.id} className={stats.station.id === selectedStationId ? 'is-selected' : undefined}>
-                        <td>
-                          <button type="button" className="optimizer__link" onClick={() => setSelectedStationId(stats.station.id)}>
-                            {stats.station.name}
-                          </button>
-                          <span className="table-page__sub">
-                            {optimizerOrgView.zoneLabel(stats.station.zone)}
-                            {stats.station.cv ? ' · CV' : ''}
-                          </span>
-                        </td>
-                        <td>{formatCount(stats.loads)}</td>
-                        <td>{percent(stats.redirectableShare)}</td>
-                        <td>{formatMoney(stats.grossSaving)}</td>
-                        <td>{formatMoney(stats.netSaving)}</td>
-                        <td>
-                          <span className={`chip ${CATEGORY_CHIP[category]}`}>{CATEGORY_LABEL[category]}</span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <Table
+              caption="Ranking de estaciones por ahorro"
+              columns={rankingColumns}
+              rows={rankingRows}
+              rowKey="id"
+              selectedKey={selectedStationId ?? undefined}
+              surface="none"
+              sortable={false}
+            />
           </section>
         </div>
       )}
@@ -523,26 +557,14 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
           </section>
           <section className="intel-card optimizer__panel">
             <h2 className="intel-section-title">Qué pasa con el control al redirigir</h2>
-            <table className="table-page__table">
-              <thead>
-                <tr>
-                  <th scope="col">Transición</th>
-                  <th scope="col">Cargas</th>
-                  <th scope="col">Ahorro</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(Object.keys(CV_TRANSITION_LABELS) as CvTransition[]).map((transition) => (
-                  <tr key={transition}>
-                    <td>{CV_TRANSITION_LABELS[transition]}</td>
-                    <td>
-                      {formatCount(cv.matrix[transition].loads)} · {percent(cv.matrix[transition].share)}
-                    </td>
-                    <td>{formatMoney(cv.matrix[transition].saving)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <Table
+              caption="Transiciones del control volumétrico"
+              columns={transitionColumns}
+              rows={transitionRows}
+              rowKey="id"
+              surface="none"
+              sortable={false}
+            />
           </section>
         </div>
       )}

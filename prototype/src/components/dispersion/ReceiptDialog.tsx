@@ -1,4 +1,5 @@
 import type { Receipt } from '../../types/dispersion';
+import { Button, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import { toLiters } from '../../data/dispersion';
 import { Modal } from '../ui/Modal';
 import { CheckCircleIcon, DownloadIcon, ShareIcon } from '../icons/Icons';
@@ -17,6 +18,11 @@ export function ReceiptDialog({ open, receipt, onClose, onShare }: ReceiptDialog
   if (!receipt) return null;
 
   const isCut = receipt.totalMXN < 0;
+  const lineColumns: GridColumn<Receipt['lines'][number]>[] = [
+    { key: 'plate', label: 'Placa' },
+    { key: 'driver', label: 'Conductor' },
+    { key: 'amount', label: 'Monto', align: 'right', render: (line) => formatMoney(line.amountMXN, true) },
+  ];
 
   return (
     <Modal
@@ -26,17 +32,17 @@ export function ReceiptDialog({ open, receipt, onClose, onShare }: ReceiptDialog
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cerrar
-          </button>
-          <button type="button" className="btn btn--secondary" onClick={() => onShare(receipt)}>
+          </Button>
+          <Button variant="secondary" onClick={() => onShare(receipt)}>
             <ShareIcon width={16} height={16} />
             Compartir con finanzas
-          </button>
-          <button type="button" className="btn btn--primary" onClick={() => downloadReceipt(receipt)}>
+          </Button>
+          <Button onClick={() => downloadReceipt(receipt)}>
             <DownloadIcon width={16} height={16} />
             Descargar comprobante
-          </button>
+          </Button>
         </>
       }
     >
@@ -71,24 +77,17 @@ export function ReceiptDialog({ open, receipt, onClose, onShare }: ReceiptDialog
       </div>
 
       {receipt.lines.length > 0 && (
-        <table className="receipt__table">
-          <thead>
-            <tr>
-              <th scope="col">Placa</th>
-              <th scope="col">Conductor</th>
-              <th scope="col">Monto</th>
-            </tr>
-          </thead>
-          <tbody>
-            {receipt.lines.map((line) => (
-              <tr key={line.plate}>
-                <td>{line.plate}</td>
-                <td>{line.driver}</td>
-                <td>{formatMoney(line.amountMXN, true)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="receipt__table">
+          <Table
+            caption="Unidades incluidas en el comprobante"
+            columns={lineColumns}
+            rows={receipt.lines}
+            rowKey="plate"
+            surface="none"
+            sortable={false}
+            density="compact"
+          />
+        </div>
       )}
 
       <p className="receipt__trace">

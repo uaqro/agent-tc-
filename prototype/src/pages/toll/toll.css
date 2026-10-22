@@ -5,13 +5,13 @@
   font-family: inherit;
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .toll__hint {
   margin: 0;
   font-size: 12.5px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .toll-auto {
@@ -29,23 +29,14 @@
 }
 
 .toll-auto__row + .toll-auto__row {
-  border-top: 1px solid var(--border-subtle);
-}
-
-.toll-auto__row--off .toll-auto__toggle span {
-  color: var(--text-muted);
+  border-top: 1px solid var(--tc-local-border-subtle);
 }
 
 .toll-auto__toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
   min-width: 170px;
   height: 34px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text-strong);
-  cursor: pointer;
 }
 
 .toll-auto__field {
@@ -56,23 +47,27 @@
 
 .toll-auto__field span {
   font-size: 11.5px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
+}
+
+.toll-auto__field [data-control-shell][data-size] {
+  width: 130px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--tc-local-border-control);
+  border-radius: var(--tc-local-radius-sm);
+  background: var(--tc-local-surface);
 }
 
 .toll-auto__field input {
-  width: 130px;
-  height: 34px;
-  padding: 0 10px;
-  border: 1px solid var(--border-control);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
   font-size: 13px;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
-.toll-auto__field input:disabled {
-  background: var(--surface-sunken);
-  color: var(--text-muted);
+.toll-auto__field [data-control-shell][data-size][data-disabled] {
+  background: var(--tc-local-surface-sunken);
+  color: var(--tc-local-text-muted);
 }
 
 .toll-auto__error {
@@ -80,7 +75,7 @@
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: var(--brand-red);
+  color: var(--tc-local-brand-red);
 }
 
 .toll-usage {
@@ -89,7 +84,7 @@
   height: 6px;
   margin-bottom: 5px;
   border-radius: 999px;
-  background: var(--surface-sunken);
+  background: var(--tc-local-surface-sunken);
   overflow: hidden;
 }
 
@@ -97,15 +92,15 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--accent-green);
+  background: var(--tc-local-accent-green);
 }
 
 .toll-usage--warn span {
-  background: var(--accent-orange);
+  background: var(--tc-local-accent-orange);
 }
 
 .toll-usage--danger span {
-  background: var(--brand-red);
+  background: var(--tc-local-brand-red);
 }
 
 .toll-policies {
@@ -113,13 +108,58 @@
   flex-direction: column;
 }
 
+.table-page--catalog .policy-card {
+  background: var(--surface-card);
+  border-color: var(--border-subtle);
+  border-left-color: var(--action-accent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-rest);
+}
+
+.table-page--catalog .policy-card--paused {
+  border-left-color: var(--border-default);
+  background: var(--surface-sunken);
+}
+
+.table-page--catalog .policy-card__name {
+  font: var(--type-body-md-strong);
+  color: var(--text-primary);
+}
+
+.table-page--catalog .policy-card__scope,
+.table-page--catalog .policy-card__locks dd {
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}
+
+.table-page--catalog .policy-card__note {
+  font: var(--type-body-sm-medium);
+  color: var(--status-warning-text);
+}
+
+.table-page--catalog .policy-card__limit {
+  font: var(--type-data-lg);
+  color: var(--text-primary);
+}
+
+.table-page--catalog .policy-card__limit span {
+  margin-left: var(--space-1);
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}
+
+.table-page--catalog .policy-card__locks dt {
+  font: var(--type-label-sm);
+  color: var(--text-muted);
+}
+
 .table-page__table select {
   height: 32px;
   max-width: 260px;
   padding: 0 8px;
-  border: 1px solid var(--border-control);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
+  border: 1px solid var(--tc-local-border-control);
+  border-radius: var(--tc-local-radius-sm);
+  background: var(--tc-local-surface);
   font-size: 13px;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }

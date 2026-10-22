@@ -1,0 +1,129 @@
+.assignments { display: grid; gap: 16px; width: 100%; max-width: 1680px; margin: 0 auto; padding: 18px 24px 56px; color: var(--text-secondary); }
+.assignments__balance { display: grid; grid-template-columns: minmax(260px, 2fr) repeat(3, minmax(130px, 1fr)); align-items: center; gap: 20px; padding: 18px 22px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-card); }
+.assignments__balance-primary, .assignments__balance-metric { display: grid; gap: 4px; }
+.assignments__balance-primary span, .assignments__balance-metric span { color: var(--text-muted); font-size: 12px; }
+.assignments__balance-primary strong { color: var(--text-primary); font-size: 28px; font-weight: 700; }
+.assignments__balance-primary small { color: var(--text-muted); font-size: 12px; }
+.assignments__balance-metric { padding-left: 18px; border-left: 1px solid var(--border-subtle); }
+.assignments__balance-metric strong { color: var(--text-primary); font-size: 16px; }
+.assignments__tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--border-default); }
+.assignments__tabs button { flex: 0 0 auto; min-height: 42px; padding: 0 14px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-muted); font: inherit; font-size: 13px; cursor: pointer; }
+.assignments__tabs button:hover, .assignments__tabs button.is-active { border-bottom-color: var(--action-accent); color: var(--action-accent); }
+.assignments__tabs button:focus-visible { outline: 2px solid var(--action-accent); outline-offset: -2px; }
+.assignments__panel { min-width: 0; }
+.assignments__section { display: grid; gap: 16px; min-width: 0; }
+.assignments__section-head, .assignments__form-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.assignments__section-head h2, .assignments__section-head h3, .assignments__form-head h3, .assignments__subsection h3 { margin: 0; color: var(--text-primary); font-size: 16px; }
+.assignments__section-head p { margin: 4px 0 0; color: var(--text-muted); font-size: 12px; }
+.assignments__toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--text-muted); font-size: 12px; }
+.assignments__observation-toggle { margin-left: auto; }
+.assignments__search { flex: 1 1 280px; max-width: 460px; }
+.assignments__search input, .assignments__form-grid input, .assignments__form-grid select, .assignments__line-editor input, .assignments__line-editor select, .assignments__inline-action input, .assignments__station-picker > input { width: 100%; min-width: 0; min-height: 36px; padding: 0 10px; border: 1px solid var(--border-default); border-radius: var(--radius-sm); background: var(--surface-card); color: var(--text-primary); font: inherit; font-size: 12px; }
+.assignments__table-wrap { width: 100%; overflow: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--surface-card); }
+.assignments__individual-table { max-height: 620px; }
+.assignments__table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
+.assignments__individual-table .assignments__table--individual { width: 100% !important; min-width: 0 !important; max-width: 100%; table-layout: fixed; white-space: normal; }
+.assignments__table--individual th, .assignments__table--individual td { min-width: 0; overflow-wrap: anywhere; padding: 7px 5px; font-size: 11px; }
+.assignments__table--individual th:first-child { width: 5%; }
+.assignments__table--individual th:nth-child(2) { width: 16%; }
+.assignments__table--individual th:nth-child(3) { width: 8%; }
+.assignments__table--individual th:nth-child(4) { width: 12%; }
+.assignments__table--individual th:nth-child(5) { width: 9%; }
+.assignments__table--individual th:nth-child(6) { width: 15%; }
+.assignments__table--individual th:nth-child(7) { width: 12%; }
+.assignments__table--individual th:nth-child(8) { width: 23%; }
+.assignments__individual-table.has-observation .assignments__table--individual { width: max(100%, 1040px) !important; min-width: 1040px !important; max-width: none; }
+.assignments__individual-table.has-observation .assignments__table--individual th:first-child { width: 4%; }
+.assignments__individual-table.has-observation .assignments__table--individual th:nth-child(2) { width: 12%; }
+.assignments__individual-table.has-observation .assignments__table--individual th:nth-child(3) { width: 8%; }
+.assignments__individual-table.has-observation .assignments__table--individual th:nth-child(4) { width: 10%; }
+.assignments__individual-table.has-observation .assignments__table--individual th:nth-child(5) { width: 8%; }
+.assignments__individual-table.has-observation .assignments__table--individual th:nth-child(6) { width: 12%; }
+.assignments__individual-table.has-observation .assignments__table--individual th:nth-child(7) { width: 10%; }
+.assignments__individual-table.has-observation .assignments__table--individual th:nth-child(8) { width: 14%; }
+.assignments__individual-table.has-observation .assignments__table--individual th:nth-child(9) { width: 22%; }
+.assignments__individual-table .assignments__table--individual input:not([type='checkbox']), .assignments__individual-table .assignments__table--individual select { width: 100%; min-width: 0; padding: 0 3px; font-size: 10px; }
+.assignments__table--individual td:nth-child(2) small { display: none; }
+.assignments__pagination { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; color: var(--text-muted); font-size: 12px; }
+.assignments__pagination label { display: inline-flex; align-items: center; gap: 7px; }
+.assignments__pagination select { min-height: 32px; padding: 0 8px; border: 1px solid var(--border-default); border-radius: var(--radius-sm); background: var(--surface-card); color: var(--text-primary); font: inherit; }
+.assignments__table th { position: sticky; top: 0; z-index: 1; padding: 10px 12px; border-bottom: 1px solid var(--border-subtle); background: var(--surface-sunken); color: var(--text-muted); font-size: 11px; font-weight: 600; }
+.assignments__table td { padding: 8px 12px; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 12px; }
+.assignments__table tbody tr:last-child td { border-bottom: 0; }
+.assignments__table tbody tr:hover { background: var(--surface-accent-subtle); }
+.assignments__table td strong, .assignments__table td small { display: block; }
+.assignments__table td small { margin-top: 3px; color: var(--text-muted); font-size: 10px; }
+.assignments__table input:not([type='checkbox']), .assignments__table select { width: 130px; min-height: 32px; padding: 0 8px; border: 1px solid var(--border-default); border-radius: var(--radius-sm); background: var(--surface-card); color: var(--text-primary); font: inherit; font-size: 12px; }
+.assignments__table td:nth-child(9) input { width: 170px; }
+.assignments__table .assignments__current-balance { color: var(--text-primary); font-weight: 600; }
+.assignments__expiry-cell { display: grid; gap: 3px; }
+.assignments__expiry-cell input { width: 145px; }
+.assignments__expiry-cell small { color: var(--text-muted); font-size: 10px; }
+.assignments__table input[type='checkbox'], .assignments__station-list input { accent-color: var(--action-accent); }
+.assignments__hint { margin: 0; color: var(--text-muted); font-size: 12px; }
+.assignments__pending { color: var(--status-warning); }
+.assignments__empty { margin: 0; padding: 22px 14px; color: var(--text-muted); font-size: 13px; text-align: center; }
+.assignments__upload-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--surface-sunken); }
+.assignments__upload-row > span { flex: 1 1 280px; color: var(--text-muted); font-size: 12px; }
+.assignments__file-button { position: relative; overflow: hidden; }
+.assignments__file-button input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+.assignments__subsection { display: grid; gap: 12px; padding-top: 14px; border-top: 1px solid var(--border-subtle); }
+.assignments__subsection > h3 { margin: 0; }
+.assignments__form-panel { display: grid; gap: 16px; padding: 18px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--surface-sunken); }
+.assignments__form-panel > h3 { margin: 0; color: var(--text-primary); font-size: 15px; }
+.assignments__form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.assignments__form-grid label, .assignments__line-editor label { display: grid; gap: 5px; color: var(--text-secondary); font-size: 12px; }
+.assignments__form-grid small { color: var(--text-muted); font-size: 11px; }
+.assignments__form-wide { grid-column: 1 / -1; }
+.assignments__line-editor { display: grid; grid-template-columns: minmax(180px, 2fr) repeat(2, minmax(100px, 1fr)) auto; align-items: end; gap: 8px; }
+.assignments__line-editor:has(label:nth-of-type(3)) { grid-template-columns: minmax(150px, 2fr) repeat(3, minmax(90px, 1fr)) auto; }
+.assignments__form-actions { display: flex; justify-content: flex-end; }
+.assignments__actions, .assignments__inline-action { display: flex; align-items: center; gap: 6px; }
+.assignments__inline-action input { width: 120px; }
+.assignments__station-picker { display: grid; gap: 10px; }
+.assignments__station-picker h4 { margin: 0; color: var(--text-primary); font-size: 13px; }
+.assignments__station-picker p { margin: 3px 0 0; color: var(--text-muted); font-size: 11px; }
+.assignments__station-picker > input { max-width: 420px; }
+.assignments__station-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 14px; max-height: 220px; overflow: auto; padding: 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--surface-card); }
+.assignments__station-list label { display: flex; align-items: flex-start; gap: 8px; padding: 5px; color: var(--text-secondary); font-size: 11px; cursor: pointer; }
+.assignments__station-list label span, .assignments__station-list small { display: block; }
+.assignments__station-list small { margin-top: 2px; color: var(--text-muted); }
+.assignments__status { font-size: 11px; }
+.assignments__status--valid, .assignments__status--applied { color: var(--status-success); }
+.assignments__status--pending { color: var(--action-accent); }
+.assignments__status--invalid, .assignments__status--rejected { color: var(--status-danger); }
+.assignments__activity { padding-top: 12px; border-top: 1px solid var(--border-subtle); }
+.assignments__activity summary { color: var(--text-primary); font-size: 13px; cursor: pointer; }
+.assignments__activity .assignments__table-wrap { margin-top: 10px; }
+.assignments__table .is-debit { color: var(--status-danger); }
+.assignments__table .is-credit { color: var(--status-success); }
+
+@media (max-width: 1100px) {
+  .assignments { padding: 16px 14px 48px; }
+  .assignments__balance { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .assignments__balance-primary { grid-column: 1 / -1; }
+  .assignments__balance-metric { padding-left: 0; border-left: 0; }
+  .assignments__form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .assignments__station-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 820px) {
+  .assignments__individual-table:not(.has-observation) .assignments__table--individual { width: max(100%, 560px) !important; min-width: 560px !important; }
+  .assignments__table--individual th, .assignments__table--individual td { padding: 6px 3px; font-size: 10px; }
+  .assignments__pagination { justify-content: flex-start; }
+}
+
+@media (max-width: 600px) {
+  .assignments { gap: 12px; padding: 12px 10px 40px; }
+  .assignments__balance { gap: 12px; padding: 14px; }
+  .assignments__balance-primary strong { font-size: 23px; }
+  .assignments__balance-metric strong { font-size: 14px; }
+  .assignments__section-head { align-items: flex-start; flex-direction: column; }
+  .assignments__section-head > .btn { align-self: stretch; justify-content: center; }
+  .assignments__observation-toggle { margin-left: 0; }
+  .assignments__form-grid { grid-template-columns: minmax(0, 1fr); }
+  .assignments__form-wide { grid-column: auto; }
+  .assignments__line-editor, .assignments__line-editor:has(label:nth-of-type(3)) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .assignments__station-list { grid-template-columns: minmax(0, 1fr); }
+  .assignments__upload-row > .btn { width: 100%; justify-content: center; }
+}

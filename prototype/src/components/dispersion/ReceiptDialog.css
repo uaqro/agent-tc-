@@ -5,8 +5,8 @@
   margin: 0 0 16px;
   padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(23, 166, 115, 0.12);
-  color: #0f7a53;
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
   font-size: 13px;
   font-weight: 600;
 }
@@ -22,13 +22,13 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .receipt__meta dd {
   margin: 3px 0 0;
   font-size: 13.5px;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .receipt__total {
@@ -37,46 +37,31 @@
   gap: 12px;
   flex-wrap: wrap;
   padding: 14px 16px;
-  border-radius: var(--radius-md);
-  background: var(--surface-muted);
+  border-radius: var(--tc-local-radius-md);
+  background: var(--tc-local-surface-muted);
   font-size: 12.5px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .receipt__total strong {
   font-size: 22px;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .receipt__table {
-  width: 100%;
   margin-top: 14px;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.receipt__table th,
-.receipt__table td {
-  text-align: left;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.receipt__table th {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.receipt__table td:last-child,
-.receipt__table th:last-child {
-  text-align: right;
 }
 
 .receipt__trace {
   margin: 14px 0 0;
   font-size: 12.5px;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
   line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .modal:has(.receipt__table) {
+    width: calc(100vw - 32px);
+    max-width: calc(100vw - 32px);
+  }
 }

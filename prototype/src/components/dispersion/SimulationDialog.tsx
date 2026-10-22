@@ -1,9 +1,15 @@
-import { useState } from 'react';
+import { Accordion, Button, DetailRow, Table, type GridColumn } from '@er-mobility-mx/design-system';
+import type { CSSProperties } from 'react';
 import type { RunSimulation } from '../../types/dispersion';
 import { Modal } from '../ui/Modal';
-import { AlertIcon, CheckCircleIcon, ChevronDownIcon } from '../icons/Icons';
+import { AlertIcon, CheckCircleIcon } from '../icons/Icons';
 import { formatCount, formatDateLong, formatLiters, formatMoney, formatSignedPercent } from '../../utils/format';
 import './SimulationDialog.css';
+
+const budgetRowStyle: CSSProperties = {
+  alignItems: 'center',
+  padding: '3px 0',
+};
 
 interface SimulationDialogProps {
   open: boolean;
@@ -14,12 +20,15 @@ interface SimulationDialogProps {
 }
 
 export function SimulationDialog({ open, mode, simulation, onClose, onConfirm }: SimulationDialogProps) {
-  const [detailOpen, setDetailOpen] = useState(false);
-
   if (!simulation) return null;
 
   const { rule } = simulation;
   const confirmLabel = mode === 'review' ? 'Aprobar corrida' : 'Confirmar y ejecutar';
+  const sampleColumns: GridColumn<(typeof simulation.sample)[number]>[] = [
+    { key: 'plate', label: 'Placa' },
+    { key: 'driver', label: 'Conductor' },
+    { key: 'amount', label: 'Monto', align: 'right', render: (line) => formatMoney(line.amountMXN, true) },
+  ];
 
   return (
     <Modal
@@ -30,12 +39,12 @@ export function SimulationDialog({ open, mode, simulation, onClose, onConfirm }:
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button type="button" className="btn btn--primary" onClick={() => onConfirm(simulation)}>
+          </Button>
+          <Button onClick={() => onConfirm(simulation)}>
             {confirmLabel}
-          </button>
+          </Button>
         </>
       }
     >
@@ -64,18 +73,26 @@ export function SimulationDialog({ open, mode, simulation, onClose, onConfirm }:
       </dl>
 
       <section className="sim__budget">
-        <div className="sim__budget-row">
-          <span>Disponible antes</span>
-          <strong>{formatMoney(simulation.availableBeforeMXN)}</strong>
-        </div>
-        <div className="sim__budget-row sim__budget-row--negative">
-          <span>Esta corrida</span>
-          <strong>− {formatMoney(simulation.totalMXN)}</strong>
-        </div>
-        <div className="sim__budget-row sim__budget-row--total">
-          <span>Disponible final</span>
-          <strong>{formatMoney(simulation.availableAfterMXN)}</strong>
-        </div>
+        <DetailRow
+          label="Disponible antes"
+          value={<strong>{formatMoney(simulation.availableBeforeMXN)}</strong>}
+          style={budgetRowStyle}
+        />
+        <DetailRow
+          label="Esta corrida"
+          value={<strong style={{ color: '#b4001a' }}>− {formatMoney(simulation.totalMXN)}</strong>}
+          style={budgetRowStyle}
+        />
+        <DetailRow
+          label="Disponible final"
+          value={<strong style={{ fontSize: 15 }}>{formatMoney(simulation.availableAfterMXN)}</strong>}
+          style={{
+            ...budgetRowStyle,
+            marginTop: 6,
+            paddingTop: 8,
+            borderTop: '1px solid var(--tc-local-border-subtle)',
+          }}
+        />
 
         <div
           className="sim__budget-bar"
@@ -104,42 +121,31 @@ export function SimulationDialog({ open, mode, simulation, onClose, onConfirm }:
       </section>
 
       <section className="sim__detail">
-        <button
-          type="button"
-          className="sim__detail-toggle"
-          aria-expanded={detailOpen}
-          onClick={() => setDetailOpen((value) => !value)}
-        >
-          <ChevronDownIcon width={16} height={16} className={detailOpen ? 'sim__chevron--open' : undefined} />
-          Ver detalle de unidades
-        </button>
-
-        {detailOpen && (
-          <table className="sim__table">
-            <thead>
-              <tr>
-                <th scope="col">Placa</th>
-                <th scope="col">Conductor</th>
-                <th scope="col">Monto</th>
-              </tr>
-            </thead>
-            <tbody>
-              {simulation.sample.map((line) => (
-                <tr key={line.plate}>
-                  <td>{line.plate}</td>
-                  <td>{line.driver}</td>
-                  <td>{formatMoney(line.amountMXN, true)}</td>
-                </tr>
-              ))}
-              <tr className="sim__table-rest">
-                <td colSpan={3}>
-                  y {formatCount(Math.max(simulation.unitsAffected - simulation.sample.length, 0))} unidades más con la
-                  misma lógica de monto.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        )}
+        <Accordion
+          items={[
+            {
+              id: 'unit-details',
+              title: 'Ver detalle de unidades',
+              content: (
+                <div className="sim__table">
+                  <Table
+                    caption="Muestra de unidades de la corrida"
+                    columns={sampleColumns}
+                    rows={simulation.sample}
+                    rowKey="plate"
+                    surface="none"
+                    sortable={false}
+                    density="compact"
+                  />
+                  <p className="sim__table-rest">
+                    y {formatCount(Math.max(simulation.unitsAffected - simulation.sample.length, 0))} unidades más con la
+                    misma lógica de monto.
+                  </p>
+                </div>
+              ),
+            },
+          ]}
+        />
       </section>
     </Modal>
   );

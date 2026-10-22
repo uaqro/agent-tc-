@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
+import { Button, FileUpload, Table, type GridColumn, type RejectedFile, type UploadedFile } from '@er-mobility-mx/design-system';
 import type { BulkRow, Vehicle } from '../../types/dispersion';
 import { toLiters } from '../../data/dispersion';
 import { downloadTemplate, parseBulkCsv } from '../../utils/bulkUpload';
 import { Modal } from '../ui/Modal';
-import { AlertIcon, DownloadIcon, UploadIcon } from '../icons/Icons';
+import { AlertIcon, DownloadIcon } from '../icons/Icons';
 import { formatCount, formatLiters, formatMoney } from '../../utils/format';
 import './BulkUploadDialog.css';
 
@@ -18,26 +19,91 @@ interface BulkUploadDialogProps {
 export function BulkUploadDialog({ open, vehicles, availableMXN, onClose, onApply }: BulkUploadDialogProps) {
   const [rows, setRows] = useState<BulkRow[]>([]);
   const [fileName, setFileName] = useState('');
-  const [dragging, setDragging] = useState(false);
+  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const valid = useMemo(() => rows.filter((row) => row.status === 'ok'), [rows]);
   const errors = rows.length - valid.length;
   const total = valid.reduce((sum, row) => sum + row.amountMXN, 0);
   const overBudget = total > availableMXN;
+  const columns: GridColumn<BulkRow>[] = [
+    {
+      key: 'line',
+      label: 'Línea',
+      render: (row) => <span className={row.status === 'ok' ? undefined : 'bulk__cell--error'}>{row.line}</span>,
+    },
+    {
+      key: 'plate',
+      label: 'Placa',
+      render: (row) => <span className={row.status === 'ok' ? undefined : 'bulk__cell--error'}>{row.plate}</span>,
+    },
+    {
+      key: 'driver',
+      label: 'Conductor',
+      render: (row) => (
+        <span className={row.status === 'ok' ? undefined : 'bulk__cell--error'}>
+          {row.status === 'ok' ? row.driver : row.message}
+        </span>
+      ),
+    },
+    {
+      key: 'amount',
+      label: 'Monto',
+      render: (row) => (
+        <span className={row.status === 'ok' ? undefined : 'bulk__cell--error'}>
+          {row.status === 'ok' ? formatMoney(row.amountMXN, true) : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'liters',
+      label: 'Litros',
+      render: (row) => (
+        <span className={row.status === 'ok' ? undefined : 'bulk__cell--error'}>
+          {row.status === 'ok' ? formatLiters(toLiters(row.amountMXN)) : '—'}
+        </span>
+      ),
+    },
+  ];
 
   const readFile = (file: File) => {
     const reader = new FileReader();
     reader.onload = () => {
       setRows(parseBulkCsv(String(reader.result ?? ''), vehicles));
       setFileName(file.name);
+      setFileError(null);
     };
+    reader.onerror = () => setFileError(`No se pudo leer ${file.name}. Intenta con otro archivo.`);
     reader.readAsText(file);
   };
 
   const close = () => {
     setRows([]);
     setFileName('');
+    setFiles([]);
+    setFileError(null);
     onClose();
+  };
+
+  const handleFileChange = (nextFiles: UploadedFile[]) => {
+    setFiles(nextFiles);
+    const file = nextFiles[0]?.file;
+    if (file) {
+      readFile(file);
+    } else {
+      setRows([]);
+      setFileName('');
+      setFileError(null);
+    }
+  };
+
+  const handleFileReject = (rejected: RejectedFile[]) => {
+    const reasons: Record<RejectedFile['reason'], string> = {
+      accept: 'no es un archivo CSV',
+      maxSize: 'supera el tamaño permitido',
+      maxFiles: 'no se admite más de un archivo',
+    };
+    setFileError(rejected.map(({ file, reason }) => `${file.name} ${reasons[reason]}.`).join(' '));
   };
 
   return (
@@ -49,54 +115,45 @@ export function BulkUploadDialog({ open, vehicles, availableMXN, onClose, onAppl
       onClose={close}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={() => downloadTemplate(vehicles)}>
+          <Button variant="ghost" onClick={() => downloadTemplate(vehicles)}>
             <DownloadIcon width={16} height={16} />
             Descargar plantilla
-          </button>
-          <button type="button" className="btn btn--secondary" onClick={close}>
+          </Button>
+          <Button variant="secondary" onClick={close}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn--primary"
+          </Button>
+          <Button
             disabled={valid.length === 0 || overBudget}
             onClick={() => {
               onApply(valid, fileName);
               setRows([]);
               setFileName('');
+              setFiles([]);
+              setFileError(null);
             }}
           >
             Dispersar {valid.length > 0 ? formatMoney(total) : ''}
-          </button>
+          </Button>
         </>
       }
     >
-      <label
-        className={`bulk__drop${dragging ? ' bulk__drop--over' : ''}`}
-        onDragOver={(event) => {
-          event.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(event) => {
-          event.preventDefault();
-          setDragging(false);
-          const file = event.dataTransfer.files[0];
-          if (file) readFile(file);
-        }}
-      >
-        <UploadIcon width={26} height={26} />
-        <span className="bulk__drop-title">{fileName || 'Arrastra el archivo o selecciónalo'}</span>
-        <span className="bulk__drop-hint">Formato: placa,monto · una unidad por línea</span>
-        <input
-          type="file"
-          accept=".csv,text/csv,text/plain"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (file) readFile(file);
-          }}
-        />
-      </label>
+      <FileUpload
+        files={files}
+        onChange={handleFileChange}
+        onReject={handleFileReject}
+        accept=".csv,text/csv,text/plain"
+        label={fileName || 'Arrastra el archivo o selecciónalo'}
+        hint="Formato: placa,monto · una unidad por línea"
+        multiple={false}
+        style={{ marginBottom: 12 }}
+      />
+
+      {fileError && (
+        <p className="bulk__error" role="alert">
+          <AlertIcon width={16} height={16} />
+          {fileError}
+        </p>
+      )}
 
       {rows.length > 0 && (
         <>
@@ -127,28 +184,16 @@ export function BulkUploadDialog({ open, vehicles, availableMXN, onClose, onAppl
           )}
 
           <div className="bulk__scroll">
-            <table className="bulk__table">
-              <thead>
-                <tr>
-                  <th scope="col">Línea</th>
-                  <th scope="col">Placa</th>
-                  <th scope="col">Conductor</th>
-                  <th scope="col">Monto</th>
-                  <th scope="col">Litros</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={`${row.line}-${row.plate}`} className={row.status !== 'ok' ? 'bulk__row--error' : undefined}>
-                    <td>{row.line}</td>
-                    <td>{row.plate}</td>
-                    <td>{row.status === 'ok' ? row.driver : row.message}</td>
-                    <td>{row.status === 'ok' ? formatMoney(row.amountMXN, true) : '—'}</td>
-                    <td>{row.status === 'ok' ? formatLiters(toLiters(row.amountMXN)) : '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <Table
+              caption="Vista previa de dispersiones masivas"
+              columns={columns}
+              rows={rows}
+              rowKey="line"
+              surface="none"
+              sortable={false}
+              density="compact"
+              style={{ maxHeight: 240 }}
+            />
           </div>
         </>
       )}

@@ -1,0 +1,23 @@
+.help-contact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-stack);
+  margin: 0;
+  font: var(--type-body-md);
+}
+
+.help-contact dt {
+  color: var(--text-secondary);
+  font: var(--type-body-sm);
+}
+
+.help-contact dd {
+  margin: var(--gap-inline) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.help-contact__notice {
+  margin: var(--gap-stack) 0 0;
+  color: var(--text-secondary);
+  font: var(--type-body-sm);
+}

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Badge, Button, SectionHeader } from '@er-mobility-mx/design-system';
 import type { AttentionItem, AttentionKind, Vehicle } from '../../types/dispersion';
 import { toLiters } from '../../data/dispersion';
 import { AlertIcon, BoltIcon, CheckCircleIcon, RequestIcon, ScissorsIcon } from '../icons/Icons';
@@ -19,11 +20,11 @@ interface AttentionListProps {
   onDismiss: (item: AttentionItem) => void;
 }
 
-const KIND_META: Record<AttentionKind, { label: string; chip: string; Icon: typeof AlertIcon }> = {
-  'balance-request': { label: 'Solicitud de saldo', chip: 'chip--info', Icon: RequestIcon },
-  'zero-balance': { label: 'Saldo en cero', chip: 'chip--danger', Icon: BoltIcon },
-  'anomalous-consumption': { label: 'Consumo anómalo', chip: 'chip--review', Icon: AlertIcon },
-  'trapped-balance': { label: 'Saldo atrapado', chip: 'chip--info', Icon: ScissorsIcon },
+const KIND_META: Record<AttentionKind, { label: string; tone: 'info' | 'danger' | 'warning'; Icon: typeof AlertIcon }> = {
+  'balance-request': { label: 'Solicitud de saldo', tone: 'info', Icon: RequestIcon },
+  'zero-balance': { label: 'Saldo en cero', tone: 'danger', Icon: BoltIcon },
+  'anomalous-consumption': { label: 'Consumo anómalo', tone: 'warning', Icon: AlertIcon },
+  'trapped-balance': { label: 'Saldo atrapado', tone: 'info', Icon: ScissorsIcon },
 };
 
 function primaryAction(item: AttentionItem): AttentionAction {
@@ -44,11 +45,19 @@ export function AttentionList({ items, vehicles, headerSlot, onResolve, onDismis
     return (
       <section className="attention">
         <header className="attention__head">
-          <h2 className="attention__title">
+          <SectionHeader
+            size="sm"
+            level={2}
+            style={{ width: '100%' }}
+            trailing={
+              <>
+                <ApiTag id="disp-attention" />
+                {headerSlot}
+              </>
+            }
+          >
             Sin unidades por revisar
-            <ApiTag id="disp-attention" />
-          </h2>
-          {headerSlot}
+          </SectionHeader>
         </header>
         <p className="attention__clear-row">
           <CheckCircleIcon width={20} height={20} />
@@ -61,11 +70,21 @@ export function AttentionList({ items, vehicles, headerSlot, onResolve, onDismis
   return (
     <section className="attention" aria-labelledby="attention-title">
       <header className="attention__head">
-        <h2 className="attention__title" id="attention-title">
-          {items.length} {items.length === 1 ? 'unidad necesita' : 'unidades necesitan'} atención
-          <ApiTag id="disp-attention" />
-        </h2>
-        {headerSlot}
+        <SectionHeader
+          size="sm"
+          level={2}
+          style={{ width: '100%' }}
+          trailing={
+            <>
+              <ApiTag id="disp-attention" />
+              {headerSlot}
+            </>
+          }
+        >
+          <span id="attention-title">
+            {items.length} {items.length === 1 ? 'unidad necesita' : 'unidades necesitan'} atención
+          </span>
+        </SectionHeader>
       </header>
 
       <ul className="attention__list">
@@ -84,7 +103,7 @@ export function AttentionList({ items, vehicles, headerSlot, onResolve, onDismis
                 <p className="attention__unit">
                   <strong>{vehicle?.plate}</strong>
                   <span className="attention__driver">{vehicle?.driver}</span>
-                  <span className={`chip ${meta.chip}`}>{meta.label}</span>
+                  <Badge tone={meta.tone}>{meta.label}</Badge>
                 </p>
                 <p className="attention__detail">{item.detail}</p>
                 <p className="attention__meta">
@@ -95,12 +114,12 @@ export function AttentionList({ items, vehicles, headerSlot, onResolve, onDismis
 
               <div className="attention__actions">
                 {action.kind === 'cut' && <ApiTag id="disp-cut" />}
-                <button type="button" className="btn btn--primary btn--sm" onClick={() => onResolve(item, action)}>
+                <Button size="sm" onClick={() => onResolve(item, action)}>
                   {action.label}
-                </button>
-                <button type="button" className="btn btn--ghost btn--sm" onClick={() => onDismiss(item)}>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onDismiss(item)}>
                   {item.kind === 'balance-request' ? 'Rechazar' : 'Posponer'}
-                </button>
+                </Button>
               </div>
             </li>
           );

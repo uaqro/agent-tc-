@@ -1,4 +1,5 @@
 import type { FundingRule } from '../../types/dispersion';
+import { Button } from '@er-mobility-mx/design-system';
 import { toLiters } from '../../data/dispersion';
 import { CalendarIcon, CheckCircleIcon, EyeIcon, PauseIcon, PlayIcon } from '../icons/Icons';
 import { daysUntil, formatCount, formatDateLong, formatLiters, formatMoney } from '../../utils/format';
@@ -72,18 +73,18 @@ export function NextRunCard({ rule, onReview, onRunNow, onPause }: NextRunCardPr
       </div>
 
       <div className="next-run__actions">
-        <button type="button" className="btn btn--light" onClick={() => onReview(rule)}>
+        <Button variant="secondary" onClick={() => onReview(rule)}>
           <EyeIcon width={17} height={17} />
           Revisar antes de que se ejecute
-        </button>
-        <button type="button" className="btn btn--on-dark" onClick={() => onRunNow(rule)}>
+        </Button>
+        <Button variant="primary" onClick={() => onRunNow(rule)}>
           <PlayIcon width={15} height={15} />
           Ejecutar ahora
-        </button>
-        <button type="button" className="btn btn--on-dark" onClick={() => onPause(rule)}>
+        </Button>
+        <Button variant="secondary" onClick={() => onPause(rule)}>
           <PauseIcon width={15} height={15} />
           Pausar
-        </button>
+        </Button>
       </div>
     </section>
   );

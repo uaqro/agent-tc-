@@ -1,5 +1,6 @@
-import type { ScheduleBlock, TimeRange } from '../../types/limits';
+import { Input } from '@er-mobility-mx/design-system';
 import { DAY_LABELS } from '../../data/limits';
+import type { ScheduleBlock, TimeRange } from '../../types/limits';
 
 const DEFAULT_RANGE: TimeRange = { from: '09:00', to: '18:00' };
 const WEEKDAYS = [0, 1, 2, 3, 4];
@@ -98,11 +99,23 @@ export function ScheduleEditor({ blocks, onChange }: ScheduleEditorProps) {
             <div className="schedule__ranges">
               {block.ranges.map((range, rangeIndex) => (
                 <div className="schedule__range" key={rangeIndex}>
-                  <input type="time" aria-label={`${title} · rango ${rangeIndex + 1} desde`} value={range.from}
-                    onChange={(event) => updateRange(index, rangeIndex, { from: event.target.value })} />
+                  <Input
+                    type="time"
+                    size="sm"
+                    ariaLabel={`${title} · rango ${rangeIndex + 1} desde`}
+                    value={range.from}
+                    onChange={(value) => updateRange(index, rangeIndex, { from: value })}
+                    style={{ width: '140px' }}
+                  />
                   <span aria-hidden="true">a</span>
-                  <input type="time" aria-label={`${title} · rango ${rangeIndex + 1} hasta`} value={range.to}
-                    onChange={(event) => updateRange(index, rangeIndex, { to: event.target.value })} />
+                  <Input
+                    type="time"
+                    size="sm"
+                    ariaLabel={`${title} · rango ${rangeIndex + 1} hasta`}
+                    value={range.to}
+                    onChange={(value) => updateRange(index, rangeIndex, { to: value })}
+                    style={{ width: '140px' }}
+                  />
                   <button type="button" className="schedule__remove" aria-label={`Quitar rango ${rangeIndex + 1} de ${title}`}
                     disabled={block.ranges.length === 1}
                     onClick={() => patchBlock(index, { ranges: block.ranges.filter((_, current) => current !== rangeIndex) })}>

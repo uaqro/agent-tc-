@@ -1,4 +1,5 @@
 import type { LimitPolicy } from '../../types/limits';
+import { Button, Stack, StatusPill } from '@er-mobility-mx/design-system';
 import { useFuelPolicies } from '../../data/FuelPolicyContext';
 import {
   assignableGroups,
@@ -11,9 +12,9 @@ import {
   stationsLabel,
   validationLabel,
 } from '../../data/limits';
-import { PauseIcon, PlayIcon, PlusIcon, RuleIcon } from '../icons/Icons';
 import { EmptyState } from '../ui/EmptyState';
 import { formatCount } from '../../utils/format';
+
 import { ApiTag } from '../api/ApiCoverage';
 import './PoliciesSection.css';
 
@@ -39,23 +40,21 @@ export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: 
           Políticas de uso
           <ApiTag id="lim-policies" />
         </h2>
-        <button type="button" className="btn btn--primary btn--sm" onClick={onCreate}>
-          <PlusIcon width={15} height={15} />
+        <Button variant="primary" size="sm" icon="add" onClick={onCreate}>
           Nueva política
-        </button>
+        </Button>
       </header>
 
       {policies.length === 0 && (
         <EmptyState
           card
-          icon={<RuleIcon width={22} height={22} />}
+          icon="rule"
           title="Aún no hay políticas de uso"
           description="No hay controles, restricciones de consumo ni configuraciones de uso asignados a la flota."
           actions={
-            <button type="button" className="btn btn--primary btn--sm" onClick={onCreate}>
-              <PlusIcon width={15} height={15} />
+            <Button variant="primary" size="sm" icon="add" onClick={onCreate}>
               Crear primera política
-            </button>
+            </Button>
           }
         />
       )}
@@ -69,7 +68,7 @@ export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: 
             <li className={`policy-card${paused ? ' policy-card--paused' : ''}`} key={policy.id}>
               <header className="policy-card__head">
                 <h3 className="policy-card__name">{policy.name}</h3>
-                <span className={`chip ${paused ? 'chip--paused' : 'chip--active'}`}>{paused ? 'Pausada' : 'Activa'}</span>
+                <StatusPill label={paused ? 'Pausada' : 'Activa'} tone={paused ? 'neutral' : 'success'} />
               </header>
 
               <p className="policy-card__scope">{scopeText(policy)}</p>
@@ -109,13 +108,19 @@ export function PoliciesSection({ policies, onCreate, onEdit, onToggleStatus }: 
               </dl>
 
               <footer className="policy-card__foot">
-                <button type="button" className="btn btn--secondary btn--sm" onClick={() => onEdit(policy)}>
-                  Editar
-                </button>
-                <button type="button" className="btn btn--ghost btn--sm" onClick={() => onToggleStatus(policy)}>
-                  {paused ? <PlayIcon width={13} height={13} /> : <PauseIcon width={13} height={13} />}
-                  {paused ? 'Activar' : 'Pausar'}
-                </button>
+                <Stack gap={2} wrap>
+                  <Button variant="secondary" size="sm" onClick={() => onEdit(policy)}>
+                    Editar
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={paused ? 'play_arrow' : 'pause'}
+                    onClick={() => onToggleStatus(policy)}
+                  >
+                    {paused ? 'Activar' : 'Pausar'}
+                  </Button>
+                </Stack>
               </footer>
             </li>
           );

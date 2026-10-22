@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { CardIcon, SearchIcon } from '../../components/icons/Icons';
+import { SearchIcon } from '../../components/icons/Icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { Pagination, usePagination } from '../../components/ui/Pagination';
 import { useDevices } from '../../data/DevicesContext';
@@ -234,7 +234,7 @@ function AllDevices({ rows, products, onOpen }: AllDevicesProps) {
         {filtered.length === 0 ? (
           <EmptyState
             compact
-            icon={<CardIcon width={20} height={20} />}
+            icon="credit_card"
             title="Ningún dispositivo coincide con los filtros"
             description="Revisa el número, la placa o el conductor, o cambia el producto y el estado seleccionados."
             actions={

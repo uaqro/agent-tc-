@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
+import { Input, Select } from '@er-mobility-mx/design-system';
 import { NetworkPager, StationNetworkDialog } from '../components/limits/StationNetworkDialog';
 import { CloseIcon, PlusIcon, SlidersIcon, TrendDownIcon, TrendUpIcon } from '../components/icons/Icons';
 import { Modal } from '../components/ui/Modal';
@@ -21,6 +22,7 @@ const COLUMNS = [
 ] as const;
 type FilterColumn = typeof COLUMNS[number]['key'];
 const EMPTY_FILTERS: Record<FilterColumn, string> = { name: '', mode: '', stations: '', policies: '', voucherNotes: '', updated: '', updatedBy: '' };
+const isFilterColumn = (value: string): value is FilterColumn => COLUMNS.some((column) => column.key === value);
 const dateLabel = (date: string) => new Intl.DateTimeFormat('es-MX').format(new Date(`${date}T12:00:00`));
 const StationMap = lazy(() => import('../components/stations/StationMap').then(({ StationMap: Component }) => ({ default: Component })));
 
@@ -70,12 +72,32 @@ export function StationNetworksPage({ onNotice }: { onNotice: (message: string) 
         <button type="button" className="btn btn--primary btn--sm" onClick={() => setEditor({ network: null })}><PlusIcon width={16} height={16} />Nueva red</button>
       </header>
       <div className="networks__filter">
-        <label htmlFor="network-filter-field">Filtrar por</label>
-        <select id="network-filter-field" value={activeFilter} onChange={(event) => setActiveFilter(event.target.value as FilterColumn)}>
-          {COLUMNS.map((column) => <option key={column.key} value={column.key}>{column.label}</option>)}
-        </select>
-        <label className="visually-hidden" htmlFor="network-column-filter">Filtrar por {COLUMNS.find((column) => column.key === activeFilter)?.label.toLocaleLowerCase('es-MX')}</label>
-        <input id="network-column-filter" type="search" placeholder="Buscar redes" value={filters[activeFilter]} onChange={(event) => { setFilters({ ...filters, [activeFilter]: event.target.value }); setPage(1); }} />
+        <span id="network-filter-field-label">Filtrar por</span>
+        <Select
+          id="network-filter-field"
+          aria-labelledby="network-filter-field-label"
+          options={COLUMNS.map((column) => ({ value: column.key, label: column.label }))}
+          value={activeFilter}
+          onChange={(value) => {
+            if (isFilterColumn(value)) setActiveFilter(value);
+          }}
+        />
+        <div className="networks__filter-search">
+          <Input
+            id="network-column-filter"
+            type="search"
+            icon="search"
+            size="sm"
+            ariaLabel={`Filtrar por ${COLUMNS.find((column) => column.key === activeFilter)?.label.toLocaleLowerCase('es-MX')}`}
+            placeholder="Buscar redes"
+            value={filters[activeFilter]}
+            onChange={(value) => {
+              setFilters({ ...filters, [activeFilter]: value });
+              setPage(1);
+            }}
+            style={{ width: '100%', maxWidth: 'none' }}
+          />
+        </div>
         <button type="button" className="btn btn--ghost btn--sm" disabled={!filters[activeFilter]} onClick={() => { setFilters({ ...filters, [activeFilter]: '' }); setPage(1); }}>Limpiar</button>
         <button type="button" className="btn btn--ghost btn--sm networks__sort" title={ascending ? 'Ordenar de Z a A' : 'Ordenar de A a Z'} aria-label={ascending ? 'Ordenar de Z a A' : 'Ordenar de A a Z'} onClick={() => { setAscending(!ascending); setPage(1); }}>
           {ascending ? <TrendUpIcon width={16} height={16} /> : <TrendDownIcon width={16} height={16} />}Nombre: {ascending ? 'A–Z' : 'Z–A'}

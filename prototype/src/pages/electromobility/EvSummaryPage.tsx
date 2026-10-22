@@ -151,7 +151,7 @@ export function EvSummaryPage() {
               {(['public', 'private'] as EvNetwork[]).map((network) => (
                 <li key={network}>
                   <span>
-                    <i style={{ background: network === 'public' ? 'var(--accent-blue)' : 'var(--accent-green)' }} />
+                    <i style={{ background: network === 'public' ? 'var(--status-info)' : 'var(--status-success)' }} />
                     {EV_NETWORK_LABEL[network]}
                   </span>
                   <span>

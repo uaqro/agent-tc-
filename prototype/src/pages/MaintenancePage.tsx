@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
+import { Badge, Button, Chip, Input, StatusPill, Table, TabPanel, Tabs, type GridColumn } from '@er-mobility-mx/design-system';
 import { ServiceOrderDialog } from '../components/maintenance/ServiceOrderDialog';
-import { AlertIcon, CalendarIcon, GearIcon, PlusIcon, SearchIcon, WalletIcon } from '../components/icons/Icons';
+import { AlertIcon, CalendarIcon, GearIcon, PlusIcon, WalletIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
 import { fleetVehicles as vehicles } from '../data/dispersion';
 import { VEHICLE_STATUS_LABEL, vehicleDetails } from '../data/fleet';
@@ -24,14 +25,19 @@ interface MaintenancePageProps {
 
 type SearchMode = 'orders' | 'vehicles';
 
-const STATUS_CHIP: Record<OrderStatus, string> = {
-  scheduled: 'chip--info',
-  'in-shop': 'chip--review',
-  'waiting-parts': 'chip--danger',
-  done: 'chip--active',
+const STATUS_TONE: Record<OrderStatus, 'info' | 'warning' | 'danger' | 'success'> = {
+  scheduled: 'info',
+  'in-shop': 'warning',
+  'waiting-parts': 'danger',
+  done: 'success',
 };
 
 const OPEN_STATUSES: OrderStatus[] = ['scheduled', 'in-shop', 'waiting-parts'];
+const MAINTENANCE_TABS_ID = 'maintenance-search-tabs';
+const MAINTENANCE_MODES = [
+  { value: 'orders', label: 'Órdenes' },
+  { value: 'vehicles', label: 'Vehículos' },
+];
 
 const vehicleOf = (id: string) => vehicles.find((vehicle) => vehicle.id === id);
 const detailOf = (id: string) => vehicleDetails.find((detail) => detail.vehicleId === id);
@@ -83,51 +89,100 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
   };
 
   const resultCount = mode === 'orders' ? orderResults.length : vehicleResults.length;
+  const orderColumns: GridColumn<ServiceOrder>[] = [
+    {
+      key: 'order',
+      label: 'Orden',
+      render: (order) => (
+        <>
+          <span className="maintenance__strong maintenance__data">{order.folio}</span>
+          <span className="maintenance__sub">{order.workshop}</span>
+        </>
+      ),
+    },
+    {
+      key: 'vehicle',
+      label: 'Unidad',
+      render: (order) => {
+        const vehicle = vehicleOf(order.vehicleId);
+        return (
+          <>
+            <span className="maintenance__strong maintenance__data">{vehicle?.plate}</span>
+            <span className="maintenance__sub">{vehicle?.driver}</span>
+          </>
+        );
+      },
+    },
+    {
+      key: 'service',
+      label: 'Servicio',
+      render: (order) => (
+        <>
+          <span>{order.system}</span>
+          <span className="maintenance__sub">
+            {ORDER_KIND_LABEL[order.kind]} · {order.costMXN > 0 ? formatMoney(order.costMXN) : 'Por cotizar'}
+          </span>
+        </>
+      ),
+    },
+    {
+      key: 'promised',
+      label: 'Promesa',
+      render: (order) => formatDateLong(order.promised),
+    },
+    {
+      key: 'status',
+      label: 'Estado',
+      render: (order) => <StatusPill label={ORDER_STATUS_LABEL[order.status]} tone={STATUS_TONE[order.status]} />,
+    },
+  ];
 
   return (
     <div className="intel maintenance">
       <section className="maintenance__toolbar intel-card" aria-label="Consulta de mantenimiento">
         <div className="maintenance__search">
-          <div className="maintenance__modes" role="tablist" aria-label="Consultar por">
-            <button type="button" role="tab" aria-selected={mode === 'orders'} className={mode === 'orders' ? 'is-active' : ''} onClick={() => setMode('orders')}>
-              Órdenes
-            </button>
-            <button type="button" role="tab" aria-selected={mode === 'vehicles'} className={mode === 'vehicles' ? 'is-active' : ''} onClick={() => setMode('vehicles')}>
-              Vehículos
-            </button>
-          </div>
-          <label className="maintenance__input">
-            <SearchIcon width={16} height={16} />
-            <span className="visually-hidden">{mode === 'orders' ? 'Buscar órdenes de servicio' : 'Buscar vehículos'}</span>
-            <input
+          <Tabs
+            id={MAINTENANCE_TABS_ID}
+            items={MAINTENANCE_MODES}
+            value={mode}
+            onChange={(value) => {
+              if (value === 'orders' || value === 'vehicles') setMode(value);
+            }}
+            ariaLabel="Consultar por"
+            style={{ flexShrink: 0 }}
+          />
+          <div className="maintenance__input">
+            <Input
               type="search"
+              icon="search"
+              ariaLabel={mode === 'orders' ? 'Buscar órdenes de servicio' : 'Buscar vehículos'}
               value={query}
               placeholder={mode === 'orders' ? 'Folio, placa, taller o sistema' : 'Placa, conductor, marca o modelo'}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={setQuery}
             />
-          </label>
+          </div>
         </div>
-        <button type="button" className="btn btn--primary" onClick={() => setDialog({})}>
+        <Button onClick={() => setDialog({})}>
           <PlusIcon width={16} height={16} />
           Crear orden de servicio
-        </button>
+        </Button>
       </section>
 
-      {needle && (
+      <TabPanel tabsId={MAINTENANCE_TABS_ID} value={mode} active>{needle && (
         <section className="maintenance__results intel-card" aria-live="polite" aria-label="Resultados de la consulta">
           <header className="maintenance__results-head">
             <h2>
               {resultCount} {mode === 'orders' ? (resultCount === 1 ? 'orden' : 'órdenes') : resultCount === 1 ? 'vehículo' : 'vehículos'} para “{query.trim()}”
             </h2>
-            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setQuery('')}>
+            <Button variant="ghost" size="sm" onClick={() => setQuery('')}>
               Limpiar
-            </button>
+            </Button>
           </header>
 
           {resultCount === 0 ? (
             <EmptyState
               compact
-              icon={<SearchIcon width={20} height={20} />}
+              icon="search"
               title={mode === 'orders' ? 'Ninguna orden coincide con la búsqueda' : 'Ningún vehículo coincide con la búsqueda'}
               description={
                 mode === 'orders'
@@ -149,7 +204,7 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
                         {ORDER_KIND_LABEL[order.kind]} · {order.system} · {order.workshop} · promesa {formatDateLong(order.promised)}
                       </p>
                     </div>
-                    <span className={`chip ${STATUS_CHIP[order.status]}`}>{ORDER_STATUS_LABEL[order.status]}</span>
+                    <StatusPill label={ORDER_STATUS_LABEL[order.status]} tone={STATUS_TONE[order.status]} />
                   </li>
                 );
               })}
@@ -172,9 +227,9 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
                         {next && ` · próximo: ${next.service}`}
                       </p>
                     </div>
-                    <button type="button" className="btn btn--secondary btn--sm" onClick={() => setDialog({ vehicleId: vehicle.id })}>
+                    <Button variant="secondary" size="sm" onClick={() => setDialog({ vehicleId: vehicle.id })}>
                       Crear orden
-                    </button>
+                    </Button>
                   </li>
                 );
               })}
@@ -182,6 +237,7 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
           )}
         </section>
       )}
+      </TabPanel>
 
       <section className="intel-kpis" aria-label="Indicadores de mantenimiento">
         <article className="intel-card intel-kpi">
@@ -230,56 +286,24 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
         <section className="intel-card maintenance__panel" aria-labelledby="open-orders">
           <header className="maintenance__panel-head">
             <h2 id="open-orders">Órdenes abiertas</h2>
-            <span className="maintenance__panel-count">{openOrders.length}</span>
+            <Badge>{openOrders.length}</Badge>
           </header>
           {openOrders.length === 0 ? (
             <EmptyState
               compact
-              icon={<GearIcon width={20} height={20} />}
+              icon="build"
               title="Sin órdenes abiertas"
               description="Las órdenes programadas, en taller o esperando refacciones aparecen aquí."
             />
           ) : (
-            <div className="maintenance__scroll">
-              <table className="maintenance__table">
-                <thead>
-                  <tr>
-                    <th scope="col">Orden</th>
-                    <th scope="col">Unidad</th>
-                    <th scope="col">Servicio</th>
-                    <th scope="col">Promesa</th>
-                    <th scope="col">Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {openOrders.map((order) => {
-                    const vehicle = vehicleOf(order.vehicleId);
-                    return (
-                      <tr key={order.folio}>
-                        <td>
-                          <span className="maintenance__strong">{order.folio}</span>
-                          <span className="maintenance__sub">{order.workshop}</span>
-                        </td>
-                        <td>
-                          <span className="maintenance__strong maintenance__nowrap">{vehicle?.plate}</span>
-                          <span className="maintenance__sub">{vehicle?.driver}</span>
-                        </td>
-                        <td>
-                          {order.system}
-                          <span className="maintenance__sub">
-                            {ORDER_KIND_LABEL[order.kind]} · {order.costMXN > 0 ? formatMoney(order.costMXN) : 'Por cotizar'}
-                          </span>
-                        </td>
-                        <td className="maintenance__nowrap">{formatDateLong(order.promised)}</td>
-                        <td>
-                          <span className={`chip ${STATUS_CHIP[order.status]}`}>{ORDER_STATUS_LABEL[order.status]}</span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <Table
+              caption="Órdenes abiertas"
+              columns={orderColumns}
+              rows={openOrders}
+              rowKey="folio"
+              surface="none"
+              sortable={false}
+            />
           )}
         </section>
 
@@ -303,11 +327,11 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
                     </p>
                   </div>
                   {hasOrder ? (
-                    <span className="chip chip--info">Con orden</span>
+                    <Chip label="Con orden" size="sm" />
                   ) : (
-                    <button type="button" className="btn btn--secondary btn--sm" onClick={() => setDialog({ vehicleId: service.vehicleId })}>
+                    <Button variant="secondary" size="sm" onClick={() => setDialog({ vehicleId: service.vehicleId })}>
                       Crear orden
-                    </button>
+                    </Button>
                   )}
                 </li>
               );

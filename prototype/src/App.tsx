@@ -1,17 +1,24 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { GlobalSearch, PageChromeProvider, SidebarProvider, useBreakpoint, useToast } from '@er-mobility-mx/design-system';
+import { globalSearchCatalog, searchEntities, type SearchDestination, type SearchRoute } from './data/globalSearch';
 import { GlobalFilterBar, chipText } from './components/filters/GlobalFilterBar';
 import { useGlobalFilters } from './components/filters/GlobalFilters';
 import { FloatingControls } from './components/layout/FloatingControls';
 import { PageHeader } from './components/layout/PageHeader';
 import { SideMenu } from './components/layout/SideMenu';
-import { TopBar } from './components/layout/TopBar';
+import { PageUtilities } from './components/layout/PageUtilities';
+import { HelpDialog } from './components/layout/HelpDialog';
+import { AccountDialog } from './components/layout/AccountDialog';
+import { NotificationInbox } from './components/layout/NotificationInbox';
+import { activeAlerts, alertNotifications, alertReducer, INITIAL_ALERT_STATE } from './data/alertState';
+import { fleetAlerts } from './data/intelligence';
 import { devMenuGroup, menuGroups } from './data/dashboard';
 import { useSession } from './components/session/Session';
 import { ROUTE_CAPABILITY, canAccessRoute } from './data/access';
 import { clientAccount, scopeLabel } from './data/client';
 import { DEFAULT_PRINCIPAL } from './data/session';
 import { canSession, sessionRoleName, type PortalCapabilityId } from './domain/rbac/portal-roles';
-import { DispersionPage } from './pages/DispersionPage';
+import { AssignmentsPage } from './pages/AssignmentsPage';
 import { FuelDashboardPage } from './pages/FuelDashboardPage';
 import { LimitsPage } from './pages/LimitsPage';
 import { StationNetworksPage } from './pages/StationNetworksPage';
@@ -20,6 +27,10 @@ import { DevicesProvider } from './data/DevicesContext';
 import { DriversPage } from './pages/DriversPage';
 import { MaintenancePage } from './pages/MaintenancePage';
 import { ReportsPage } from './pages/ReportsPage';
+import { TollReportsPage } from './pages/TollReportsPage';
+import { IntelligenceReportsPage } from './pages/intelligence/IntelligenceReportsPage';
+import { CarbonFootprintPage } from './pages/move-for-good/CarbonFootprintPage';
+import { OperationalAlertsPage } from './pages/OperationalAlertsPage';
 import { VehiclesPage } from './pages/VehiclesPage';
 import { TollBalancesPage } from './pages/toll/TollBalancesPage';
 import { TollRulesPage } from './pages/toll/TollRulesPage';
@@ -38,153 +49,142 @@ import { UsersPage } from './pages/company/UsersPage';
 import { ApiImprovementsPage } from './pages/dev/ApiImprovementsPage';
 import type { AppRoute } from './types';
 import type { StationRecommendationRequest } from './types/limits';
-import { DevModeMenu, useDevMode } from './components/dev/DevMode';
+import { useDevMode } from './components/dev/DevMode';
 import './App.css';
 
-const TOP_BAR_MESSAGES: Record<string, string> = {
-  help: 'Centro de ayuda abierto.',
-  notifications: 'Tienes 4 alertas críticas en Insights & Alertas.',
-  profile: 'Menú de perfil de usuario abierto.',
-};
-
-const ROUTES: Record<AppRoute, { menuItem: string; section: string; title: string; crumb?: string; subtitle: string }> = {
+const ROUTES: Record<AppRoute, { menuItem: string; title: string; subtitle: string }> = {
   dashboard: {
     menuItem: 'resumen',
-    section: 'Combustible',
     title: 'Resumen',
     subtitle: clientAccount.name,
   },
   dispersion: {
     menuItem: 'saldos',
-    section: 'Combustible',
-    title: 'Saldos',
-    subtitle: 'Fondeo automático, envíos puntuales y recortes de saldo',
+    title: 'Asignaciones',
+    subtitle: 'Administración del saldo global y asignaciones a medios de pago',
   },
   limits: {
     menuItem: 'reglas-limites',
-    section: 'Combustible',
     title: 'Políticas de uso',
     subtitle: 'Controles de transacción, restricciones de consumo y configuraciones de uso por grupo y vehículo',
   },
   'station-networks': {
     menuItem: 'red-estaciones',
-    section: 'Combustible',
     title: 'Red de estaciones',
     subtitle: 'Consulta estaciones afiliadas y administra tus redes personalizadas',
   },
   'toll-balances': {
     menuItem: 'peaje-saldos',
-    section: 'Peaje',
     title: 'Saldos',
     subtitle: 'Bolsa de peaje, saldo por TAG y recarga automática',
   },
   'toll-rules': {
     menuItem: 'peaje-reglas-limites',
-    section: 'Peaje',
     title: 'Reglas y límites',
     subtitle: 'Gasto, cruces, autopistas y horarios permitidos por grupo y por TAG',
   },
   maintenance: {
     menuItem: 'mantenimiento-resumen',
-    section: 'Mantenimiento',
     title: 'Mantenimiento',
-    crumb: 'Resumen',
     subtitle: 'Órdenes de servicio, preventivos próximos y gasto en taller',
   },
   'ev-summary': {
     menuItem: 'ev-resumen',
-    section: 'Electromovilidad',
-    title: 'Electromovilidad',
-    crumb: 'Resumen',
+    title: 'Electromovilidad · Resumen',
     subtitle: 'Energía, consumo y cargadores de la flota eléctrica e híbrida',
   },
   'ev-account': {
     menuItem: 'ev-cuenta',
-    section: 'Electromovilidad',
     title: 'Cuenta y fondeo',
     subtitle: 'Una sola cuenta corporativa fondea todas las recargas; las unidades no tienen saldo propio',
   },
   'ev-charging': {
     menuItem: 'ev-recargas',
-    section: 'Electromovilidad',
     title: 'Recargas',
     subtitle: 'Sesiones de recarga autorizadas, en curso y denegadas, con su desglose de costo',
   },
   'ev-policies': {
     menuItem: 'ev-restricciones',
-    section: 'Electromovilidad',
     title: 'Restricciones de carga',
     subtitle: 'Horarios, días, energía, monto y tipo de red por empresa, centro de costos, grupo o unidad',
   },
   'ev-chargers': {
     menuItem: 'ev-cargadores',
-    section: 'Electromovilidad',
     title: 'Cargadores',
     subtitle: 'Cargadores propios, solicitudes de instalación o integración y red pública',
   },
   reports: {
     menuItem: 'reportes',
-    section: 'Inteligencia',
+    title: 'Reportería · Combustible',
+    subtitle: 'Reportes del producto contratado',
+  },
+  'toll-reports': {
+    menuItem: 'reportes-peaje',
+    title: 'Reportería · Peaje',
+    subtitle: 'Reportes de cruces, TAGs y movimientos de peaje',
+  },
+  'intelligence-reports': {
+    menuItem: 'intelligence-reportes',
     title: 'Reportes',
-    subtitle: 'Consumo, presupuesto y reportes dinámicos de transacciones',
+    subtitle: 'Consumo y presupuesto por periodo y grupo',
+  },
+  'carbon-footprint': {
+    menuItem: 'huella-carbono',
+    title: 'Huella de carbono',
+    subtitle: 'Combustible consumido, emisiones generadas y compensadas',
+  },
+  'operational-alerts': {
+    menuItem: 'alertas-operativas',
+    title: 'Alertas',
+    subtitle: 'Reglas operativas, grupos de notificación e historial de envíos',
   },
   insights: {
     menuItem: 'insights',
-    section: 'Inteligencia',
     title: 'Insights & Alertas',
     subtitle: 'Alertas de consumo y oportunidades de ahorro detectadas por TED',
   },
   optimizer: {
     menuItem: 'optimizador',
-    section: 'Inteligencia',
     title: 'Optimizador de gasolineras',
     subtitle: 'Estaciones de la red con mejor precio en la ruta de cada tarjeta',
   },
   ted: {
     menuItem: 'ted',
-    section: 'Inteligencia',
     title: 'TED',
     subtitle: 'Asistente de inteligencia para tu flota · Telemetría, eficiencia y decisiones',
   },
   vehicles: {
     menuItem: 'vehiculos',
-    section: 'Flota',
     title: 'Vehículos',
     subtitle: 'Unidades de combustión, eléctricas e híbridas con todos sus dispositivos asignados',
   },
   devices: {
     menuItem: 'flota-medios',
-    section: 'Flota',
     title: 'Medios de pago',
     subtitle: 'Tarjetas, tags y tarjetas de recarga de todos los productos, en un solo lugar',
   },
   drivers: {
     menuItem: 'conductores',
-    section: 'Flota',
     title: 'Conductores',
     subtitle: 'Conductores, unidad asignada, licencias y rendimiento del mes',
   },
   'company-parameters': {
     menuItem: 'empresa-parametros',
-    section: 'Empresa',
     title: 'Parámetros',
     subtitle: 'Catálogos de la empresa: grupos de facturación, regiones, centros de costo y los que definas',
   },
   'company-invoices': {
     menuItem: 'empresa-facturas',
-    section: 'Empresa',
     title: 'Facturas',
     subtitle: 'CFDI emitidos por producto y grupo de facturación',
   },
   'company-users': {
     menuItem: 'empresa-usuarios',
-    section: 'Empresa',
     title: 'Usuarios',
     subtitle: 'Accesos al portal, roles y alcance por nodo del organigrama',
   },
   'dev-api-improvements': {
     menuItem: 'dev-mejoras-api',
-    section: 'Dev',
     title: 'Mejoras API ZERO',
     subtitle: 'Lo que la API headless de combustible necesitaría para cubrir todo el mockup',
   },
@@ -195,15 +195,26 @@ const ROUTE_BY_MENU_ITEM = Object.fromEntries(
 ) as Record<string, AppRoute>;
 
 function AppContent() {
-  const [menuOpen, setMenuOpen] = useState(true);
-  const [menuPinned, setMenuPinned] = useState(true);
+  const mainRef = useRef<HTMLElement>(null);
+  const breakpoint = useBreakpoint();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [route, setRoute] = useState<AppRoute>('dashboard');
-  const [activeItemId, setActiveItemId] = useState<string | null>(ROUTES.dashboard.menuItem);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [alertState, dispatchAlert] = useReducer(alertReducer, INITIAL_ALERT_STATE);
+  const [alertDestination, setAlertDestination] = useState<{ id: string; requestId: number }>();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [recentIds, setRecentIds] = useState<string[]>([]);
+  const [searchDestination, setSearchDestination] = useState<(SearchDestination & { route: SearchRoute })>();
   // "Aplicar en Límites" from the optimizer: Límites opens with it and applies nothing until confirmed.
   const [stationRequest, setStationRequest] = useState<StationRecommendationRequest | null>(null);
   const { devMode } = useDevMode();
   const { principal, impersonating, signInAs } = useSession();
+  const toast = useToast();
+  useEffect(() => {
+    if (breakpoint !== 'compact') setMenuOpen(false);
+  }, [breakpoint]);
   const allowed = useCallback((target: AppRoute) => canAccessRoute(principal.role, target), [principal.role]);
   // Pages a role can see but not change render without their actions (ADR-TCP-001).
   const writable = (target: AppRoute) => canSession(principal.role, ROUTE_CAPABILITY[target], 'escribir');
@@ -226,11 +237,12 @@ function AppContent() {
     }))
     .filter((group) => group.items.length > 0);
 
-  useEffect(() => {
-    if (!notice) return;
-    const timer = window.setTimeout(() => setNotice(null), 3600);
-    return () => window.clearTimeout(timer);
-  }, [notice]);
+  const notify = useCallback(
+    (message: string) => {
+      toast.show({ message, tone: 'neutral', duration: 3600 });
+    },
+    [toast],
+  );
 
   const handleSelectItem = useCallback(
     (itemId: string) => {
@@ -238,38 +250,37 @@ function AppContent() {
       const target = ROUTE_BY_MENU_ITEM[itemId];
 
       if (target && !allowed(target)) {
-        setNotice(`${label}: tu rol no tiene acceso a este módulo.`);
+        notify(`${label}: tu rol no tiene acceso a este módulo.`);
         return;
       }
-      setActiveItemId(itemId);
       if (target) {
+        mainRef.current?.scrollTo({ top: 0 });
         setRoute(target);
       } else {
-        setNotice(`${label}: módulo en construcción.`);
+        notify(`${label}: módulo en construcción.`);
       }
-      if (!menuPinned) setMenuOpen(false);
+      setMenuOpen(false);
     },
-    [menuPinned, allowed],
+    [allowed, notify],
   );
-
-  const handleTogglePin = useCallback(() => {
-    setMenuPinned((pinned) => {
-      if (!pinned) setMenuOpen(true);
-      return !pinned;
-    });
-  }, []);
 
   const navigate = useCallback(
     (target: AppRoute) => {
       if (!allowed(target)) {
-        setNotice(`${ROUTES[target].title}: tu rol no tiene acceso a este módulo.`);
+        notify(`${ROUTES[target].title}: tu rol no tiene acceso a este módulo.`);
         return;
       }
+      mainRef.current?.scrollTo({ top: 0 });
       setRoute(target);
-      setActiveItemId(ROUTES[target].menuItem);
+      setMenuOpen(false);
     },
-    [allowed],
+    [allowed, notify],
   );
+
+  useEffect(() => {
+    setSearchDestination((current) => current && current.route !== route ? undefined : current);
+    if (route !== 'insights') setAlertDestination(undefined);
+  }, [route]);
 
   // Leaving dev mode while on a dev page goes back home.
   useEffect(() => {
@@ -282,6 +293,13 @@ function AppContent() {
   }, [devMode, impersonating, signInAs]);
 
   const meta = ROUTES[route];
+  const alerts = activeAlerts(fleetAlerts, alertState);
+  const searchCatalog = globalSearchCatalog();
+  const searchResults = searchEntities(searchQuery, searchCatalog);
+  const recents = recentIds.flatMap((id) => {
+    const result = searchCatalog.find((item) => item.id === id);
+    return result ? [result] : [];
+  });
   const { filters, chips } = useGlobalFilters();
   // Pages that cut by the global filters say which slice they show.
   const filtered = route === 'dashboard';
@@ -290,25 +308,86 @@ function AppContent() {
     : meta.subtitle;
 
   return (
+    <SidebarProvider value={() => setMenuOpen((open) => !open)}>
+    <PageChromeProvider value={{
+      onSearch: () => setSearchOpen(true),
+      searchLabel: 'Búsqueda global (⌘K / Ctrl+K)',
+      trailing: (
+        <PageUtilities
+          onHelp={() => setHelpOpen(true)}
+          onOpenImprovements={() => navigate('dev-api-improvements')}
+          notifications={allowed('insights') && (
+            <NotificationInbox
+              items={alertNotifications(fleetAlerts, alertState)}
+              onMarkAllRead={() => dispatchAlert({ type: 'read', ids: alerts.map((alert) => alert.id) })}
+              onSelect={(item) => {
+                if (!allowed('insights') || !alerts.some((alert) => alert.id === item.id)) {
+                  notify('La alerta ya no está disponible para tu sesión.');
+                  return;
+                }
+                dispatchAlert({ type: 'read', ids: [item.id] });
+                setAlertDestination((current) => ({ id: item.id, requestId: (current?.requestId ?? 0) + 1 }));
+                navigate('insights');
+              }}
+            />
+          )}
+        />
+      ),
+    }}>
     <div className="app">
-      <TopBar
-        userName={principal.name}
-        extra={<DevModeMenu onOpenImprovements={() => navigate('dev-api-improvements')} />}
-        onAction={(actionId, detail) =>
-          setNotice(actionId === 'search' ? `Buscando “${detail}” en unidades, tarjetas y conductores.` : TOP_BAR_MESSAGES[actionId])
-        }
+      <a className="app__skip" href="#main">Ir al contenido principal</a>
+      <AccountDialog
+        open={accountOpen}
+        onOpenChange={setAccountOpen}
+        name={principal.name}
+        role={sessionRoleName(principal.role)}
+        scope={scopeLabel(principal.scopeNodeId)}
+      />
+      <HelpDialog
+        open={helpOpen}
+        onOpenChange={setHelpOpen}
+        onStartTed={allowed('ted') ? () => navigate('ted') : undefined}
+      />
+      <GlobalSearch
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        value={searchQuery}
+        onValueChange={setSearchQuery}
+        results={searchResults}
+        recents={recents}
+        onClearRecents={() => setRecentIds([])}
+        groupOrder={['Unidades', 'Medios de pago', 'Conductores']}
+        placeholder="Buscar unidades, medios de pago o conductores"
+        emptyTitle="Busca en los listados"
+        emptyDescription="Escribe una placa, unidad, número de medio, nombre o número de empleado. Se muestran hasta 10 coincidencias por tipo; precisa la consulta para encontrar más."
+        emptyHint="Revisa el texto o prueba con otro identificador dentro de tu alcance."
+        onSelect={(item) => {
+          const result = globalSearchCatalog().find((candidate) => candidate.id === item.id);
+          if (!result || !allowed(result.route)) {
+            notify('El resultado ya no está disponible para tu sesión.');
+            return;
+          }
+          setRecentIds((current) => [result.id, ...current.filter((id) => id !== result.id)].slice(0, 5));
+          setSearchDestination((current) => ({
+            entityId: result.entityId, route: result.route, requestId: (current?.requestId ?? 0) + 1,
+          }));
+          navigate(result.route);
+        }}
       />
 
       <SideMenu
         open={menuOpen}
-        pinned={menuPinned}
+        onOpenChange={setMenuOpen}
         groups={groups}
-        activeItemId={activeItemId}
-        onTogglePin={handleTogglePin}
+        activeItemId={meta.menuItem}
         onSelectItem={handleSelectItem}
+        onHome={() => navigate('dashboard')}
+        userName={principal.name}
+        userRole={sessionRoleName(principal.role)}
+        onAccount={() => setAccountOpen(true)}
       />
 
-      <main className="app__main" id="main">
+      <main ref={mainRef} className="app__main" id="main" tabIndex={-1}>
         {impersonating && (
           <p className="app__impersonation" role="status">
             Modo Dev · viendo el portal como <strong>{principal.name}</strong> · {sessionRoleName(principal.role)} ·{' '}
@@ -318,39 +397,51 @@ function AppContent() {
             </button>
           </p>
         )}
+        <header className="app__header">
         <PageHeader
-          section={meta.section}
           title={meta.title}
-          crumb={meta.crumb}
           subtitle={subtitle}
-          menuOpen={menuOpen}
-          onBack={route === 'dashboard' ? undefined : () => navigate('dashboard')}
-          onToggleMenu={() => setMenuOpen((open) => !open)}
         >
           {filtered && <GlobalFilterBar scopeNote="Los filtros recortan los indicadores y las tres gráficas de consumo. Recargas y recortes viene de Saldos." />}
         </PageHeader>
+        </header>
 
+        <div className="app__content">
         {route === 'dashboard' && (
-          <FuelDashboardPage onCardOption={(chart, option) => setNotice(`${chart}: ${option}.`)} />
+          <FuelDashboardPage onCardOption={(chart, option) => notify(`${chart}: ${option}.`)} />
         )}
-        {route === 'dispersion' && <DispersionPage onNotice={setNotice} />}
+        {route === 'dispersion' && <AssignmentsPage onNotice={notify} />}
         {route === 'limits' && (
-          <LimitsPage onNotice={setNotice} stationRequest={stationRequest} onStationRequestHandled={() => setStationRequest(null)} />
+          <LimitsPage onNotice={notify} stationRequest={stationRequest} onStationRequestHandled={() => setStationRequest(null)} />
         )}
-        {route === 'station-networks' && <StationNetworksPage onNotice={setNotice} />}
-        {route === 'toll-balances' && <TollBalancesPage onNotice={setNotice} readOnly={!writable(route)} />}
-        {route === 'toll-rules' && <TollRulesPage onNotice={setNotice} readOnly={!writable(route)} />}
-        {route === 'maintenance' && <MaintenancePage onNotice={setNotice} />}
+        {route === 'station-networks' && <StationNetworksPage onNotice={notify} />}
+        {route === 'toll-balances' && <TollBalancesPage onNotice={notify} readOnly={!writable(route)} />}
+        {route === 'toll-rules' && <TollRulesPage onNotice={notify} readOnly={!writable(route)} />}
+        {route === 'maintenance' && <MaintenancePage onNotice={notify} />}
         {route === 'ev-summary' && <EvSummaryPage />}
-        {route === 'ev-account' && <EvAccountPage onNotice={setNotice} readOnly={!writable(route)} />}
+        {route === 'ev-account' && <EvAccountPage onNotice={notify} readOnly={!writable(route)} />}
         {route === 'ev-charging' && <EvChargingPage />}
-        {route === 'ev-policies' && <EvPoliciesPage onNotice={setNotice} readOnly={!writable(route)} />}
-        {route === 'ev-chargers' && <EvChargersPage onNotice={setNotice} readOnly={!writable(route)} />}
-        {route === 'reports' && <ReportsPage />}
-        {route === 'insights' && <InsightsPage onNotice={setNotice} onNavigate={navigate} />}
+        {route === 'ev-policies' && <EvPoliciesPage onNotice={notify} readOnly={!writable(route)} />}
+        {route === 'ev-chargers' && <EvChargersPage onNotice={notify} readOnly={!writable(route)} />}
+        {route === 'reports' && <ReportsPage key={principal.userId} />}
+        {route === 'toll-reports' && <TollReportsPage key={principal.userId} />}
+        {route === 'intelligence-reports' && <IntelligenceReportsPage />}
+        {route === 'carbon-footprint' && <CarbonFootprintPage />}
+        {route === 'operational-alerts' && (
+          <OperationalAlertsPage canConfigure={canSession(principal.role, 'alertas.configurar', 'escribir')} key={principal.userId} />
+        )}
+        {route === 'insights' && (
+          <InsightsPage
+            alerts={alerts}
+            onDismiss={(id) => dispatchAlert({ type: 'dismiss', id })}
+            destination={alertDestination}
+            onNotice={notify}
+            onNavigate={navigate}
+          />
+        )}
         {route === 'optimizer' && (
           <GasOptimizerPage
-            onNotice={setNotice}
+            onNotice={notify}
             onApplyInLimits={(request) => {
               setStationRequest(request);
               navigate('limits');
@@ -360,29 +451,29 @@ function AppContent() {
         {route === 'ted' && <TedPage />}
         {route === 'vehicles' && (
           <VehiclesPage
-            onNotice={setNotice}
+            onNotice={notify}
+            searchDestination={searchDestination?.route === 'vehicles' ? searchDestination : undefined}
             canEdit={canSession(principal.role, 'inventario.editar', 'escribir')}
             showVin={canSession(principal.role, 'inventario.vin', 'ver')}
           />
         )}
-        {route === 'devices' && <DevicesPage onNotice={setNotice} access={deviceAccess} />}
+        {route === 'devices' && <DevicesPage onNotice={notify} access={deviceAccess} />}
         {route === 'drivers' && (
-          <DriversPage onNotice={setNotice} canEdit={canSession(principal.role, 'tc.conductores', 'escribir')} />
+          <DriversPage onNotice={notify} searchDestination={searchDestination?.route === 'drivers' ? searchDestination : undefined} canEdit={canSession(principal.role, 'tc.conductores', 'escribir')} />
         )}
-        {route === 'company-parameters' && <ParametersPage onNotice={setNotice} />}
-        {route === 'company-invoices' && <InvoicesPage onNotice={setNotice} />}
-        {route === 'company-users' && <UsersPage onNotice={setNotice} />}
-        {route === 'dev-api-improvements' && <ApiImprovementsPage onNotice={setNotice} />}
+        {route === 'company-parameters' && <ParametersPage onNotice={notify} />}
+        {route === 'company-invoices' && <InvoicesPage onNotice={notify} />}
+        {route === 'company-users' && <UsersPage onNotice={notify} />}
+        {route === 'dev-api-improvements' && <ApiImprovementsPage onNotice={notify} />}
+        </div>
       </main>
 
       {route !== 'ted' && (
-        <FloatingControls onFeedback={() => setNotice('Formulario de opiniones abierto.')} onChat={() => navigate('ted')} />
+        <FloatingControls onFeedback={() => notify('Formulario de opiniones abierto.')} onChat={() => navigate('ted')} />
       )}
-
-      <div className="app__notice-region" role="status" aria-live="polite">
-        {notice && <p className="app__notice">{notice}</p>}
-      </div>
     </div>
+    </PageChromeProvider>
+    </SidebarProvider>
   );
 }
 

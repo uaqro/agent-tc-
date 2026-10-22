@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Checkbox, Field, Select } from '@er-mobility-mx/design-system';
 import { OVERRIDE_DURATIONS, overrideUntil, stationsLabel } from '../../data/limits';
 import type { Vehicle } from '../../types/dispersion';
 import type { LimitPolicy, OverrideDuration, StationException, StationRecommendationRequest } from '../../types/limits';
@@ -25,6 +26,7 @@ export function StationExceptionDialog({ request, vehicle, policy, onClose, onCo
   const [confirmed, setConfirmed] = useState(false);
   const until = overrideUntil(duration, policy?.period ?? 'month');
   const unrestricted = policy === null || policy.stationSubnetId === null;
+  const durationOptions = OVERRIDE_DURATIONS.map((option) => ({ value: option.id, label: option.label }));
 
   return (
     <Modal
@@ -79,23 +81,23 @@ export function StationExceptionDialog({ request, vehicle, policy, onClose, onCo
         </p>
       )}
 
-      <label className="policy-form__field">
-        <span>Vigencia</span>
-        <select value={duration} onChange={(event) => setDuration(event.target.value as OverrideDuration)}>
-          {OVERRIDE_DURATIONS.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <small>Hasta el {formatDateLong(until)}.</small>
-      </label>
+      <Field label="Vigencia" htmlFor="station-exception-duration" help={`Hasta el ${formatDateLong(until)}.`}>
+        <Select
+          id="station-exception-duration"
+          options={durationOptions}
+          value={duration}
+          onChange={(value) => {
+            const option = OVERRIDE_DURATIONS.find((candidate) => candidate.id === value);
+            if (option) setDuration(option.id);
+          }}
+        />
+      </Field>
 
-      <label className="company-form__check">
-        <input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
-        Confirmo que quiero permitir {request.toStation} a {vehicle.plate}. El optimizador no aplica este cambio: lo aplico
-        yo desde Límites.
-      </label>
+      <Checkbox
+        checked={confirmed}
+        label={`Confirmo que quiero permitir ${request.toStation} a ${vehicle.plate}. El optimizador no aplica este cambio: lo aplico yo desde Límites.`}
+        onChange={setConfirmed}
+      />
     </Modal>
   );
 }

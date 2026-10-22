@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BarChart } from '../components/charts/BarChart';
 import { EmptyChart } from '../components/charts/EmptyChart';
-import { LineChart } from '../components/charts/LineChart';
+import { LineChart, LineChartSkeleton } from '../components/charts/LineChart';
 import { ChartCard } from '../components/dashboard/ChartCard';
 import { SummaryCard } from '../components/dashboard/SummaryCard';
 import { useGlobalFilters } from '../components/filters/GlobalFilters';
@@ -27,9 +27,10 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
   const organization = useMemo(() => organizationalConsumption(filters), [filters]);
   const period = `últimos ${filters.periodDays} ${filters.periodDays === 1 ? 'día' : 'días'}`;
   // Twelve months of dispatches take a moment to build: after the first paint, so the indicators show at once.
-  const [monthly, setMonthly] = useState<MonthlyChartData | null>(null);
+  const [monthlyResult, setMonthlyResult] = useState<{ filters: typeof filters; data: MonthlyChartData } | null>(null);
+  const monthly = monthlyResult?.filters === filters ? monthlyResult.data : null;
   useEffect(() => {
-    const timer = window.setTimeout(() => setMonthly(monthlyConsumption(filters)), 0);
+    const timer = window.setTimeout(() => setMonthlyResult({ filters, data: monthlyConsumption(filters) }), 0);
     return () => window.clearTimeout(timer);
   }, [filters]);
 
@@ -45,7 +46,7 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
       </section>
 
       <section className="dashboard__charts" aria-label="Gráficas de combustible">
-        <div className="dashboard__wide">
+        <div className="dashboard__wide" aria-busy={monthly === null || undefined}>
           <ChartCard
             title="Consumo mensual (12 meses)"
             subtitle={`${clientAccount.name} · litros por producto`}
@@ -53,7 +54,7 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
             onOptionSelect={(option) => onCardOption('Consumo mensual', option)}
           >
             {monthly === null ? (
-              <EmptyChart hint="Calculando los últimos 12 meses…" />
+              <LineChartSkeleton />
             ) : hasData(monthly.series.map((item) => ({ ...item, values: item.values.map((value) => value ?? 0) }))) ? (
               <>
                 <LineChart
@@ -91,6 +92,7 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
               yMin={performance.yMin}
               yMax={performance.yMax}
               ariaLabel={`Rendimiento real contra esperado de las ${performance.labels.length} unidades con más consumo`}
+              categoryLabel="Vehículo"
             />
           ) : (
             <EmptyChart hint="No hay cargas en el periodo para los filtros elegidos. Cambia el periodo o quita algún filtro." />
@@ -132,6 +134,7 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
               yMin={organization.yMin}
               yMax={organization.yMax}
               ariaLabel={`Litros por rama de ${organization.parentName}, periodo actual contra el anterior`}
+              categoryLabel="Rama del organigrama"
             />
           ) : (
             <EmptyChart
@@ -157,6 +160,7 @@ export function FuelDashboardPage({ onCardOption }: FuelDashboardPageProps) {
               yMin={refillsAndCuts.yMin}
               yMax={refillsAndCuts.yMax}
               ariaLabel="Recargas y recortes de enero 2026 a julio 2026"
+              categoryLabel="Periodo"
             />
           ) : (
             <EmptyChart hint="No hay recargas ni recortes en el periodo. Aparecen cuando se dispersa o se recorta saldo desde Saldos." />

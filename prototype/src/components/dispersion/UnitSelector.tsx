@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
+import { Checkbox, Input, Select } from '@er-mobility-mx/design-system';
 import { addToSelection, searchUnits, selectableNodes, unitsUnderNode } from '../../data/unitSelection';
 import type { Vehicle } from '../../types/dispersion';
 import { formatCount } from '../../utils/format';
-import { SearchIcon } from '../icons/Icons';
 import { Pagination, usePagination } from '../ui/Pagination';
 import './UnitSelector.css';
 
@@ -13,6 +13,7 @@ interface UnitSelectorProps {
 }
 
 const PAGE_SIZE = 20;
+const NODE_FILTER_LABEL = 'Nodo del organigrama';
 
 /**
  * Picks specific units for a funding rule out of a few hundred: search by plate, economic number or driver, mark a
@@ -22,6 +23,16 @@ export function UnitSelector({ vehicles, selected, onChange }: UnitSelectorProps
   const [query, setQuery] = useState('');
   const [nodeId, setNodeId] = useState('');
   const nodes = useMemo(selectableNodes, []);
+  const nodeOptions = useMemo(
+    () => [
+      { value: '', label: 'Nodo del organigrama…' },
+      ...nodes.map((node) => ({
+        value: node.id,
+        label: `${'\u00a0\u00a0'.repeat(node.level - 1)}${node.name}`,
+      })),
+    ],
+    [nodes],
+  );
   const visible = useMemo(() => searchUnits(vehicles, query), [vehicles, query]);
   const underNode = useMemo(() => (nodeId ? unitsUnderNode(vehicles, nodeId) : []), [vehicles, nodeId]);
   const pagination = usePagination(visible, PAGE_SIZE);
@@ -33,23 +44,26 @@ export function UnitSelector({ vehicles, selected, onChange }: UnitSelectorProps
   return (
     <div className="unit-selector">
       <div className="unit-selector__tools">
-        <label className="unit-selector__search">
-          <SearchIcon width={14} height={14} />
-          <span className="visually-hidden">Buscar unidad</span>
-          <input type="search" value={query} placeholder="Placa, ECO-xxxx o conductor" onChange={(event) => setQuery(event.target.value)} />
-        </label>
-        <label className="unit-selector__node">
-          <span className="visually-hidden">Nodo del organigrama</span>
-          <select value={nodeId} onChange={(event) => setNodeId(event.target.value)}>
-            <option value="">Nodo del organigrama…</option>
-            {nodes.map((node) => (
-              <option key={node.id} value={node.id}>
-                {'  '.repeat(node.level - 1)}
-                {node.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="unit-selector__flow-search">
+          <Input
+            type="search"
+            icon="search"
+            size="sm"
+            ariaLabel="Buscar unidad"
+            value={query}
+            placeholder="Placa, ECO-xxxx o conductor"
+            onChange={setQuery}
+            style={{ width: '100%', maxWidth: 'none' }}
+          />
+        </div>
+        <span id="unit-selector-node-label" className="visually-hidden">{NODE_FILTER_LABEL}</span>
+        <Select
+          options={nodeOptions}
+          value={nodeId}
+          aria-labelledby="unit-selector-node-label"
+          style={{ width: '220px', maxWidth: '100%' }}
+          onChange={setNodeId}
+        />
         <button
           type="button"
           className="btn btn--secondary btn--sm"
@@ -85,13 +99,12 @@ export function UnitSelector({ vehicles, selected, onChange }: UnitSelectorProps
         <ul className="unit-selector__list">
           {pagination.pageRows.map((vehicle) => (
             <li key={vehicle.id}>
-              <label>
-                <input type="checkbox" checked={chosen.has(vehicle.id)} onChange={(event) => toggle(vehicle.id, event.target.checked)} />
-                <strong>{vehicle.plate}</strong>
-                <span>
-                  {vehicle.id} · {vehicle.driver}
-                </span>
-              </label>
+              <Checkbox
+                checked={chosen.has(vehicle.id)}
+                label={vehicle.plate}
+                description={`${vehicle.id} · ${vehicle.driver}`}
+                onChange={(checked) => toggle(vehicle.id, checked)}
+              />
             </li>
           ))}
         </ul>

@@ -5,11 +5,11 @@
   gap: 24px;
   flex-wrap: wrap;
   padding: 14px 20px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--brand-blue);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  background: var(--tc-local-surface);
+  border: 1px solid var(--tc-local-border);
+  border-left: 3px solid var(--tc-local-brand-blue);
+  border-radius: var(--tc-local-radius-md);
+  box-shadow: var(--tc-local-shadow-sm);
 }
 
 .account-bar__label {
@@ -18,7 +18,7 @@
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .account-bar__value {
@@ -28,13 +28,13 @@
   margin: 4px 0 0;
   font-size: 26px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .account-bar__value span {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--tc-local-text-muted);
 }
 
 .account-bar__figures {
@@ -48,11 +48,11 @@
   margin: 4px 0 0;
   font-size: 16px;
   font-weight: 700;
-  color: var(--text-strong);
+  color: var(--tc-local-text-strong);
 }
 
 .account-bar__figure--negative {
-  color: #b4001a;
+  color: var(--status-danger-text);
 }
 
 @media (max-width: 760px) {

@@ -12,6 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@er-mobility-mx/design-system": "file:vendor/flow/er-mobility-mx-design-system-3.0.0-beta.10-line-charts.tgz",
     "jspdf": "4.2.1",
     "leaflet": "^1.9.4",
     "leaflet-draw": "^1.0.4",

@@ -1,5 +1,5 @@
 import './FloatingControls.css';
-import { ChatIcon } from '../icons/Icons';
+import { Button, IconButton } from '@er-mobility-mx/design-system';
 
 interface FloatingControlsProps {
   onFeedback: () => void;
@@ -9,14 +9,22 @@ interface FloatingControlsProps {
 export function FloatingControls({ onFeedback, onChat }: FloatingControlsProps) {
   return (
     <>
-      <button type="button" className="feedback-tab" onClick={onFeedback}>
-        Opiniones
-      </button>
+      <div className="feedback-tab">
+        <Button variant="secondary" size="sm" onClick={onFeedback}>
+          Opiniones
+        </Button>
+      </div>
 
-      <button type="button" className="chat-button" onClick={onChat} title="Preguntar a TED">
-        <ChatIcon width={24} height={24} />
-        <span className="visually-hidden">Preguntar a TED, el asistente de la flota</span>
-      </button>
+      <div className="chat-button">
+        <IconButton
+          icon="chat"
+          ariaLabel="Preguntar a TED, el asistente de la flota"
+          variant="primary"
+          size="lg"
+          onClick={onChat}
+          style={{ width: 54, height: 54, padding: 0, borderRadius: '50%' }}
+        />
+      </div>
     </>
   );
 }

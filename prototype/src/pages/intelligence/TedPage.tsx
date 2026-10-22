@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState, type FormEvent } from 'react';
-import { SendIcon, SparklesIcon } from '../../components/icons/Icons';
+import { Button, ChatMessage, Input } from '@er-mobility-mx/design-system';
+import { SparklesIcon } from '../../components/icons/Icons';
 import { tedAnswers, tedFallback, tedSuggestions } from '../../data/intelligence';
 import { businessNow } from '../../domain/demo/clock';
 import './intelligence.css';
@@ -99,9 +100,9 @@ export function TedPage() {
               En línea · datos de Ticket Car al día
             </p>
           </div>
-          <button type="button" className="btn btn--secondary btn--sm ted__restart" onClick={restart}>
+          <Button variant="secondary" size="sm" onClick={restart} style={{ marginLeft: 'auto' }}>
             Nueva conversación
-          </button>
+          </Button>
         </header>
 
         <div className="ted__messages" ref={scrollRef} aria-live="polite">
@@ -112,12 +113,13 @@ export function TedPage() {
                   <SparklesIcon width={15} height={15} />
                 </span>
               )}
-              <div>
-                <p className="ted__bubble">
-                  <RichText text={item.text} />
-                </p>
-                <span className="ted__time">{item.time}</span>
-              </div>
+              <ChatMessage
+                role={item.from === 'ted' ? 'agent' : 'user'}
+                timestamp={item.time}
+                style={{ flex: 1, minWidth: 0 }}
+              >
+                <RichText text={item.text} />
+              </ChatMessage>
             </div>
           ))}
 
@@ -126,12 +128,7 @@ export function TedPage() {
               <span className="ted__avatar" aria-hidden="true">
                 <SparklesIcon width={15} height={15} />
               </span>
-              <p className="ted__bubble ted__typing">
-                <span />
-                <span />
-                <span />
-                <span className="visually-hidden">TED está escribiendo</span>
-              </p>
+              <ChatMessage role="agent" streaming style={{ flex: 1, minWidth: 0 }} />
             </div>
           )}
         </div>
@@ -145,21 +142,22 @@ export function TedPage() {
         </div>
 
         <form className="ted__composer" onSubmit={handleSubmit}>
-          <label className="visually-hidden" htmlFor="ted-input">
-            Pregunta para TED
-          </label>
-          <input
+          <Input
             id="ted-input"
             type="text"
             value={draft}
             autoComplete="off"
+            ariaLabel="Pregunta para TED"
             placeholder="Pregunta sobre tus tarjetas, consumos, saldos o alertas…"
-            onChange={(event) => setDraft(event.target.value)}
+            onChange={setDraft}
           />
-          <button type="submit" className="ted__send" disabled={!draft.trim() || thinking}>
-            <SendIcon width={18} height={18} />
-            <span className="visually-hidden">Enviar</span>
-          </button>
+          <Button
+            type="submit"
+            ariaLabel="Enviar"
+            icon="send"
+            disabled={!draft.trim() || thinking}
+            style={{ width: 44, height: 44, padding: 0, flexShrink: 0 }}
+          />
         </form>
       </section>
     </div>
