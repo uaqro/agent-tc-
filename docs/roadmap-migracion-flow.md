@@ -624,6 +624,9 @@ separados después de cerrar el piloto, sin mezclarlo con E1.
 - La confirmación requerida de `StationExceptionDialog` también usa
   `Checkbox` de Flow; la acción «Confirmar excepción» sigue deshabilitada hasta
   marcarla. El inventario baja a 35 inputs nativos y 21 casillas en 10 módulos.
+- La selección individual de unidades en `UnitSelector` ahora usa `Checkbox`
+  de Flow, con placa, identificador y conductor visibles/accesibles. El
+  inventario baja a 34 inputs nativos y 20 casillas en 10 módulos.
 - Preservar `min`, `max`, `step`, atributos ARIA, autorrelleno y validación.
   Reenvío en runtime no resuelve una API TypeScript incompatible.
 - Para atributos necesarios no publicados, documentar la brecha y evaluar su

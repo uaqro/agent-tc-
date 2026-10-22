@@ -6,6 +6,7 @@ import { UnitSelector } from '../UnitSelector';
 
 describe('UnitSelector', () => {
   it('keeps the initial organization-node prompt and accessible Flow selector', () => {
+    const firstVehicle = vehicles[0]!;
     const html = renderToStaticMarkup(
       createElement(UnitSelector, {
         vehicles,
@@ -22,6 +23,10 @@ describe('UnitSelector', () => {
     expect(html).toContain('aria-labelledby="unit-selector-node-label"');
     expect(html).toContain('Nodo del organigrama…');
     expect(html).toContain('Marcar sus 0 unidades');
+    expect(html).toContain('class="AxPcdq_input"');
+    expect(html).toContain('aria-describedby=');
+    expect(html).toContain(firstVehicle.plate);
+    expect(html).toContain(`${firstVehicle.id} · ${firstVehicle.driver}`);
     expect(html).not.toContain('<select');
   });
 });

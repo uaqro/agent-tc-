@@ -65,14 +65,6 @@
   background: var(--surface-sunken);
 }
 
-.unit-selector__list span {
-  overflow: hidden;
-  font-size: 12px;
-  color: var(--text-muted);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .unit-selector__empty {
   margin: 0;
   padding: 16px;

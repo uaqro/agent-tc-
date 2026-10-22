@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Input, Select } from '@er-mobility-mx/design-system';
+import { Checkbox, Input, Select } from '@er-mobility-mx/design-system';
 import { addToSelection, searchUnits, selectableNodes, unitsUnderNode } from '../../data/unitSelection';
 import type { Vehicle } from '../../types/dispersion';
 import { formatCount } from '../../utils/format';
@@ -99,13 +99,12 @@ export function UnitSelector({ vehicles, selected, onChange }: UnitSelectorProps
         <ul className="unit-selector__list">
           {pagination.pageRows.map((vehicle) => (
             <li key={vehicle.id}>
-              <label>
-                <input type="checkbox" checked={chosen.has(vehicle.id)} onChange={(event) => toggle(vehicle.id, event.target.checked)} />
-                <strong>{vehicle.plate}</strong>
-                <span>
-                  {vehicle.id} · {vehicle.driver}
-                </span>
-              </label>
+              <Checkbox
+                checked={chosen.has(vehicle.id)}
+                label={vehicle.plate}
+                description={`${vehicle.id} · ${vehicle.driver}`}
+                onChange={(checked) => toggle(vehicle.id, checked)}
+              />
             </li>
           ))}
         </ul>
