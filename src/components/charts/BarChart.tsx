@@ -96,7 +96,7 @@ export function BarChart({ labels, series, yMin, yMax, tickCount = 4, ariaLabel 
                 y={top}
                 width={Math.max(barWidth - 4, 2)}
                 height={Math.max(baseline - top, 0)}
-                fill={item.color}
+                style={{ fill: item.color }}
                 pointerEvents="none"
               />
             );

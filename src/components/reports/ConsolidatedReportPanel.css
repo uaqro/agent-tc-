@@ -9,9 +9,9 @@
   margin: 0;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
-  background: #fff6e5;
+  background: var(--status-warning-bg);
   font-size: 12.5px;
-  color: #8a5300;
+  color: var(--status-warning-text);
 }
 
 .consolidated__form {
@@ -122,9 +122,9 @@
   margin: 0;
   padding: 8px 12px 8px 28px;
   border-radius: var(--radius-sm);
-  background: #fff6e5;
+  background: var(--status-warning-bg);
   font-size: 12.5px;
-  color: #8a5300;
+  color: var(--status-warning-text);
 }
 
 .consolidated__frame {
@@ -132,5 +132,5 @@
   height: 640px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: #fff;
+  background: var(--surface-card);
 }

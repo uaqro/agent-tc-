@@ -68,6 +68,9 @@ function loadSavedViews(storageKey: string): SavedColumnView[] {
   }
 }
 
+/** Flow: montos, placas, IDs, fechas y cantidades se leen en tipografía de datos. */
+const DATA_COLUMN = /FECHA|HORA|PLACA|DISPOSITIVO|TARJETA|FOLIO|N[ÚU]MERO|NO\.|ID\b|IMPORTE|MONTO|PRECIO|LITROS|SALDO|KM|OD[ÓO]METRO|RENDIMIENTO|IVA|IEPS|TOTAL|CANTIDAD|AUTORIZACI[ÓO]N/i;
+
 function formatCell(column: string, value: string | number): string | number {
   if (column === 'FECHA' && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const [year, month, day] = value.split('-').map(Number);
@@ -431,7 +434,7 @@ export function DynamicReportBuilder() {
               <tbody>
                 {generatedRows.map((row) => (
                   <tr key={row.id}>
-                    {generated.columns.map((column) => <td key={`${row.id}-${column}`}>{formatCell(column, row[column] ?? '')}</td>)}
+                    {generated.columns.map((column) => <td key={`${row.id}-${column}`} data-mono={typeof row[column] === 'number' || DATA_COLUMN.test(column) ? '' : undefined}>{formatCell(column, row[column] ?? '')}</td>)}
                   </tr>
                 ))}
               </tbody>

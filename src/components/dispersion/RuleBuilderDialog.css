@@ -49,7 +49,7 @@
 
 .builder__type--active {
   border-color: var(--brand-blue);
-  background: rgba(47, 107, 255, 0.07);
+  background: var(--surface-accent-subtle);
 }
 
 .builder__type-label {
@@ -139,7 +139,7 @@
 }
 
 .builder__preview-error {
-  color: #b4001a;
+  color: var(--status-danger-text);
   font-weight: 600;
 }
 

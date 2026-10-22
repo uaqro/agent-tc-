@@ -1,0 +1,76 @@
+.intelligence-reports {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 20px 24px 56px;
+}
+
+.intelligence-reports__panel {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.intelligence-reports__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.intelligence-reports__head h2 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.intelligence-reports__head p {
+  margin: 3px 0 0;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.intelligence-reports__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.intelligence-reports__filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 180px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.intelligence-reports__filters select {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-strong);
+  font: inherit;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .intelligence-reports {
+    padding: 16px 14px 48px;
+  }
+}
+
+@media (max-width: 560px) {
+  .intelligence-reports__filters,
+  .intelligence-reports__filters label {
+    width: 100%;
+  }
+}

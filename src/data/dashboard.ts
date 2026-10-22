@@ -15,6 +15,7 @@ export const menuGroups: MenuGroup[] = [
       { id: 'reglas-limites', label: 'Políticas de uso', icon: 'lock' },
       { id: 'red-estaciones', label: 'Red de estaciones', icon: 'compass' },
       { id: 'medios-pago', label: 'Medios de pago', icon: 'card' },
+      { id: 'alertas-operativas', label: 'Alertas', icon: 'clock' },
     ],
   },
   {
@@ -32,14 +33,23 @@ export const menuGroups: MenuGroup[] = [
     items: [{ id: 'mantenimiento-resumen', label: 'Resumen', icon: 'gear' }],
   },
   {
+    id: 'move-for-good',
+    label: 'Move for Good',
+    items: [{ id: 'huella-carbono', label: 'Huella de carbono', icon: 'leaf' }],
+  },
+  {
     id: 'reporteria',
     label: 'Reportería',
-    items: [{ id: 'reportes', label: 'Combustible', icon: 'file' }],
+    items: [
+      { id: 'reportes', label: 'Combustible', icon: 'file' },
+      { id: 'reportes-peaje', label: 'Peaje', icon: 'file' },
+    ],
   },
   {
     id: 'inteligencia',
     label: 'Inteligencia',
     items: [
+      { id: 'intelligence-reportes', label: 'Reportes', icon: 'file' },
       { id: 'insights', label: 'Insights & Alertas', icon: 'sparkles' },
       { id: 'optimizador', label: 'Optimizador de gasolineras', icon: 'compass' },
       { id: 'ted', label: 'TED', icon: 'chat' },
@@ -76,8 +86,8 @@ export const refillsAndCuts = {
   yMin: 75,
   yMax: 175,
   series: [
-    { name: 'Recargas', color: '#16a34a', values: [120, 145, 98, 160, 132, 150, 118] },
-    { name: 'Recortes', color: '#e4572e', values: [88, 95, 82, 110, 101, 124, 96] },
+    { name: 'Recargas', color: 'var(--viz-positive)', values: [120, 145, 98, 160, 132, 150, 118] },
+    { name: 'Recortes', color: 'var(--viz-negative)', values: [88, 95, 82, 110, 101, 124, 96] },
   ] satisfies ChartSeries[],
 };
 

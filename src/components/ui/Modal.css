@@ -5,22 +5,22 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 48px 16px;
+  padding: var(--space-12) var(--space-4);
   overflow-y: auto;
-  background: rgba(10, 34, 64, 0.55);
+  background: var(--surface-backdrop);
   backdrop-filter: blur(2px);
-  animation: modal-fade 140ms ease-out;
+  animation: modal-fade var(--dur-fast) var(--ease-out);
 }
 
 .modal {
   width: 100%;
   max-width: 560px;
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  background: var(--surface-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-overlay);
   display: flex;
   flex-direction: column;
-  animation: modal-rise 160ms ease-out;
+  animation: modal-rise var(--dur-base) var(--ease-out);
 }
 
 .modal--lg {
@@ -31,50 +31,49 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  padding: 18px 20px 14px;
+  gap: var(--space-4);
+  padding: var(--pad-card) var(--pad-card) var(--space-3);
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .modal__title {
   margin: 0;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text-strong);
+  font: var(--type-title-lg);
+  color: var(--text-primary);
 }
 
 .modal__subtitle {
-  margin: 3px 0 0;
-  font-size: 13px;
-  color: var(--text-muted);
+  margin: var(--space-1) 0 0;
+  font: var(--type-body-md);
+  color: var(--text-secondary);
 }
 
 .modal__close {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
+  width: var(--hit-target-min);
+  height: var(--hit-target-min);
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
 .modal__close:hover {
   background: var(--surface-sunken);
-  color: var(--text-strong);
+  color: var(--text-primary);
 }
 
 .modal__body {
-  padding: 18px 20px;
+  padding: var(--pad-card);
 }
 
 .modal__footer {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: var(--space-2);
   flex-wrap: wrap;
-  padding: 14px 20px 18px;
+  padding: var(--space-3) var(--pad-card) var(--pad-card);
   border-top: 1px solid var(--border-subtle);
 }
 
@@ -100,6 +99,6 @@
 
 @media (max-width: 640px) {
   .modal-backdrop {
-    padding: 16px 10px;
+    padding: var(--space-4) var(--space-2);
   }
 }

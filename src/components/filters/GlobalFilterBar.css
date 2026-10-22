@@ -143,13 +143,13 @@
 }
 
 .global-filters__chip button:hover {
-  background: rgba(15, 23, 42, 0.08);
+  background: var(--surface-sunken);
 }
 
 .global-filters__clear {
   font-size: 12px;
   font-weight: 600;
-  color: var(--brand-red);
+  color: var(--text-link);
 }
 
 .global-filters__note {

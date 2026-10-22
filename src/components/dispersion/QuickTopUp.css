@@ -27,8 +27,8 @@
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: rgba(242, 134, 13, 0.16);
-  color: #a85c02;
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
   flex-shrink: 0;
 }
 
@@ -54,7 +54,7 @@
 .quick__search:focus-within {
   border-color: var(--brand-blue);
   background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(47, 107, 255, 0.12);
+  box-shadow: var(--focus-ring);
 }
 
 .quick__search input {
@@ -139,7 +139,7 @@
 }
 
 .quick__balance-value--zero {
-  color: #b4001a;
+  color: var(--status-danger-text);
 }
 
 .quick__balance-liters {
@@ -174,7 +174,7 @@
 .quick__amount--active {
   background: var(--brand-blue);
   border-color: var(--brand-blue);
-  color: #fff;
+  color: var(--text-on-accent);
 }
 
 .quick__custom input {
@@ -223,14 +223,14 @@
 }
 
 .quick__confirm-available--over strong {
-  color: #b4001a;
+  color: var(--status-danger-text);
 }
 
 .quick__error {
   margin: 8px 0 0;
   font-size: 12.5px;
   font-weight: 600;
-  color: #b4001a;
+  color: var(--status-danger-text);
 }
 
 .quick--done {
@@ -238,8 +238,8 @@
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
-  border-color: rgba(23, 166, 115, 0.4);
-  background: rgba(23, 166, 115, 0.06);
+  border-color: var(--status-success);
+  background: var(--status-success-bg);
   color: var(--accent-green);
 }
 
@@ -252,7 +252,7 @@
   margin: 0;
   font-size: 15px;
   font-weight: 700;
-  color: #0f7a53;
+  color: var(--status-success-text);
 }
 
 .quick__done-text {

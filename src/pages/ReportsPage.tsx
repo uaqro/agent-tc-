@@ -33,13 +33,10 @@ export function ReportsPage() {
       <section className="reports__panel" aria-labelledby="reports-title">
         <header className="reports__head">
           <div>
-            <h2 className="reports__title" id="reports-title">
-              {active.label}
-            </h2>
+            <h2 className="reports__title" id="reports-title">{active.label}</h2>
             <p className="reports__hint">{active.hint}</p>
           </div>
           <span className="reports__demo">Datos de demostración</span>
-
           <div className="reports__tabs" role="tablist" aria-label="Reportes de combustible">
             {VIEWS.map((candidate) => (
               <button

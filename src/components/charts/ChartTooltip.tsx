@@ -31,7 +31,7 @@ export function ChartTooltip({ x, y, title, rows }: ChartTooltipProps) {
       </text>
       {rows.map((row, index) => (
         <g key={row.label}>
-          <circle cx={boxX + 14} cy={y + 28 + index * ROW_HEIGHT} r={3.5} fill={row.color} />
+          <circle cx={boxX + 14} cy={y + 28 + index * ROW_HEIGHT} r={3.5} style={{ fill: row.color }} />
           <text className="chart__tooltip-text" x={boxX + 24} y={y + 32 + index * ROW_HEIGHT}>
             {row.label}: {row.value}
           </text>

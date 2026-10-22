@@ -33,7 +33,7 @@ function ReportTable({ columns, rows, rowIds, emptyMessage }: { columns: string[
           {rows.map((row, rowIndex) => (
             <tr key={rowIds[rowIndex]}>
               {row.map((value, columnIndex) => (
-                <td key={`${rowIds[rowIndex]}-${columnIndex}`}>
+                <td key={`${rowIds[rowIndex]}-${columnIndex}`} data-mono={typeof value === 'number' || /Fecha|Folio|Referencia|Medio|Tarjeta/i.test(columns[columnIndex] ?? '') ? '' : undefined}>
                   {typeof value === 'number' ? CURRENCY.format(value) : value}
                 </td>
               ))}

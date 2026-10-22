@@ -30,7 +30,7 @@ const closedDays = (points: DayPoint[]): DayPoint[] => points.filter((point) => 
 export const MONTHLY_CHART_MONTHS = 12;
 
 const MONTH_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-const PRODUCT_COLOR: Record<FuelProduct, string> = { autoconsumo: '#f97316', ticketcar_plus: '#0060df' };
+const PRODUCT_COLOR: Record<FuelProduct, string> = { autoconsumo: 'var(--viz-3)', ticketcar_plus: 'var(--viz-1)' };
 
 /** Dispatches of the twelve months, unscoped. Rebuilt only when the business month changes. */
 let yearEvents: { key: string; events: FuelEvent[] } | null = null;
@@ -171,8 +171,8 @@ export function performanceByVehicle(filters: GlobalFilters, limit = 8, at?: num
   return {
     labels: top.map((entry) => entry.unit.plate),
     series: [
-      { name: 'Rendimiento real', color: '#0060df', values: real },
-      { name: 'Esperado por clase', color: '#94a3b8', values: expected },
+      { name: 'Rendimiento real', color: 'var(--viz-1)', values: real },
+      { name: 'Esperado por clase', color: 'var(--text-muted)', values: expected },
     ],
     yMin: 0,
     yMax: niceMax(Math.max(0, ...real, ...expected)),
@@ -205,7 +205,7 @@ export function costPerKilometer(filters: GlobalFilters, at?: number): ChartData
 
   return {
     labels,
-    series: [{ name: clientAccount.name, color: '#2f6bff', values }],
+    series: [{ name: clientAccount.name, color: 'var(--viz-2)', values }],
     yMin: 0,
     yMax: niceMax(Math.max(0, ...values)),
   };
@@ -241,8 +241,8 @@ export function organizationalConsumption(filters: GlobalFilters, at?: number): 
     parentName: parent.name,
     labels: branches.map((branch) => branch.name.replace(/^(División|Departamento|Área) /, '')),
     series: [
-      { name: 'Periodo actual', color: '#0060df', values: current },
-      { name: 'Periodo anterior', color: '#94a3b8', values: previous },
+      { name: 'Periodo actual', color: 'var(--viz-1)', values: current },
+      { name: 'Periodo anterior', color: 'var(--text-muted)', values: previous },
     ],
     yMin: 0,
     yMax: niceMax(Math.max(0, ...current, ...previous)),

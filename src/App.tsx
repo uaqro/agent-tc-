@@ -20,6 +20,7 @@ import { DriversPage } from './pages/DriversPage';
 import { MaintenancePage } from './pages/MaintenancePage';
 import { PaymentMediaPage } from './pages/PaymentMediaPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { TollReportsPage } from './pages/TollReportsPage';
 import { VehiclesPage } from './pages/VehiclesPage';
 import { TollBalancesPage } from './pages/toll/TollBalancesPage';
 import { TollMediaPage } from './pages/toll/TollMediaPage';
@@ -31,6 +32,9 @@ import { InvoicesPage } from './pages/company/InvoicesPage';
 import { ParametersPage } from './pages/company/ParametersPage';
 import { UsersPage } from './pages/company/UsersPage';
 import { ApiImprovementsPage } from './pages/dev/ApiImprovementsPage';
+import { IntelligenceReportsPage } from './pages/intelligence/IntelligenceReportsPage';
+import { CarbonFootprintPage } from './pages/move-for-good/CarbonFootprintPage';
+import { OperationalAlertsPage } from './pages/OperationalAlertsPage';
 import type { AppRoute } from './types';
 import type { StationRecommendationRequest } from './types/limits';
 import { DevModeMenu, useDevMode } from './components/dev/DevMode';
@@ -41,6 +45,19 @@ const TOP_BAR_MESSAGES: Record<string, string> = {
   notifications: 'Tienes 4 alertas críticas en Insights & Alertas.',
   profile: 'Menú de perfil de usuario abierto.',
 };
+
+/** Rutas de Combustible, Move for Good y Reportería: aplican los patrones de Flow (styles/flow-patterns.css). */
+const FLOW_ROUTES = new Set<AppRoute>([
+  'dashboard',
+  'dispersion',
+  'limits',
+  'station-networks',
+  'payment-media',
+  'operational-alerts',
+  'carbon-footprint',
+  'reports',
+  'toll-reports',
+]);
 
 const ROUTES: Record<AppRoute, { menuItem: string; section: string; title: string; crumb?: string; subtitle: string }> = {
   dashboard: {
@@ -104,6 +121,31 @@ const ROUTES: Record<AppRoute, { menuItem: string; section: string; title: strin
     title: 'Reportería',
     crumb: 'Combustible',
     subtitle: 'Reportes del producto contratado',
+  },
+  'toll-reports': {
+    menuItem: 'reportes-peaje',
+    section: 'Reportería',
+    title: 'Reportería',
+    crumb: 'Peaje',
+    subtitle: 'Reportes de cruces, TAGs y movimientos de peaje',
+  },
+  'intelligence-reports': {
+    menuItem: 'intelligence-reportes',
+    section: 'Inteligencia',
+    title: 'Reportes',
+    subtitle: 'Consumo y presupuesto por periodo y grupo',
+  },
+  'carbon-footprint': {
+    menuItem: 'huella-carbono',
+    section: 'Move for Good',
+    title: 'Huella de carbono',
+    subtitle: 'Combustible consumido, emisiones generadas y compensadas',
+  },
+  'operational-alerts': {
+    menuItem: 'alertas-operativas',
+    section: 'Combustible',
+    title: 'Alertas',
+    subtitle: 'Reglas operativas, grupos de notificación e historial de envíos',
   },
   insights: {
     menuItem: 'insights',
@@ -271,7 +313,7 @@ function AppContent() {
         onSelectItem={handleSelectItem}
       />
 
-      <main className="app__main" id="main">
+      <main className="app__main" id="main" data-flow={FLOW_ROUTES.has(route) ? '' : undefined}>
         {impersonating && (
           <p className="app__impersonation" role="status">
             Modo Dev · viendo el portal como <strong>{principal.name}</strong> · {sessionRoleName(principal.role)} ·{' '}
@@ -307,6 +349,12 @@ function AppContent() {
         {route === 'toll-media' && <TollMediaPage onNotice={setNotice} readOnly={!writable(route)} />}
         {route === 'maintenance' && <MaintenancePage onNotice={setNotice} />}
         {route === 'reports' && <ReportsPage key={principal.userId} />}
+        {route === 'toll-reports' && <TollReportsPage key={principal.userId} />}
+        {route === 'intelligence-reports' && <IntelligenceReportsPage />}
+        {route === 'carbon-footprint' && <CarbonFootprintPage />}
+        {route === 'operational-alerts' && (
+          <OperationalAlertsPage canConfigure={canSession(principal.role, 'alertas.configurar', 'escribir')} key={principal.userId} />
+        )}
         {route === 'insights' && <InsightsPage onNotice={setNotice} onNavigate={navigate} />}
         {route === 'optimizer' && (
           <GasOptimizerPage

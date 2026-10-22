@@ -1,6 +1,6 @@
 .summary-card {
   --card-accent: var(--accent-blue);
-  --card-tint: #e0eeff;
+  --card-tint: var(--status-info-bg);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -12,20 +12,20 @@
 }
 
 .summary-card--blue {
-  --card-accent: var(--accent-blue);
-  --card-tint: #e0eeff;
+  --card-accent: var(--status-info-text);
+  --card-tint: var(--status-info-bg);
 }
 .summary-card--orange {
-  --card-accent: var(--accent-orange);
-  --card-tint: #fdeae3;
+  --card-accent: var(--status-warning-text);
+  --card-tint: var(--status-warning-bg);
 }
 .summary-card--purple {
-  --card-accent: var(--accent-purple);
-  --card-tint: #f3eefb;
+  --card-accent: var(--text-secondary);
+  --card-tint: var(--surface-sunken);
 }
 .summary-card--green {
-  --card-accent: var(--accent-green);
-  --card-tint: #e1f4eb;
+  --card-accent: var(--status-success-text);
+  --card-tint: var(--status-success-bg);
 }
 
 .summary-card__head {
@@ -97,8 +97,8 @@
   gap: 4px;
   padding: 3px 8px;
   border-radius: 999px;
-  background: #e1f4eb;
-  color: #065b33;
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
   font-weight: 700;
   white-space: nowrap;
 }

@@ -67,8 +67,8 @@
   right: 0;
   width: 230px;
   padding: 8px 10px;
-  background: #0f1b33;
-  color: #fff;
+  background: var(--viz-tooltip-bg);
+  color: var(--viz-tooltip-text);
   font-size: 12px;
   line-height: 1.45;
   border-radius: var(--radius-sm);

@@ -97,7 +97,7 @@
 .policy-form__warning {
   margin: 8px 0 0;
   font-size: 12.5px;
-  color: #a85c02;
+  color: var(--status-warning-text);
 }
 
 .policy-form__pills {
@@ -119,8 +119,8 @@
 
 .policy-form__pills button.is-active {
   border-color: var(--brand-blue);
-  background: rgba(47, 107, 255, 0.09);
-  color: #1d55e0;
+  background: var(--surface-accent-subtle);
+  color: var(--text-accent);
 }
 
 .policy-form__preview {
@@ -133,7 +133,7 @@
 }
 
 .policy-form__preview-error {
-  color: #b4001a;
+  color: var(--status-danger-text);
   font-weight: 600;
 }
 
@@ -249,7 +249,7 @@
   border: none;
   background: none;
   font-size: 12px;
-  color: #1d55e0;
+  color: var(--text-link);
   cursor: pointer;
 }
 
@@ -268,7 +268,7 @@
 
 .schedule__remove:hover:not(:disabled) {
   background: var(--surface-sunken);
-  color: #b4001a;
+  color: var(--status-danger-text);
 }
 
 .schedule__remove:disabled {
@@ -365,7 +365,7 @@
 .policy-form__errors {
   margin: 0;
   padding: 12px 12px 12px 28px;
-  color: #b4001a;
+  color: var(--status-danger-text);
   background: var(--surface-muted);
   font-size: 12px;
   line-height: 1.6;

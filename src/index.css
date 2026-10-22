@@ -31,43 +31,37 @@
 }
 
 :root {
-  /* Edenred One · Flow design system (energy palette) */
-  --brand-navy: #0f172a;
-  --brand-navy-soft: #1e293b;
-  --brand-blue: #0060df;
-  --brand-red: #ca0e00;
-  --brand-red-hover: #a30b00;
-  --brand-red-tint: #ffe3e0;
+  /* Nombres heredados del prototipo, resueltos contra los tokens semánticos de Flow
+     (src/styles/flow). --text-muted, --border-subtle, --surface-sunken y --radius-* son de Flow. */
+  --brand-navy: var(--action-primary);
+  --brand-navy-soft: var(--surface-inverse-hover);
+  --brand-blue: var(--action-accent);
+  --brand-red: var(--status-danger);
+  --brand-red-hover: var(--status-danger-text);
+  --brand-red-tint: var(--status-danger-bg);
 
-  --accent-blue: #0060df;
-  --accent-orange: #ed571c;
-  --accent-purple: #6b4dc7;
-  --accent-green: #007840;
+  --accent-blue: var(--status-info);
+  --accent-orange: var(--status-warning);
+  --accent-purple: var(--viz-4);
+  --accent-green: var(--status-success);
 
-  --surface: #ffffff;
-  --surface-muted: #f8fafc;
-  --surface-sunken: #f1f5f9;
-  --page-bg: #e0eeff;
+  --surface: var(--surface-card);
+  --surface-muted: var(--surface-sunken);
+  --page-bg: var(--surface-canvas);
 
-  --text-strong: #0f172a;
-  --text-body: #334155;
-  --text-muted: #64748b;
-  --text-inverse: #ffffff;
+  --text-strong: var(--text-primary);
+  --text-body: var(--text-primary);
+  --text-inverse: var(--text-on-inverse);
 
-  --border: #e2e8f0;
-  --border-subtle: #f1f5f9;
-  --border-control: #cbd5e1;
+  --border: var(--border-subtle);
+  --border-control: var(--border-default);
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  --shadow-sm: var(--shadow-rest);
+  --shadow-md: var(--shadow-raised);
+  --shadow-lg: var(--shadow-overlay);
 
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.07);
-  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.16);
-
-  --font-sans: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-brand: 'Edenred', 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: var(--font-body);
+  --font-brand: var(--font-display);
 
   --topbar-height: 72px;
   --sidemenu-width: 272px;
@@ -89,9 +83,7 @@ body {
   margin: 0;
   background: var(--page-bg);
   color: var(--text-body);
-  font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.45;
+  font: var(--type-body-md);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -115,9 +107,8 @@ h2 {
 }
 
 :focus-visible {
-  outline: 2px solid var(--brand-blue);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .visually-hidden {
@@ -159,16 +150,16 @@ h2 {
 .btn--primary {
   background: var(--brand-navy);
   border: 1px solid var(--brand-navy);
-  color: #fff;
+  color: var(--text-on-inverse);
 }
 
 .btn--primary:not(:disabled):hover {
-  background: var(--brand-navy-soft);
+  background: var(--action-primary-hover);
 }
 
 .btn--brand {
   background: var(--brand-red);
-  color: #fff;
+  color: var(--text-on-inverse);
 }
 
 .btn--brand:not(:disabled):hover {
@@ -196,22 +187,22 @@ h2 {
 }
 
 .btn--on-dark {
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: color-mix(in srgb, var(--text-on-inverse) 16%, transparent);
+  color: var(--text-on-inverse);
+  border: 1px solid color-mix(in srgb, var(--text-on-inverse) 28%, transparent);
 }
 
 .btn--on-dark:not(:disabled):hover {
-  background: rgba(255, 255, 255, 0.26);
+  background: color-mix(in srgb, var(--text-on-inverse) 26%, transparent);
 }
 
 .btn--light {
-  background: #fff;
-  color: var(--brand-navy);
+  background: var(--surface-card);
+  color: var(--text-primary);
 }
 
 .btn--light:not(:disabled):hover {
-  background: #eef2fb;
+  background: var(--surface-sunken);
 }
 
 .btn--sm {
@@ -233,27 +224,27 @@ h2 {
 }
 
 .chip--active {
-  background: #e1f4eb;
-  color: #065b33;
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
 }
 
 .chip--paused {
   background: var(--surface-sunken);
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .chip--review {
-  background: #fffbeb;
-  color: #b45309;
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
 }
 
 .chip--info {
-  background: #e0eeff;
-  color: #004db3;
+  background: var(--status-info-bg);
+  color: var(--status-info-text);
 }
 
 .chip--danger {
-  background: var(--brand-red-tint);
-  color: var(--brand-red-hover);
+  background: var(--status-danger-bg);
+  color: var(--status-danger-text);
 }
 

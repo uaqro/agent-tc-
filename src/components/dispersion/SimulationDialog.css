@@ -54,7 +54,7 @@
 }
 
 .sim__budget-row--negative strong {
-  color: #b4001a;
+  color: var(--status-danger-text);
 }
 
 .sim__budget-row--total {
@@ -93,13 +93,13 @@
   margin-top: 14px;
   padding: 12px 14px;
   border-radius: var(--radius-md);
-  background: rgba(23, 166, 115, 0.1);
-  color: #0f7a53;
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
 }
 
 .sim__delta--flagged {
-  background: rgba(242, 134, 13, 0.14);
-  color: #a85c02;
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
 }
 
 .sim__delta-title {

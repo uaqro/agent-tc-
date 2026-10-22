@@ -5,7 +5,9 @@ import { DevModeProvider } from './components/dev/DevMode';
 import { GlobalFiltersProvider } from './components/filters/GlobalFilters';
 import { SessionProvider, useSession } from './components/session/Session';
 import { sessionKey } from './data/session';
+import './styles/flow/tokens.css';
 import './index.css';
+import './styles/flow-patterns.css';
 
 /** Remounts the filters and every page when the session changes, so they read the newly scoped data. */
 function ScopedApp() {

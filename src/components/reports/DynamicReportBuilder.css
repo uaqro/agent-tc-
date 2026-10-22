@@ -235,7 +235,7 @@
 .report-builder__error {
   margin: 8px 0 0;
   font-size: 12.5px;
-  color: #b4001a;
+  color: var(--status-danger-text);
 }
 
 .report-builder__filters {

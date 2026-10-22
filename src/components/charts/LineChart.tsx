@@ -135,7 +135,7 @@ export function LineChart({
             <polyline
               key={`${item.name}-${segment[0].index}`}
               className="chart__line"
-              stroke={item.color}
+              style={{ stroke: item.color }}
               points={segment.map(({ index, value }) => `${scaleX(index, labels.length)},${scaleY(value, yMin, yMax)}`).join(' ')}
             />
           )),
@@ -150,7 +150,7 @@ export function LineChart({
               cx={scaleX(index, labels.length)}
               cy={scaleY(value, yMin, yMax)}
               r={activeIndex === index ? 5.5 : 3.5}
-              fill={item.color}
+              style={{ fill: item.color }}
             />
             ),
           ),

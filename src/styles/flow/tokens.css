@@ -1,0 +1,18 @@
+/* Capa de tokens de Flow (ER-Mobility-MX/FlowHANA@9e14d16), copiada sin editar desde
+   packages/flow-react/src/tokens. Se actualiza volviendo a copiar, nunca a mano. */
+@import './ref/spacing.css';
+@import './ref/radius.css';
+@import './ref/sizing.css';
+@import './ref/typography.css';
+@import './ref/colors.css';
+@import './ref/elevation.css';
+@import './ref/motion.css';
+@import './ref/iconography.css';
+
+@import './sys/brand.css';
+@import './sys/sys-scale.css';
+@import './sys/sys-scale-typography.css';
+@import './sys/sys-light.css';
+@import './sys/sys-productos.css';
+@import './sys/sys-compact.css';
+@import './sys/sys-compact-typography.css';

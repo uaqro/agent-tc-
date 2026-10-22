@@ -1,0 +1,257 @@
+/* Patrones de Flow (ER-Mobility-MX/FlowHANA) para Combustible, Move for Good y Reportería.
+   Aplica solo dentro de <main data-flow>. Cada bloque replica la anatomía del componente
+   de Flow indicado y usa únicamente tokens semánticos; nada de hex ni tamaños sueltos. */
+
+/* ── Button ─────────────────────────────────────────────────────────── */
+[data-flow] .btn {
+  gap: var(--gap-inline);
+  height: auto;
+  min-height: var(--hit-target-min);
+  padding: var(--pad-control-y) var(--pad-control-x);
+  border-radius: var(--radius-pill);
+  font: var(--type-body-md-strong);
+  line-height: 1.2;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-spring);
+}
+
+[data-flow] .btn--sm {
+  padding: var(--space-2) var(--space-4);
+}
+
+[data-flow] .btn:active:not(:disabled) {
+  transform: var(--press-scale);
+}
+
+[data-flow] .btn--secondary {
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+}
+
+[data-flow] .btn--ghost {
+  color: var(--text-primary);
+}
+
+/* El rojo de marca no es una acción: la acción principal es --action-primary. */
+[data-flow] .btn--brand {
+  background: var(--action-primary);
+}
+
+[data-flow] .btn--brand:not(:disabled):hover {
+  background: var(--action-primary-hover);
+}
+
+/* ── Badge ──────────────────────────────────────────────────────────── */
+[data-flow] .chip {
+  gap: var(--space-1);
+  min-height: 30px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  font: var(--type-body-sm-strong);
+  letter-spacing: normal;
+}
+
+/* ── Table / DataGrid ───────────────────────────────────────────────── */
+[data-flow] table {
+  font: var(--type-body-md);
+}
+
+[data-flow] table th {
+  padding: var(--density-head-y) var(--density-cell-x);
+  border-bottom: 1px solid var(--border-default);
+  font: var(--type-body-md-strong);
+  color: var(--text-primary);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+[data-flow] table td {
+  padding: var(--density-cell-y) var(--density-cell-x);
+  border-bottom-color: var(--border-subtle);
+}
+
+[data-flow] table tbody tr {
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+[data-flow] table tbody tr:hover {
+  background: var(--surface-accent-subtle);
+}
+
+/* Cifras (montos, litros, placas, IDs) en tipografía de datos. */
+[data-flow] table td[data-mono],
+[data-flow] .activity__amount,
+[data-flow] .requests__amount,
+[data-flow] .rule-card__amount {
+  font: var(--type-data);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── StatTile / KPI ─────────────────────────────────────────────────── */
+[data-flow] .summary-card__value {
+  font: var(--type-kpi-value);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-flow] .table-page__summary dd {
+  font: var(--type-data-lg);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-flow] .carbon-metric__body strong,
+[data-flow] .fixed-report__balances dd {
+  font: var(--type-data-md);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+/* Overline: único sitio donde vive --tracking-overline. */
+[data-flow] .summary-card__title,
+[data-flow] .table-page__summary dt {
+  font: var(--type-label-sm);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* ── Jerarquía de títulos ───────────────────────────────────────────── */
+[data-flow] .page-header__title {
+  font: var(--type-headline-lg);
+  color: var(--text-primary);
+}
+
+[data-flow] .page-header__subtitle {
+  font: var(--type-body-md);
+  color: var(--text-secondary);
+}
+
+[data-flow] .table-page__title {
+  font: var(--type-title-lg);
+  color: var(--text-primary);
+}
+
+/* ── Card ───────────────────────────────────────────────────────────── */
+[data-flow] .table-page__card,
+[data-flow] .table-page__summary > div {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-rest);
+}
+
+/* ── ControlShell: input, select y textarea ─────────────────────────── */
+[data-flow] :is(
+    input:not([type='checkbox'], [type='radio'], [type='range'], [type='file'], [type='color']),
+    select,
+    textarea
+  ):not(.table-page__search input) {
+  min-height: var(--hit-target-min);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-card);
+  color: var(--text-primary);
+  font: var(--type-body-md);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+[data-flow] :is(input, select, textarea):focus-visible,
+[data-flow] .table-page__search:focus-within {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: var(--focus-ring);
+}
+
+[data-flow] .table-page__search {
+  min-height: var(--hit-target-min);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+[data-flow] .table-page__search input {
+  font: var(--type-body-md);
+}
+
+[data-flow] :is(input[type='checkbox'], input[type='radio']) {
+  accent-color: var(--action-primary);
+}
+
+/* ── Tabs (variante underline) para pestañas de sección ─────────────── */
+[data-flow] :is(.reports__tabs, .operational-alerts__tabs, .station-networks__tabs, .assignments__tabs) {
+  gap: var(--space-6);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: none;
+}
+
+[data-flow] :is(.reports__tabs, .operational-alerts__tabs, .station-networks__tabs, .assignments__tabs) button {
+  min-height: var(--hit-target-min);
+  padding: var(--space-3) 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-secondary);
+  font: var(--type-body-md-medium);
+}
+
+[data-flow] :is(.reports__tabs, .operational-alerts__tabs, .station-networks__tabs, .assignments__tabs) button:hover {
+  color: var(--text-secondary);
+  border-bottom-color: transparent;
+}
+
+[data-flow] :is(.reports__tabs, .operational-alerts__tabs, .station-networks__tabs, .assignments__tabs) :is(button.is-active, button[aria-selected='true']) {
+  border-bottom-color: var(--action-accent);
+  color: var(--text-primary);
+  font: var(--type-body-md-strong);
+  background: transparent;
+}
+
+/* ── Tabs (variante pill) para selectores dentro de diálogos/tarjetas ── */
+[data-flow] :is(.alerts-dialog__tabs, .reports__product-tabs) {
+  display: inline-flex;
+  gap: var(--space-hairline);
+  padding: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+}
+
+[data-flow] :is(.alerts-dialog__tabs, .reports__product-tabs) button {
+  min-height: var(--hit-target-min);
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-secondary);
+  font: var(--type-body-md);
+}
+
+[data-flow] :is(.alerts-dialog__tabs, .reports__product-tabs) :is(button.is-active, button[aria-selected='true']) {
+  background: var(--surface-card);
+  box-shadow: var(--shadow-rest);
+  color: var(--text-primary);
+  font: var(--type-body-md-strong);
+}
+
+[data-flow] :is(.reports__tabs, .operational-alerts__tabs, .station-networks__tabs, .assignments__tabs, .alerts-dialog__tabs, .reports__product-tabs) button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-flow] .btn,
+  [data-flow] table tbody tr {
+    transition: none;
+  }
+
+  [data-flow] .btn:active:not(:disabled) {
+    transform: none;
+  }
+}
