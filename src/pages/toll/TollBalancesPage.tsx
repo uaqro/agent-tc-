@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Badge, Switch } from '@er-mobility-mx/design-system';
+import { Badge, Button, Card, Switch, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { TollAmountDialog, type TollAmountMode } from '../../components/toll/TollAmountDialog';
 import { fleetVehicles as vehicles } from '../../data/dispersion';
@@ -85,21 +85,151 @@ export function TollBalancesPage({ onNotice, readOnly = false }: TollBalancesPag
   const patchAutoTopUp = (groupId: string, changes: Partial<TollAutoTopUp>) =>
     setAutoTopUps((current) => current.map((config) => (config.groupId === groupId ? { ...config, ...changes } : config)));
 
+  const balanceColumns: GridColumn<TollTag>[] = [
+    {
+      key: 'tag',
+      label: 'TAG',
+      render: (tag) => (
+        <>
+          <span className="table-page__main table-page__data">{tag.number}</span>
+          {tag.status !== 'active' && <span className="table-page__sub">TAG no operable</span>}
+        </>
+      ),
+    },
+    {
+      key: 'vehicle',
+      label: 'Unidad',
+      render: (tag) => {
+        const vehicle = vehicleOf(tag.vehicleId);
+        return (
+          <>
+            <span className="table-page__main table-page__data">{vehicle?.plate}</span>
+            <span className="table-page__sub">
+              {vehicle?.driver} · {vehicle?.group}
+            </span>
+          </>
+        );
+      },
+    },
+    {
+      key: 'balance',
+      label: 'Saldo',
+      align: 'right',
+      render: (tag) => (
+        <span className={isLow(tag) ? 'table-page__warn' : 'table-page__data'}>{formatMoney(tag.balanceMXN, true)}</span>
+      ),
+    },
+    {
+      key: 'autoTopUp',
+      label: 'Recarga automática',
+      render: (tag) => {
+        const config = autoTopUpOf(tag);
+        return config?.enabled ? (
+          <span className="table-page__sub">
+            Debajo de {formatMoney(config.thresholdMXN)} → {formatMoney(config.targetMXN)}
+          </span>
+        ) : (
+          <span className="table-page__sub">Manual</span>
+        );
+      },
+    },
+    {
+      key: 'lastCrossing',
+      label: 'Último cruce',
+      render: (tag) =>
+        tag.lastCrossing ? (
+          <>
+            <span className="table-page__data">{formatDateTime(new Date(tag.lastCrossing))}</span>
+            <span className="table-page__sub">{tag.lastPlaza}</span>
+          </>
+        ) : (
+          <span className="table-page__sub">Sin cruces</span>
+        ),
+    },
+    {
+      key: 'actions',
+      label: 'Acciones',
+      align: 'right',
+      render: (tag) => {
+        const operable = tag.status === 'active';
+        return !readOnly ? (
+          <div className="table-page__row-actions">
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!operable}
+              onClick={() => setDialog({ tag, mode: 'top-up' })}
+            >
+              Recargar
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={tag.balanceMXN <= 0}
+              onClick={() => setDialog({ tag, mode: 'cut' })}
+            >
+              Recortar
+            </Button>
+          </div>
+        ) : null;
+      },
+    },
+  ];
+
+  const movementColumns: GridColumn<TollMovement>[] = [
+    {
+      key: 'date',
+      label: 'Fecha',
+      render: (movement) => <span className="table-page__data">{formatDateTime(new Date(movement.at))}</span>,
+    },
+    {
+      key: 'kind',
+      label: 'Tipo',
+      render: (movement) => <Badge tone={MOVEMENT_TONE[movement.kind]}>{MOVEMENT_LABEL[movement.kind].label}</Badge>,
+    },
+    {
+      key: 'tag',
+      label: 'TAG · unidad',
+      render: (movement) => {
+        const tag = tags.find((candidate) => candidate.id === movement.tagId);
+        return (
+          <>
+            <span className="table-page__main table-page__data">{tag?.number}</span>
+            <span className="table-page__sub">{vehicleOf(tag?.vehicleId ?? null)?.plate ?? 'Sin unidad'}</span>
+          </>
+        );
+      },
+    },
+    { key: 'detail', label: 'Detalle', render: (movement) => movement.detail },
+    {
+      key: 'amount',
+      label: 'Monto',
+      align: 'right',
+      render: (movement) => (
+        <span className="table-page__data">
+          {movement.kind === 'rejected'
+            ? '—'
+            : `${movement.amountMXN < 0 ? '− ' : ''}${formatMoney(Math.abs(movement.amountMXN), true)}`}
+        </span>
+      ),
+    },
+  ];
+
   const budgetShare = tollAccount.spentMonthMXN / tollAccount.monthBudgetMXN;
 
   return (
-    <div className="table-page">
+    <div className="table-page table-page--catalog">
       {readOnly && <ReadOnlyNotice what="los saldos y las recargas de peaje" />}
       <dl className="table-page__summary">
-        <div>
+        <Card padding="sm" surface="outlined">
           <dt>Bolsa de peaje disponible</dt>
           <dd>{formatMoney(availableMXN)}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>Saldo en TAGs</dt>
           <dd>{formatMoney(tagsBalance)}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>Gasto en casetas · mes</dt>
           <dd>
             {formatMoney(tollAccount.spentMonthMXN)}
@@ -107,11 +237,11 @@ export function TollBalancesPage({ onNotice, readOnly = false }: TollBalancesPag
               {Math.round(budgetShare * 100)}% de {formatMoney(tollAccount.monthBudgetMXN)}
             </span>
           </dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>TAGs bajo su umbral</dt>
           <dd className={balanceTags.some(isLow) ? 'is-alert' : undefined}>{balanceTags.filter(isLow).length}</dd>
-        </div>
+        </Card>
       </dl>
 
       <section className="table-page__card" aria-labelledby="toll-balances-title">
@@ -129,86 +259,14 @@ export function TollBalancesPage({ onNotice, readOnly = false }: TollBalancesPag
             description="Asigna un TAG a una unidad en Peaje · Medios de pago para administrar su saldo."
           />
         ) : (
-          <div className="table-page__scroll">
-            <table className="table-page__table">
-              <thead>
-                <tr>
-                  <th scope="col">TAG</th>
-                  <th scope="col">Unidad</th>
-                  <th scope="col">Saldo</th>
-                  <th scope="col">Recarga automática</th>
-                  <th scope="col">Último cruce</th>
-                  <th scope="col">
-                    <span className="visually-hidden">Acciones</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {balanceTags.map((tag) => {
-                  const vehicle = vehicleOf(tag.vehicleId);
-                  const config = autoTopUpOf(tag);
-                  const operable = tag.status === 'active';
-
-                  return (
-                    <tr key={tag.id}>
-                      <td>
-                        <span className="table-page__main">{tag.number}</span>
-                        {!operable && <span className="table-page__sub">TAG no operable</span>}
-                      </td>
-                      <td>
-                        <span className="table-page__main">{vehicle?.plate}</span>
-                        <span className="table-page__sub">
-                          {vehicle?.driver} · {vehicle?.group}
-                        </span>
-                      </td>
-                      <td className={isLow(tag) ? 'table-page__warn' : undefined}>{formatMoney(tag.balanceMXN, true)}</td>
-                      <td>
-                        {config?.enabled ? (
-                          <span className="table-page__sub">
-                            Debajo de {formatMoney(config.thresholdMXN)} → {formatMoney(config.targetMXN)}
-                          </span>
-                        ) : (
-                          <span className="table-page__sub">Manual</span>
-                        )}
-                      </td>
-                      <td>
-                        {tag.lastCrossing ? (
-                          <>
-                            {formatDateTime(new Date(tag.lastCrossing))}
-                            <span className="table-page__sub">{tag.lastPlaza}</span>
-                          </>
-                        ) : (
-                          <span className="table-page__sub">Sin cruces</span>
-                        )}
-                      </td>
-                      <td className="table-page__action">
-                        {!readOnly && (
-                          <>
-                            <button
-                              type="button"
-                              className="btn btn--secondary btn--sm"
-                              disabled={!operable}
-                              onClick={() => setDialog({ tag, mode: 'top-up' })}
-                            >
-                              Recargar
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn--ghost btn--sm"
-                              disabled={tag.balanceMXN <= 0}
-                              onClick={() => setDialog({ tag, mode: 'cut' })}
-                            >
-                              Recortar
-                            </button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <Table
+            caption="Saldo por TAG"
+            columns={balanceColumns}
+            rows={balanceTags}
+            rowKey="id"
+            surface="none"
+            sortable={false}
+          />
         )}
       </section>
 
@@ -278,43 +336,14 @@ export function TollBalancesPage({ onNotice, readOnly = false }: TollBalancesPag
             Últimos movimientos
           </h2>
         </header>
-        <div className="table-page__scroll">
-          <table className="table-page__table">
-            <thead>
-              <tr>
-                <th scope="col">Fecha</th>
-                <th scope="col">Tipo</th>
-                <th scope="col">TAG · unidad</th>
-                <th scope="col">Detalle</th>
-                <th scope="col">Monto</th>
-              </tr>
-            </thead>
-            <tbody>
-              {movements.slice(0, 10).map((movement) => {
-                const tag = tags.find((candidate) => candidate.id === movement.tagId);
-                const meta = MOVEMENT_LABEL[movement.kind];
-                return (
-                  <tr key={movement.id}>
-                    <td className="table-page__nowrap">{formatDateTime(new Date(movement.at))}</td>
-                    <td>
-                      <Badge tone={MOVEMENT_TONE[movement.kind]}>{meta.label}</Badge>
-                    </td>
-                    <td>
-                      <span className="table-page__main">{tag?.number}</span>
-                      <span className="table-page__sub">{vehicleOf(tag?.vehicleId ?? null)?.plate ?? 'Sin unidad'}</span>
-                    </td>
-                    <td>{movement.detail}</td>
-                    <td className="table-page__nowrap">
-                      {movement.kind === 'rejected'
-                        ? '—'
-                        : `${movement.amountMXN < 0 ? '− ' : ''}${formatMoney(Math.abs(movement.amountMXN), true)}`}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <Table
+          caption="Últimos movimientos"
+          columns={movementColumns}
+          rows={movements.slice(0, 10)}
+          rowKey="id"
+          surface="none"
+          sortable={false}
+        />
       </section>
 
       {dialog && (

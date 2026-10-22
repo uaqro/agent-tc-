@@ -1,5 +1,5 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
-import { WidgetFrame } from '@er-mobility-mx/design-system';
+import { Table, WidgetFrame, type GridColumn } from '@er-mobility-mx/design-system';
 import { ApiCoverageBanner } from '../../components/api/ApiCoverage';
 import { BarChart } from '../../components/charts/BarChart';
 import { EmptyChart } from '../../components/charts/EmptyChart';
@@ -37,6 +37,7 @@ import {
   stationStats,
   type CvTransition,
   type DailyMetric,
+  type StationStats,
 } from '../../domain/optimizer/metrics';
 import { DEFAULT_ASSUMPTIONS, discardRecommendations, losesMoney, sanitizeAssumptions } from '../../domain/optimizer/rules';
 import { SAVING_MODE_LABELS, type Assumptions, type SavingMode } from '../../domain/optimizer/types';
@@ -56,6 +57,8 @@ interface GasOptimizerPageProps {
 }
 
 type Tab = 'resumen' | 'regiones' | 'estaciones' | 'detalle' | 'cv';
+type StationRankingRow = StationStats & { id: string };
+type CvTransitionRow = { id: CvTransition; transition: CvTransition; loads: number; share: number; saving: number };
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'resumen', label: 'Resumen' },
@@ -136,6 +139,55 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
       </div>
     );
   }
+
+  const rankingRows: StationRankingRow[] = ranking.slice(0, 15).map((stats) => ({ ...stats, id: stats.station.id }));
+  const rankingColumns: GridColumn<StationRankingRow>[] = [
+    {
+      key: 'station',
+      label: 'Estación',
+      render: (stats) => {
+        return (
+          <>
+            <button type="button" className="optimizer__link" onClick={() => setSelectedStationId(stats.station.id)}>
+              {stats.station.name}
+            </button>
+            <span className="table-page__sub">
+              {optimizerOrgView.zoneLabel(stats.station.zone)}
+              {stats.station.cv ? ' · CV' : ''}
+            </span>
+          </>
+        );
+      },
+    },
+    { key: 'loads', label: 'Cargas', render: (stats) => formatCount(stats.loads) },
+    { key: 'redirectable', label: 'Redirigible', render: (stats) => percent(stats.redirectableShare) },
+    { key: 'grossSaving', label: 'Ahorro bruto', render: (stats) => formatMoney(stats.grossSaving) },
+    { key: 'netSaving', label: 'Ahorro neto', render: (stats) => formatMoney(stats.netSaving) },
+    {
+      key: 'category',
+      label: 'Categoría',
+      render: (stats) => {
+        const category = stationCategory(stats);
+        return <span className={`chip ${CATEGORY_CHIP[category]}`}>{CATEGORY_LABEL[category]}</span>;
+      },
+    },
+  ];
+  const transitionRows: CvTransitionRow[] = (Object.keys(CV_TRANSITION_LABELS) as CvTransition[]).map((transition) => ({
+    id: transition,
+    transition,
+    loads: cv.matrix[transition].loads,
+    share: cv.matrix[transition].share,
+    saving: cv.matrix[transition].saving,
+  }));
+  const transitionColumns: GridColumn<CvTransitionRow>[] = [
+    { key: 'transition', label: 'Transición', render: ({ transition }) => CV_TRANSITION_LABELS[transition] },
+    {
+      key: 'loads',
+      label: 'Cargas',
+      render: ({ loads, share }) => `${formatCount(loads)} · ${percent(share)}`,
+    },
+    { key: 'saving', label: 'Ahorro', render: ({ saving }) => formatMoney(saving) },
+  ];
 
   return (
     <div className="intel optimizer">
@@ -435,45 +487,15 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
                 Ranking de estaciones por ahorro
               </h2>
             </header>
-            <div className="table-page__scroll">
-              <table className="table-page__table">
-                <thead>
-                  <tr>
-                    <th scope="col">Estación</th>
-                    <th scope="col">Cargas</th>
-                    <th scope="col">Redirigible</th>
-                    <th scope="col">Ahorro bruto</th>
-                    <th scope="col">Ahorro neto</th>
-                    <th scope="col">Categoría</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ranking.slice(0, 15).map((stats) => {
-                    const category = stationCategory(stats);
-                    return (
-                      <tr key={stats.station.id} className={stats.station.id === selectedStationId ? 'is-selected' : undefined}>
-                        <td>
-                          <button type="button" className="optimizer__link" onClick={() => setSelectedStationId(stats.station.id)}>
-                            {stats.station.name}
-                          </button>
-                          <span className="table-page__sub">
-                            {optimizerOrgView.zoneLabel(stats.station.zone)}
-                            {stats.station.cv ? ' · CV' : ''}
-                          </span>
-                        </td>
-                        <td>{formatCount(stats.loads)}</td>
-                        <td>{percent(stats.redirectableShare)}</td>
-                        <td>{formatMoney(stats.grossSaving)}</td>
-                        <td>{formatMoney(stats.netSaving)}</td>
-                        <td>
-                          <span className={`chip ${CATEGORY_CHIP[category]}`}>{CATEGORY_LABEL[category]}</span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <Table
+              caption="Ranking de estaciones por ahorro"
+              columns={rankingColumns}
+              rows={rankingRows}
+              rowKey="id"
+              selectedKey={selectedStationId ?? undefined}
+              surface="none"
+              sortable={false}
+            />
           </section>
         </div>
       )}
@@ -525,26 +547,14 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
           </section>
           <section className="intel-card optimizer__panel">
             <h2 className="intel-section-title">Qué pasa con el control al redirigir</h2>
-            <table className="table-page__table">
-              <thead>
-                <tr>
-                  <th scope="col">Transición</th>
-                  <th scope="col">Cargas</th>
-                  <th scope="col">Ahorro</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(Object.keys(CV_TRANSITION_LABELS) as CvTransition[]).map((transition) => (
-                  <tr key={transition}>
-                    <td>{CV_TRANSITION_LABELS[transition]}</td>
-                    <td>
-                      {formatCount(cv.matrix[transition].loads)} · {percent(cv.matrix[transition].share)}
-                    </td>
-                    <td>{formatMoney(cv.matrix[transition].saving)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <Table
+              caption="Transiciones del control volumétrico"
+              columns={transitionColumns}
+              rows={transitionRows}
+              rowKey="id"
+              surface="none"
+              sortable={false}
+            />
           </section>
         </div>
       )}

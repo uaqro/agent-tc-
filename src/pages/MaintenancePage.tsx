@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Badge, Button, Chip, Input, StatusPill, TabPanel, Tabs } from '@er-mobility-mx/design-system';
+import { Badge, Button, Chip, Input, StatusPill, Table, TabPanel, Tabs, type GridColumn } from '@er-mobility-mx/design-system';
 import { ServiceOrderDialog } from '../components/maintenance/ServiceOrderDialog';
 import { AlertIcon, CalendarIcon, GearIcon, PlusIcon, WalletIcon } from '../components/icons/Icons';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -89,6 +89,53 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
   };
 
   const resultCount = mode === 'orders' ? orderResults.length : vehicleResults.length;
+  const orderColumns: GridColumn<ServiceOrder>[] = [
+    {
+      key: 'order',
+      label: 'Orden',
+      render: (order) => (
+        <>
+          <span className="maintenance__strong maintenance__data">{order.folio}</span>
+          <span className="maintenance__sub">{order.workshop}</span>
+        </>
+      ),
+    },
+    {
+      key: 'vehicle',
+      label: 'Unidad',
+      render: (order) => {
+        const vehicle = vehicleOf(order.vehicleId);
+        return (
+          <>
+            <span className="maintenance__strong maintenance__data">{vehicle?.plate}</span>
+            <span className="maintenance__sub">{vehicle?.driver}</span>
+          </>
+        );
+      },
+    },
+    {
+      key: 'service',
+      label: 'Servicio',
+      render: (order) => (
+        <>
+          <span>{order.system}</span>
+          <span className="maintenance__sub">
+            {ORDER_KIND_LABEL[order.kind]} · {order.costMXN > 0 ? formatMoney(order.costMXN) : 'Por cotizar'}
+          </span>
+        </>
+      ),
+    },
+    {
+      key: 'promised',
+      label: 'Promesa',
+      render: (order) => formatDateLong(order.promised),
+    },
+    {
+      key: 'status',
+      label: 'Estado',
+      render: (order) => <StatusPill label={ORDER_STATUS_LABEL[order.status]} tone={STATUS_TONE[order.status]} />,
+    },
+  ];
 
   return (
     <div className="intel maintenance">
@@ -249,46 +296,14 @@ export function MaintenancePage({ onNotice }: MaintenancePageProps) {
               description="Las órdenes programadas, en taller o esperando refacciones aparecen aquí."
             />
           ) : (
-            <div className="maintenance__scroll">
-              <table className="maintenance__table">
-                <thead>
-                  <tr>
-                    <th scope="col">Orden</th>
-                    <th scope="col">Unidad</th>
-                    <th scope="col">Servicio</th>
-                    <th scope="col">Promesa</th>
-                    <th scope="col">Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {openOrders.map((order) => {
-                    const vehicle = vehicleOf(order.vehicleId);
-                    return (
-                      <tr key={order.folio}>
-                        <td>
-                          <span className="maintenance__strong">{order.folio}</span>
-                          <span className="maintenance__sub">{order.workshop}</span>
-                        </td>
-                        <td>
-                          <span className="maintenance__strong maintenance__nowrap">{vehicle?.plate}</span>
-                          <span className="maintenance__sub">{vehicle?.driver}</span>
-                        </td>
-                        <td>
-                          {order.system}
-                          <span className="maintenance__sub">
-                            {ORDER_KIND_LABEL[order.kind]} · {order.costMXN > 0 ? formatMoney(order.costMXN) : 'Por cotizar'}
-                          </span>
-                        </td>
-                        <td className="maintenance__nowrap">{formatDateLong(order.promised)}</td>
-                        <td>
-                          <StatusPill label={ORDER_STATUS_LABEL[order.status]} tone={STATUS_TONE[order.status]} />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <Table
+              caption="Órdenes abiertas"
+              columns={orderColumns}
+              rows={openOrders}
+              rowKey="folio"
+              surface="none"
+              sortable={false}
+            />
           )}
         </section>
 

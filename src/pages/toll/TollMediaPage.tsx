@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Input, StatusPill } from '@er-mobility-mx/design-system';
+import { Button, Card, Input, Select, StatusPill, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import { PlusIcon } from '../../components/icons/Icons';
 import { TollAssignDialog } from '../../components/toll/TollAssignDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -37,6 +37,16 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
   const [status, setStatus] = useState<TollTagStatus | ''>('');
   const [type, setType] = useState<TollTagType | ''>('');
   const [assigning, setAssigning] = useState<TollTag | null>(null);
+  const typeKeys = Object.keys(TOLL_TAG_TYPE_LABEL) as TollTagType[];
+  const statusKeys = Object.keys(TOLL_TAG_STATUS_LABEL) as TollTagStatus[];
+  const typeOptions = [
+    { value: '', label: 'Todos los tipos' },
+    ...typeKeys.map((key) => ({ value: key, label: TOLL_TAG_TYPE_LABEL[key] })),
+  ];
+  const statusOptions = [
+    { value: '', label: 'Todos los estados' },
+    ...statusKeys.map((key) => ({ value: key, label: TOLL_TAG_STATUS_LABEL[key] })),
+  ];
   const vehicleOf = (id: string | null) => vehicles.find((vehicle) => vehicle.id === id);
 
   const rows = useMemo(() => {
@@ -79,26 +89,117 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
     );
   };
 
+  const columns: GridColumn<TollTag>[] = [
+    {
+      key: 'tag',
+      label: 'TAG',
+      render: (tag) => (
+        <>
+          <span className="table-page__main table-page__data">{tag.number}</span>
+          <span className="table-page__sub">{TOLL_TAG_TYPE_LABEL[tag.type]}</span>
+        </>
+      ),
+    },
+    {
+      key: 'vehicle',
+      label: 'Unidad asignada',
+      render: (tag) => {
+        const vehicle = vehicleOf(tag.vehicleId);
+        return vehicle ? (
+          <>
+            <span className="table-page__main table-page__data">{vehicle.plate}</span>
+            <span className="table-page__sub">
+              {vehicle.driver} · {vehicle.group}
+            </span>
+          </>
+        ) : (
+          <span className="table-page__sub">Sin unidad</span>
+        );
+      },
+    },
+    {
+      key: 'category',
+      label: 'Categoría',
+      render: (tag) => (tag.vehicleId ? TOLL_CATEGORY_LABEL[tag.category] : '—'),
+    },
+    {
+      key: 'status',
+      label: 'Estado',
+      render: (tag) => <StatusPill label={TOLL_TAG_STATUS_LABEL[tag.status]} tone={STATUS_TONE[tag.status]} />,
+    },
+    {
+      key: 'balance',
+      label: 'Saldo',
+      align: 'right',
+      render: (tag) => (
+        <span className="table-page__data">{tag.vehicleId ? formatMoney(tag.balanceMXN, true) : '—'}</span>
+      ),
+    },
+    {
+      key: 'lastCrossing',
+      label: 'Último cruce',
+      render: (tag) =>
+        tag.lastCrossing ? (
+          <>
+            <span className="table-page__data">{formatDateTime(new Date(tag.lastCrossing))}</span>
+            <span className="table-page__sub">{tag.lastPlaza}</span>
+          </>
+        ) : (
+          <span className="table-page__sub">Sin cruces</span>
+        ),
+    },
+    {
+      key: 'actions',
+      label: 'Acciones',
+      align: 'right',
+      render: (tag) => (
+        <div className="table-page__row-actions">
+          {!readOnly && tag.status === 'active' && (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => setTagStatus(tag, 'blocked')}>
+                Bloquear
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setTagStatus(tag, 'replacement')}>
+                Reportar robo o daño
+              </Button>
+            </>
+          )}
+          {!readOnly && tag.status === 'blocked' && (
+            <Button variant="secondary" size="sm" onClick={() => setTagStatus(tag, 'active')}>
+              Desbloquear
+            </Button>
+          )}
+          {!readOnly && tag.status === 'unassigned' && (
+            <Button variant="secondary" size="sm" onClick={() => setAssigning(tag)}>
+              Asignar
+            </Button>
+          )}
+          {tag.status === 'replacement' && <span className="table-page__sub">Reposición en trámite</span>}
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="table-page">
+    <div className="table-page table-page--catalog">
       {readOnly && <ReadOnlyNotice what="los TAGs de telepeaje" />}
       <dl className="table-page__summary">
-        <div>
+        <Card padding="sm" surface="outlined">
           <dt>TAGs activos</dt>
           <dd>{count('active')}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>Bloqueados</dt>
           <dd className={count('blocked') > 0 ? 'is-alert' : undefined}>{count('blocked')}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>Sin asignar</dt>
           <dd>{count('unassigned')}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>En reposición</dt>
           <dd>{count('replacement')}</dd>
-        </div>
+        </Card>
       </dl>
 
       <section className="table-page__card" aria-labelledby="toll-media-title">
@@ -117,37 +218,31 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
                 onChange={setQuery}
               />
             </div>
-            <label>
-              <span className="visually-hidden">Filtrar por tipo</span>
-              <select value={type} onChange={(event) => setType(event.target.value as TollTagType | '')}>
-                <option value="">Todos los tipos</option>
-                {(Object.keys(TOLL_TAG_TYPE_LABEL) as TollTagType[]).map((key) => (
-                  <option key={key} value={key}>
-                    {TOLL_TAG_TYPE_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="visually-hidden">Filtrar por estado</span>
-              <select value={status} onChange={(event) => setStatus(event.target.value as TollTagStatus | '')}>
-                <option value="">Todos los estados</option>
-                {(Object.keys(TOLL_TAG_STATUS_LABEL) as TollTagStatus[]).map((key) => (
-                  <option key={key} value={key}>
-                    {TOLL_TAG_STATUS_LABEL[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <span id="toll-media-type-filter-label" className="visually-hidden">Filtrar por tipo</span>
+            <Select
+              options={typeOptions}
+              value={type}
+              aria-labelledby="toll-media-type-filter-label"
+              onChange={(value) => {
+                const selected = typeKeys.find((key) => key === value);
+                if (selected || value === '') setType(selected ?? '');
+              }}
+            />
+            <span id="toll-media-status-filter-label" className="visually-hidden">Filtrar por estado</span>
+            <Select
+              options={statusOptions}
+              value={status}
+              aria-labelledby="toll-media-status-filter-label"
+              onChange={(value) => {
+                const selected = statusKeys.find((key) => key === value);
+                if (selected || value === '') setStatus(selected ?? '');
+              }}
+            />
             {!readOnly && (
-              <button
-                type="button"
-                className="btn btn--primary btn--sm"
-                onClick={() => onNotice('Solicitud de nuevos TAGs de telepeaje abierta.')}
-              >
+              <Button size="sm" onClick={() => onNotice('Solicitud de nuevos TAGs de telepeaje abierta.')}>
                 <PlusIcon width={14} height={14} />
                 Solicitar TAGs
-              </button>
+              </Button>
             )}
           </div>
         </header>
@@ -173,90 +268,7 @@ export function TollMediaPage({ onNotice, readOnly = false }: TollMediaPageProps
             }
           />
         ) : (
-          <div className="table-page__scroll">
-            <table className="table-page__table">
-              <thead>
-                <tr>
-                  <th scope="col">TAG</th>
-                  <th scope="col">Unidad asignada</th>
-                  <th scope="col">Categoría</th>
-                  <th scope="col">Estado</th>
-                  <th scope="col">Saldo</th>
-                  <th scope="col">Último cruce</th>
-                  <th scope="col">
-                    <span className="visually-hidden">Acciones</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((tag) => {
-                  const vehicle = vehicleOf(tag.vehicleId);
-                  return (
-                    <tr key={tag.id}>
-                      <td>
-                        <span className="table-page__main">{tag.number}</span>
-                        <span className="table-page__sub">{TOLL_TAG_TYPE_LABEL[tag.type]}</span>
-                      </td>
-                      <td>
-                        {vehicle ? (
-                          <>
-                            <span className="table-page__main">{vehicle.plate}</span>
-                            <span className="table-page__sub">
-                              {vehicle.driver} · {vehicle.group}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="table-page__sub">Sin unidad</span>
-                        )}
-                      </td>
-                      <td className="table-page__nowrap">{tag.vehicleId ? TOLL_CATEGORY_LABEL[tag.category] : '—'}</td>
-                      <td>
-                        <StatusPill label={TOLL_TAG_STATUS_LABEL[tag.status]} tone={STATUS_TONE[tag.status]} />
-                      </td>
-                      <td>{tag.vehicleId ? formatMoney(tag.balanceMXN, true) : '—'}</td>
-                      <td>
-                        {tag.lastCrossing ? (
-                          <>
-                            {formatDateTime(new Date(tag.lastCrossing))}
-                            <span className="table-page__sub">{tag.lastPlaza}</span>
-                          </>
-                        ) : (
-                          <span className="table-page__sub">Sin cruces</span>
-                        )}
-                      </td>
-                      <td className="table-page__action">
-                        {!readOnly && tag.status === 'active' && (
-                          <>
-                            <Button variant="ghost" size="sm" onClick={() => setTagStatus(tag, 'blocked')}>
-                              Bloquear
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setTagStatus(tag, 'replacement')}
-                            >
-                              Reportar robo o daño
-                            </Button>
-                          </>
-                        )}
-                        {!readOnly && tag.status === 'blocked' && (
-                          <button type="button" className="btn btn--secondary btn--sm" onClick={() => setTagStatus(tag, 'active')}>
-                            Desbloquear
-                          </button>
-                        )}
-                        {!readOnly && tag.status === 'unassigned' && (
-                          <button type="button" className="btn btn--secondary btn--sm" onClick={() => setAssigning(tag)}>
-                            Asignar
-                          </button>
-                        )}
-                        {tag.status === 'replacement' && <span className="table-page__sub">Reposición en trámite</span>}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <Table caption="TAGs de telepeaje" columns={columns} rows={rows} rowKey="id" surface="none" sortable={false} />
         )}
       </section>
 

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Select, StatusPill } from '@er-mobility-mx/design-system';
+import { Button, Card, Select, StatusPill, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import { PauseIcon, PlayIcon, PlusIcon } from '../../components/icons/Icons';
 import { TollPolicyDialog } from '../../components/toll/TollPolicyDialog';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -103,26 +103,122 @@ export function TollRulesPage({ onNotice, readOnly = false }: TollRulesPageProps
     onNotice(policy ? `El TAG de ${plate} ahora sigue ${policy.name}.` : `El TAG de ${plate} queda sin política de peaje.`);
   };
 
+  const assignmentColumns: GridColumn<TollTag>[] = [
+    {
+      key: 'tag',
+      label: 'TAG · unidad',
+      render: (tag) => {
+        const vehicle = vehicleOf(tag.vehicleId);
+        return (
+          <>
+            <span id={`toll-policy-${tag.id}-label`} className="visually-hidden">
+              Política de peaje de {vehicle?.plate ?? tag.number}
+            </span>
+            <span className="table-page__main table-page__data">{vehicle?.plate}</span>
+            <span className="table-page__sub">
+              {tag.number} · {vehicle?.group}
+            </span>
+          </>
+        );
+      },
+    },
+    {
+      key: 'category',
+      label: 'Categoría',
+      render: (tag) => TOLL_CATEGORY_LABEL[tag.category],
+    },
+    {
+      key: 'policy',
+      label: 'Política asignada',
+      render: (tag) => {
+        const policy = policies.find((candidate) => candidate.id === tag.policyId) ?? null;
+        return (
+          <>
+            <Select
+              options={policyOptions}
+              value={tag.policyId ?? ''}
+              aria-labelledby={`toll-policy-${tag.id}-label`}
+              onChange={(value) => {
+                if (policyOptions.some((option) => option.value === value)) {
+                  reassign(tag, value || null);
+                }
+              }}
+            />
+            {policy?.status === 'paused' && <span className="table-page__sub">Política pausada</span>}
+            {!policy && <span className="table-page__sub table-page__warn">Cruza sin candados</span>}
+          </>
+        );
+      },
+    },
+    {
+      key: 'periodSpend',
+      label: 'Gasto del periodo',
+      align: 'right',
+      render: (tag) => {
+        const policy = policies.find((candidate) => candidate.id === tag.policyId) ?? null;
+        const ratio = policy ? tag.spentPeriodMXN / policy.periodLimitMXN : 0;
+        return policy ? (
+          <>
+            <div
+              className={`toll-usage toll-usage--${usageTone(ratio)}`}
+              role="img"
+              aria-label={`${Math.round(ratio * 100)}% del límite usado`}
+            >
+              <span style={{ width: `${Math.min(100, ratio * 100)}%` }} />
+            </div>
+            <span className="table-page__sub">
+              {formatMoney(tag.spentPeriodMXN)} de {tollLimitLabel(policy)}
+            </span>
+          </>
+        ) : (
+          <span className="table-page__sub">{formatMoney(tag.spentPeriodMXN)} sin límite</span>
+        );
+      },
+    },
+    {
+      key: 'crossings',
+      label: 'Cruces hoy',
+      align: 'right',
+      render: (tag) => {
+        const policy = policies.find((candidate) => candidate.id === tag.policyId);
+        return (
+          <>
+            <span className="table-page__data">{tag.crossingsToday}</span>
+            {policy && <span className="table-page__sub">de {policy.maxCrossingsPerDay}</span>}
+          </>
+        );
+      },
+    },
+    {
+      key: 'rejections',
+      label: 'Rechazos 7 días',
+      align: 'right',
+      render: (tag) => (
+        <span className={tag.rejections7d > 0 ? 'table-page__warn' : 'table-page__data'}>{tag.rejections7d}</span>
+      ),
+    },
+  ];
+
   return (
-    <div className="table-page">
+    <div className="table-page table-page--catalog">
       {readOnly && <ReadOnlyNotice what="las políticas de peaje" />}
       <dl className="table-page__summary">
-        <div>
+        <Card padding="sm" surface="outlined">
           <dt>TAGs con política</dt>
           <dd>{summary.withPolicy}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>TAGs sin política</dt>
           <dd className={summary.withoutPolicy > 0 ? 'is-alert' : undefined}>{summary.withoutPolicy}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>Cruces rechazados · 7 días</dt>
           <dd>{summary.rejections}</dd>
-        </div>
-        <div>
+        </Card>
+        <Card padding="sm" surface="outlined">
           <dt>Políticas activas</dt>
           <dd>{summary.activePolicies}</dd>
-        </div>
+        </Card>
       </dl>
 
       <section className="toll-policies" aria-labelledby="toll-policies-title">
@@ -131,10 +227,10 @@ export function TollRulesPage({ onNotice, readOnly = false }: TollRulesPageProps
             Políticas de peaje
           </h2>
           {!readOnly && (
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => setEditor({ policy: null })}>
+            <Button size="sm" onClick={() => setEditor({ policy: null })}>
               <PlusIcon width={15} height={15} />
               Nueva política
-            </button>
+            </Button>
           )}
         </header>
 
@@ -161,7 +257,7 @@ export function TollRulesPage({ onNotice, readOnly = false }: TollRulesPageProps
 
                 <p className="policy-card__limit">
                   {formatMoney(policy.periodLimitMXN)}
-                  <span>por {TOLL_PERIOD_META[policy.period].noun}</span>
+                  <span> por {TOLL_PERIOD_META[policy.period].noun}</span>
                 </p>
 
                 <dl className="policy-card__locks">
@@ -181,13 +277,13 @@ export function TollRulesPage({ onNotice, readOnly = false }: TollRulesPageProps
 
                 {!readOnly && (
                   <footer className="policy-card__foot">
-                    <button type="button" className="btn btn--secondary btn--sm" onClick={() => setEditor({ policy })}>
+                    <Button variant="secondary" size="sm" onClick={() => setEditor({ policy })}>
                       Editar
-                    </button>
-                    <button type="button" className="btn btn--ghost btn--sm" onClick={() => toggleStatus(policy)}>
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => toggleStatus(policy)}>
                       {paused ? <PlayIcon width={13} height={13} /> : <PauseIcon width={13} height={13} />}
                       {paused ? 'Activar' : 'Pausar'}
-                    </button>
+                    </Button>
                   </footer>
                 )}
               </li>
@@ -202,79 +298,14 @@ export function TollRulesPage({ onNotice, readOnly = false }: TollRulesPageProps
             Asignación por TAG
           </h2>
         </header>
-        <div className="table-page__scroll">
-          <table className="table-page__table">
-            <thead>
-              <tr>
-                <th scope="col">TAG · unidad</th>
-                <th scope="col">Categoría</th>
-                <th scope="col">Política asignada</th>
-                <th scope="col">Gasto del periodo</th>
-                <th scope="col">Cruces hoy</th>
-                <th scope="col">Rechazos 7 días</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assignedTags.map((tag) => {
-                const vehicle = vehicleOf(tag.vehicleId);
-                const policy = policies.find((candidate) => candidate.id === tag.policyId) ?? null;
-                const ratio = policy ? tag.spentPeriodMXN / policy.periodLimitMXN : 0;
-
-                return (
-                  <tr key={tag.id}>
-                    <td>
-                      <span className="table-page__main">{vehicle?.plate}</span>
-                      <span className="table-page__sub">
-                        {tag.number} · {vehicle?.group}
-                      </span>
-                    </td>
-                    <td className="table-page__nowrap">{TOLL_CATEGORY_LABEL[tag.category]}</td>
-                    <td>
-                      <span id={`toll-policy-${tag.id}-label`} className="visually-hidden">
-                        Política de peaje de {vehicle?.plate ?? tag.number}
-                      </span>
-                      <Select
-                        options={policyOptions}
-                        value={tag.policyId ?? ''}
-                        aria-labelledby={`toll-policy-${tag.id}-label`}
-                        onChange={(value) => {
-                          if (policyOptions.some((option) => option.value === value)) {
-                            reassign(tag, value || null);
-                          }
-                        }}
-                      />
-                      {policy?.status === 'paused' && <span className="table-page__sub">Política pausada</span>}
-                      {!policy && <span className="table-page__sub table-page__warn">Cruza sin candados</span>}
-                    </td>
-                    <td>
-                      {policy ? (
-                        <>
-                          <div
-                            className={`toll-usage toll-usage--${usageTone(ratio)}`}
-                            role="img"
-                            aria-label={`${Math.round(ratio * 100)}% del límite usado`}
-                          >
-                            <span style={{ width: `${Math.min(100, ratio * 100)}%` }} />
-                          </div>
-                          <span className="table-page__sub">
-                            {formatMoney(tag.spentPeriodMXN)} de {tollLimitLabel(policy)}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="table-page__sub">{formatMoney(tag.spentPeriodMXN)} sin límite</span>
-                      )}
-                    </td>
-                    <td>
-                      {tag.crossingsToday}
-                      {policy && <span className="table-page__sub">de {policy.maxCrossingsPerDay}</span>}
-                    </td>
-                    <td className={tag.rejections7d > 0 ? 'table-page__warn' : undefined}>{tag.rejections7d}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <Table
+          caption="Asignación por TAG"
+          columns={assignmentColumns}
+          rows={assignedTags}
+          rowKey="id"
+          surface="none"
+          sortable={false}
+        />
       </section>
 
       {editor && (

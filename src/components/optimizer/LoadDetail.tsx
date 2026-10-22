@@ -1,4 +1,5 @@
 import { useMemo, useState, useSyncExternalStore } from 'react';
+import { Button, Table, type GridColumn } from '@er-mobility-mx/design-system';
 import { unitById } from '../../data/client';
 import { driverNameOf } from '../../data/optimizer';
 import { RECOMMENDATION_DISCLAIMER, recommendationLog, subscribeRecommendations, type RecommendationInput } from '../../data/recommendations';
@@ -94,6 +95,169 @@ export function LoadDetail({
       .filter((load) => load.cardId === cardId && load.recommendedStationId === stationId)
       .reduce((sum, load) => sum + savingIn(load, 'bruto', assumptions), 0);
 
+  const detailColumns: GridColumn<Load>[] = [
+    {
+      key: 'load',
+      label: 'Carga',
+      render: (load) => (
+        <>
+          <span className="table-page__main">{dayLabel(load.day)}</span>
+          <span className="table-page__sub">{load.liters.toFixed(0)} L</span>
+        </>
+      ),
+    },
+    {
+      key: 'card',
+      label: 'Tarjeta y unidad',
+      render: (load) => {
+        const unit = unitById(load.unitId);
+        return (
+          <>
+            <span className="table-page__main">{maskedCardOf(load.cardId)}</span>
+            <span className="table-page__sub">{unit ? `${unit.plate} · ${driverNameOf(load.driverId)}` : load.unitId}</span>
+          </>
+        );
+      },
+    },
+    {
+      key: 'stations',
+      label: 'Estación habitual → recomendada',
+      render: (load) => (
+        <>
+          {stationName(load.stationId)}
+          <span className="table-page__sub">
+            {load.recommendedStationId ? `→ ${stationName(load.recommendedStationId)}` : 'Sin recomendación'}
+          </span>
+        </>
+      ),
+    },
+    {
+      key: 'prices',
+      label: '$/L pagado → recomendado',
+      render: (load) => `${price(load.pricePaid)} → ${price(load.priceRecommended)}`,
+    },
+    {
+      key: 'detour',
+      label: 'Desvío',
+      render: (load) => {
+        const redirectable = isRedirectable(load);
+        return (
+          <>
+            {!redirectable ? '—' : load.offRoute ? `${(load.detourM / 1000).toFixed(1)} km` : 'En ruta'}
+            {redirectable && load.offRoute && <span className="table-page__sub">Fuera de ruta</span>}
+          </>
+        );
+      },
+    },
+    {
+      key: 'saving',
+      label: `Ahorro ${mode === 'bruto' ? 'bruto' : 'neto'}`,
+      render: (load) => {
+        const redirectable = isRedirectable(load);
+        const isDiscarded = discarded.has(load.id);
+        const loses = !isDiscarded && losesMoney(load, assumptions);
+        const reason = notRedirectableReason(load);
+        return (
+          <>
+            {redirectable ? (
+              formatMoney(savingIn(load, mode, assumptions), true)
+            ) : (
+              <span className="table-page__sub">{reason ? REASON_LABELS[reason] : '—'}</span>
+            )}
+            {loses && (
+              <span
+                className="chip chip--danger table-page__gap"
+                title="La estación barata queda lejos de la ruta: el desvío cuesta más de lo que ahorra en el litro"
+              >
+                No compensa · la estación barata queda lejos · neto {formatMoney(netSaving(load, assumptions), true)}
+              </span>
+            )}
+            {isDiscarded && <span className="chip chip--paused table-page__gap">Descartada</span>}
+          </>
+        );
+      },
+    },
+    {
+      key: 'actions',
+      label: 'Acciones',
+      render: (load) => {
+        const unit = unitById(load.unitId);
+        const recommendation = recommendationOf(load);
+        const recommendedStationId = load.recommendedStationId;
+        const redirectable = isRedirectable(load);
+        const isDiscarded = discarded.has(load.id);
+        const loses = !isDiscarded && losesMoney(load, assumptions);
+        return (
+          <div className="optimizer-detail__actions">
+            {loses && (
+              <Button variant="ghost" size="sm" onClick={() => onDiscard([load.id])}>
+                Descartar
+              </Button>
+            )}
+            {isDiscarded && (
+              <Button variant="ghost" size="sm" onClick={() => onRestore([load.id])}>
+                Restaurar
+              </Button>
+            )}
+            {redirectable && recommendation && !isDiscarded && (
+              <>
+                {canSend && (
+                  <Button variant="ghost" size="sm" onClick={() => onSend(recommendation)}>
+                    {sentCards.has(load.cardId) ? 'Reenviar al conductor' : 'Enviar al conductor'}
+                  </Button>
+                )}
+                {canApply && unit && recommendedStationId && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      onApplyInLimits({
+                        vehicleId: unit.id,
+                        cardLabel: `tarjeta ${recommendation.maskedCard}`,
+                        fromStation: recommendation.fromStation,
+                        toStation: recommendation.toStation,
+                        estimatedSavingMXN: Math.round(cardSaving(load.cardId, recommendedStationId)),
+                      })
+                    }
+                  >
+                    Aplicar en Límites
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+        );
+      },
+    },
+  ];
+
+  const logColumns: GridColumn<(typeof log)[number]>[] = [
+    { key: 'date', label: 'Cuándo', render: (entry) => formatDateTime(new Date(entry.at)) },
+    {
+      key: 'sender',
+      label: 'Quién',
+      render: (entry) => (
+        <>
+          {entry.sentBy}
+          <span className="table-page__sub">{entry.sentByRole}</span>
+        </>
+      ),
+    },
+    {
+      key: 'recipient',
+      label: 'A qué conductor',
+      render: (entry) => (
+        <>
+          {entry.driverName}
+          <span className="table-page__sub">
+            {entry.plate} · {entry.maskedCard}
+          </span>
+        </>
+      ),
+    },
+    { key: 'recommendation', label: 'Recomendación', render: (entry) => `${entry.fromStation} → ${entry.toStation}` },
+  ];
+
   return (
     <div className="optimizer-detail">
       <section className="table-page__card" aria-labelledby="optimizer-loads-title">
@@ -127,107 +291,14 @@ export function LoadDetail({
           descartar y deja de sumar ahorro.
         </p>
 
-        <div className="table-page__scroll">
-          <table className="table-page__table">
-            <thead>
-              <tr>
-                <th scope="col">Carga</th>
-                <th scope="col">Tarjeta y unidad</th>
-                <th scope="col">Estación habitual → recomendada</th>
-                <th scope="col">$/L pagado → recomendado</th>
-                <th scope="col">Desvío</th>
-                <th scope="col">Ahorro {mode === 'bruto' ? 'bruto' : 'neto'}</th>
-                <th scope="col">
-                  <span className="visually-hidden">Acciones</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {pagination.pageRows.map((load) => {
-                const unit = unitById(load.unitId);
-                const recommendation = recommendationOf(load);
-                const redirectable = isRedirectable(load);
-                const reason = notRedirectableReason(load);
-                const isDiscarded = discarded.has(load.id);
-                const loses = !isDiscarded && losesMoney(load, assumptions);
-                return (
-                  <tr key={load.id}>
-                    <td>
-                      <span className="table-page__main">{dayLabel(load.day)}</span>
-                      <span className="table-page__sub">{load.liters.toFixed(0)} L</span>
-                    </td>
-                    <td>
-                      <span className="table-page__main">{maskedCardOf(load.cardId)}</span>
-                      <span className="table-page__sub">
-                        {unit ? `${unit.plate} · ${driverNameOf(load.driverId)}` : load.unitId}
-                      </span>
-                    </td>
-                    <td>
-                      {stationName(load.stationId)}
-                      <span className="table-page__sub">
-                        {load.recommendedStationId ? `→ ${stationName(load.recommendedStationId)}` : 'Sin recomendación'}
-                      </span>
-                    </td>
-                    <td className="table-page__nowrap">
-                      {price(load.pricePaid)} → {price(load.priceRecommended)}
-                    </td>
-                    <td className="table-page__nowrap">
-                      {!redirectable ? '—' : load.offRoute ? `${(load.detourM / 1000).toFixed(1)} km` : 'En ruta'}
-                      {redirectable && load.offRoute && <span className="table-page__sub">Fuera de ruta</span>}
-                    </td>
-                    <td className="table-page__nowrap">
-                      {redirectable ? formatMoney(savingIn(load, mode, assumptions), true) : <span className="table-page__sub">{reason ? REASON_LABELS[reason] : '—'}</span>}
-                      {loses && (
-                        <span className="chip chip--danger table-page__gap" title="La estación barata queda lejos de la ruta: el desvío cuesta más de lo que ahorra en el litro">
-                          No compensa · la estación barata queda lejos · neto {formatMoney(netSaving(load, assumptions), true)}
-                        </span>
-                      )}
-                      {isDiscarded && <span className="chip chip--paused table-page__gap">Descartada</span>}
-                    </td>
-                    <td className="table-page__action">
-                      {loses && (
-                        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onDiscard([load.id])}>
-                          Descartar
-                        </button>
-                      )}
-                      {isDiscarded && (
-                        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onRestore([load.id])}>
-                          Restaurar
-                        </button>
-                      )}
-                      {redirectable && recommendation && !isDiscarded && (
-                        <>
-                          {canSend && (
-                            <button type="button" className="btn btn--ghost btn--sm" onClick={() => onSend(recommendation)}>
-                              {sentCards.has(load.cardId) ? 'Reenviar al conductor' : 'Enviar al conductor'}
-                            </button>
-                          )}
-                          {canApply && unit && (
-                            <button
-                              type="button"
-                              className="btn btn--ghost btn--sm"
-                              onClick={() =>
-                                onApplyInLimits({
-                                  vehicleId: unit.id,
-                                  cardLabel: `tarjeta ${recommendation.maskedCard}`,
-                                  fromStation: recommendation.fromStation,
-                                  toStation: recommendation.toStation,
-                                  estimatedSavingMXN: Math.round(cardSaving(load.cardId, load.recommendedStationId!)),
-                                })
-                              }
-                            >
-                              Aplicar en Límites
-                            </button>
-                          )}
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <Table
+          caption="Detalle carga por carga"
+          columns={detailColumns}
+          rows={pagination.pageRows}
+          rowKey="id"
+          surface="none"
+          sortable={false}
+        />
         <Pagination {...pagination} noun="cargas" onPage={pagination.setPage} />
       </section>
 
@@ -242,38 +313,14 @@ export function LoadDetail({
         {log.length === 0 ? (
           <p className="optimizer-detail__empty">Aún no se ha enviado ninguna recomendación.</p>
         ) : (
-          <div className="table-page__scroll">
-            <table className="table-page__table">
-              <thead>
-                <tr>
-                  <th scope="col">Cuándo</th>
-                  <th scope="col">Quién</th>
-                  <th scope="col">A qué conductor</th>
-                  <th scope="col">Recomendación</th>
-                </tr>
-              </thead>
-              <tbody>
-                {log.map((entry) => (
-                  <tr key={entry.id}>
-                    <td className="table-page__nowrap">{formatDateTime(new Date(entry.at))}</td>
-                    <td>
-                      {entry.sentBy}
-                      <span className="table-page__sub">{entry.sentByRole}</span>
-                    </td>
-                    <td>
-                      {entry.driverName}
-                      <span className="table-page__sub">
-                        {entry.plate} · {entry.maskedCard}
-                      </span>
-                    </td>
-                    <td>
-                      {entry.fromStation} → {entry.toStation}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table
+            caption="Envíos al conductor"
+            columns={logColumns}
+            rows={[...log]}
+            rowKey="id"
+            surface="none"
+            sortable={false}
+          />
         )}
       </section>
     </div>

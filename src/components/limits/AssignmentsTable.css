@@ -21,37 +21,6 @@
   max-width: 100%;
 }
 
-.assignments__scroll {
-  overflow-x: auto;
-}
-
-.assignments__table {
-  width: 100%;
-  min-width: 860px;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.assignments__table th,
-.assignments__table td {
-  text-align: left;
-  padding: 11px 18px;
-  border-bottom: 1px solid var(--tc-local-border-subtle);
-  vertical-align: middle;
-}
-
-.assignments__table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.assignments__table th {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--tc-local-text-muted);
-  font-weight: 600;
-}
-
 .assignments__plate {
   display: block;
   color: var(--tc-local-text-strong);
@@ -96,9 +65,4 @@
 .assignments__rejections {
   font-weight: 700;
   color: #b4001a;
-}
-
-.assignments__action {
-  text-align: right;
-  white-space: nowrap;
 }

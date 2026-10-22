@@ -7,9 +7,9 @@ Plan de ejecución del 21-oct-2026 para Ticket Car+, basado en la
 No es una propuesta de rediseño de Flow ni una autorización para cambiar
 comportamientos del producto.
 
-- Base publicada del producto: `261d499`. Navegación, líneas y tablas de
-  Administración ya están publicadas; el lote E2.2 descrito abajo permanece
-  local hasta que se solicite publicarlo.
+- Base publicada del producto: `b01696f`. Navegación, líneas, tablas de
+  Administración y cierre de E2.2 ya están publicadas; E2.3 y E2.4 permanecen
+  locales.
 - Dependencia instalada: Flow `3.0.0-beta.10`, artefacto local
   `vendor/flow/er-mobility-mx-design-system-3.0.0-beta.10-line-charts.tgz`.
   Incluye las correcciones previas de selección/densidad y el cierre de líneas
@@ -18,9 +18,10 @@ comportamientos del producto.
 - Integración base, fuentes, múltiples primitives, Tabs y Accordion ya tienen
   adopción. No se reinician como tareas pendientes.
 - Tablas: 23 instancias identificadas originalmente; Facturas, las dos tablas
-  de Administración y las tres de listados paginados usan Table. Quedan 17
-  instancias de ese inventario por evaluar. Las siete tablas desplegables de
-  datos de charts son adiciones, no parte del conteo original.
+  de Administración, las tres de listados paginados, cinco de Peaje/Mantenimiento
+  y cinco de Asignación/Optimizador usan Table. Quedan siete instancias de ese
+  inventario por evaluar. Las siete tablas desplegables de datos de charts son
+  adiciones, no parte del conteo original.
 - Charts: las siete gráficas usan FlowChart: cuatro barras y tres líneas.
   Los siete marcos usan WidgetFrame; vacíos y leyendas consumen Flow. Las líneas
   y barras añaden datos exactos mediante Accordion + Table, sin ordenamiento
@@ -30,13 +31,28 @@ comportamientos del producto.
   una medida de finalización ni el objetivo del plan; el inventario explica el
   alcance del escaneo CSS y las limitaciones de interpretar estos conteos.
 
-**Implementación actual:** E0/E1 de Facturas y E2.1 de Administración están
-publicadas. E2.2 queda cerrada visual y funcionalmente en local para Vehículos,
-Conductores y Medios de pago: Table, tarjetas y controles Flow, roles de datos
-y composición de la banda Dev revisados; filtros y layout responsive validados.
-El lote permanece sin commit ni publicación. E2.3 sigue pendiente; no activar
-compact global, sustituir todo por DataTable ni modificar Flow sin una
-necesidad transversal comprobada.
+**Implementación actual:** E0/E1 de Facturas, E2.1 de Administración y E2.2 de
+Vehículos, Conductores y Medios de pago están publicadas. E2.3 y E2.4 quedan
+migradas y validadas localmente. E2.3 cubre Peaje y Mantenimiento: las tablas de
+TAGs, asignación de políticas, saldos, movimientos y órdenes usan Table; resumen
+y acciones usan primitives Flow; se conservan estados, búsqueda/filtros,
+asignación y operaciones. E2.4 cubre AssignmentsTable, ranking de estaciones,
+transiciones de control volumétrico, detalle de cargas e historial de envíos.
+Las cinco usan Table sin añadir orden ni paginación; se conservan los filtros,
+acciones, selección visual, y la paginación de producto que ya existe. La
+validación incluye pruebas focalizadas, build y recorridos en navegador. Se
+mantienen nativos los campos numéricos de recarga automática para preservar
+`min`/`step`, no publicados por el tipo de Input beta.10. E2.3/E2.4 no están
+commit/push. No activar compact global, sustituir todo por DataTable ni
+modificar Flow sin una necesidad transversal comprobada.
+La revisión móvil encontró y corrigió que los nombres accesibles ocultos de los
+Select de asignación vivían en celdas fuera del scrollport. Su posicionamiento
+absoluto elevaba el `scrollWidth` del documento a 542 px con viewport de 390 px,
+aunque el body permanecía ajustado. Los nombres ahora se anclan en la primera
+celda de cada fila y `aria-labelledby` se conserva. En navegador, el documento
+mide 390 px mientras la tabla mantiene 1432 px de ancho dentro de su scrollport
+de 308 px. No se fijan anchos de columna: esa alternativa las reducía a unos
+51 px y las hacía ilegibles.
 
 ### Corrección posterior: alturas gobernadas por density
 
@@ -393,9 +409,9 @@ El orden de candidatos puede ajustarse si el contrato medido revela riesgos.
 | Lote | Superficies candidatas | Implementación y comportamiento a preservar | Puerta de salida |
 |---|---|---|---|
 | E2.1 Administración · publicado en `261d499` | Usuarios y Parámetros | Table para estructura/estilo; conserva invitaciones, permisos, catálogos, switches, validaciones y edición de registros. Sin selección masiva nueva. | Datos/acciones y nombres accesibles iguales; abrir, confirmar y cancelar edición sin regresión. |
-| E2.2 Listados paginados · local | Conductores, Vehículos y Medios de pago | Table recibe solo las filas de la página actual; el producto conserva búsqueda, filtros, `usePagination` y `Pagination` existentes. No se activa sorting, selección ni paginación interna. | Probar filtro desde una página posterior, resultado vacío, última página y acción sobre la fila correcta. |
-| E2.3 Peaje y mantenimiento | TAGs, reglas, saldos y órdenes | Conservar estados, asignaciones, topes, edición/activación y transiciones de servicio. Mapear importes/IDs/estados a roles. | Pruebas de las operaciones de dominio afectadas y comprobación visual por estado. |
-| E2.4 Asignación y optimizador | AssignmentsTable, dos tablas de GasOptimizerPage y tablas de LoadDetail | Preservar Select por unidad, medidores, recomendaciones, detalles y paginación. Evaluar DataTable solo donde coordine un flujo ya existente. | Edición/acción no dispara otra interacción de fila; cifras y recomendación intactas. |
+| E2.2 Listados paginados · publicado en `b01696f` | Conductores, Vehículos y Medios de pago | Table recibe solo las filas de la página actual; el producto conserva búsqueda, filtros, `usePagination` y `Pagination` existentes. No se activa sorting, selección ni paginación interna. | Probar filtro desde una página posterior, resultado vacío, última página y acción sobre la fila correcta. |
+| E2.3 Peaje y mantenimiento · local | TAGs, reglas, saldos y órdenes | Table para TAGs, asignaciones, saldos, movimientos y órdenes. Conserva estados, asignaciones, topes, edición/activación y transiciones de servicio. Campos numéricos de recarga mantienen `min`/`step` nativos por límite tipado de Input. | 8 pruebas focalizadas y build; en navegador se validan bloqueo/desbloqueo, filtros, asignación, recarga, pausa/reactivación y apertura de orden sin guardar. A 390 px, el documento permanece en 390 px; las tablas mantienen scroll horizontal propio. Nombres accesibles de asignación fuera del scrollport reubicados en la primera celda. |
+| E2.4 Asignación y optimizador · local | AssignmentsTable, ranking y transiciones de GasOptimizerPage, detalle de cargas e historial de envíos en LoadDetail | Table para cinco superficies; conserva Select por unidad, medidores, recomendación seleccionada, métricas, acciones manuales, historial vacío y paginación existente. No añade orden ni paginación integrada. | 2 pruebas SSR de AssignmentsTable y 35 regresiones de dominio del optimizador; build. En navegador: 8 asignaciones, 15 estaciones, 4 transiciones y 25 cargas por página; la selección sigue abriendo el panel sin añadir clic a la fila. En móvil, el documento conserva el ancho del viewport y las asignaciones mantienen scroll interno. |
 | E2.5 Actividad e historial | ActivitySection, movimientos de peaje e historial de envíos | Mantener comparación por columnas y «Ver más/menos» donde exista. No convertir un historial tabular en feed por nombre de pattern. | Mismo alcance temporal, agrupación, expansión e identidad de registros. |
 | E2.6 Tablas en overlays y previews | BulkUploadDialog, ReceiptDialog, SimulationDialog, StationNetworkDialog y DynamicReportBuilder | Preservar volumen, edición de estaciones, importación CSV, semántica del recibo y preview sin filas. No imponer el layout de una página completa. | Foco/teclado dentro del diálogo, scroll contenido y datos/validación sin pérdida. |
 

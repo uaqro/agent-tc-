@@ -84,35 +84,9 @@
   overflow: hidden;
 }
 
-.maintenance__scroll {
-  overflow-x: auto;
-}
-
-.maintenance__table {
-  width: 100%;
-  min-width: 620px;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.maintenance__table th,
-.maintenance__table td {
-  padding: 11px 18px;
-  text-align: left;
-  border-bottom: 1px solid var(--tc-local-border-subtle);
-  vertical-align: middle;
-}
-
-.maintenance__table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.maintenance__table th {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--tc-local-text-muted);
+.maintenance__data {
+  font: var(--type-data-sm);
+  color: var(--text-primary);
 }
 
 .maintenance__strong {
