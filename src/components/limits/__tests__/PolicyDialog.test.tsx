@@ -50,6 +50,12 @@ describe('PolicyDialog', () => {
     expect(html).toContain('aria-labelledby="policy-station-network-label"');
     expect(html).toContain('Red de estaciones configurada');
     expect(html).toContain('Corredor Norte');
+    expect(html).toContain('class="AxPcdq_input"');
+    expect(html).toContain('Solicitar la placa');
+    expect(html).toContain('Validar rendimiento (km/L)');
+    expect(html).toContain('El rendimiento esperado se toma de la configuración de cada vehículo.');
+    expect(html).toContain('Restringir a una red de estaciones personalizada');
+    expect(html).toContain('Limitar a la capacidad del tanque registrada en cada vehículo');
     expect(html).not.toContain('<select');
   });
 });

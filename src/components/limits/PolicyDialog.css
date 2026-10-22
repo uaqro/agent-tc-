@@ -73,8 +73,7 @@
   margin-top: 10px;
 }
 
-.policy-form__checks label,
-.policy-form__switch {
+.policy-form__checks label {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -88,11 +87,6 @@
 
 .policy-form__checks label:hover {
   background: var(--tc-local-surface-sunken);
-}
-
-.policy-form__switch {
-  margin-top: 8px;
-  padding-left: 0;
 }
 
 .policy-form__warning {
@@ -300,16 +294,6 @@
 .policy-form__optional > input:focus-visible {
   outline: 2px solid var(--brand-blue);
   outline-offset: 1px;
-}
-
-.policy-form__switch {
-  flex-wrap: nowrap;
-  line-height: 1.5;
-}
-
-.policy-form__switch input[type='checkbox'],
-.policy-form__checks input[type='checkbox'] {
-  flex-shrink: 0;
 }
 
 .policy-form__days {

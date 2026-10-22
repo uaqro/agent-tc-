@@ -1,5 +1,5 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
-import { Select, Table, WidgetFrame, type GridColumn } from '@er-mobility-mx/design-system';
+import { Checkbox, Select, Table, WidgetFrame, type GridColumn } from '@er-mobility-mx/design-system';
 import { ApiCoverageBanner } from '../../components/api/ApiCoverage';
 import { BarChart } from '../../components/charts/BarChart';
 import { EmptyChart } from '../../components/charts/EmptyChart';
@@ -264,14 +264,13 @@ export function GasOptimizerPage({ onNotice, onApplyInLimits }: GasOptimizerPage
             onChange={(event) => setAssumptions((current) => sanitizeAssumptions({ ...current, kmPerLiter: Number(event.target.value) }))}
           />
         </label>
-        <label className="optimizer__check">
-          <input
-            type="checkbox"
+        <div className="optimizer__check">
+          <Checkbox
             checked={assumptions.roundTrip}
-            onChange={(event) => setAssumptions((current) => ({ ...current, roundTrip: event.target.checked }))}
+            label="Desvío de ida y vuelta"
+            onChange={(roundTrip) => setAssumptions((current) => ({ ...current, roundTrip }))}
           />
-          Desvío de ida y vuelta
-        </label>
+        </div>
       </section>
 
       <section className="intel-kpis" aria-label="Indicadores del optimizador">

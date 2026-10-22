@@ -627,6 +627,17 @@ separados después de cerrar el piloto, sin mezclarlo con E1.
 - La selección individual de unidades en `UnitSelector` ahora usa `Checkbox`
   de Flow, con placa, identificador y conductor visibles/accesibles. El
   inventario baja a 34 inputs nativos y 20 casillas en 10 módulos.
+- Las opciones de filtros geográficos de `StationMap` también usan
+  `Checkbox` de Flow; cada marca y ubicación mantiene su etiqueta accesible y
+  la selección sigue reflejándose en los filtros del mapa. El inventario baja a
+  33 inputs nativos y 19 casillas en 10 módulos.
+- Las casillas de `PolicyDialog` ahora usan `Checkbox` de Flow, incluidas
+  activaciones de límites, controles dependientes y selecciones de grupos. Se
+  conservan sus etiquetas, descripciones y transiciones; queda una casilla
+  nativa en el proyecto, y el inventario registra 15 inputs en 8 módulos.
+- La casilla de supuesto «Desvío de ida y vuelta» de `GasOptimizerPage` también
+  usa `Checkbox` de Flow y conserva su estado controlado. No quedan casillas
+  nativas; el inventario baja a 14 inputs nativos en 8 módulos.
 - Preservar `min`, `max`, `step`, atributos ARIA, autorrelleno y validación.
   Reenvío en runtime no resuelve una API TypeScript incompatible.
 - Para atributos necesarios no publicados, documentar la brecha y evaluar su

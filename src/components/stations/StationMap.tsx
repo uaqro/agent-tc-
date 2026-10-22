@@ -6,6 +6,7 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import { Checkbox } from '@er-mobility-mx/design-system';
 import { MapPinIcon, PencilIcon, PlusIcon } from '../icons/Icons';
 import { networkStations, stationBrands, stationFuelTypes, stationLocations, type NetworkStation } from '../../data/stationNetworks';
 import { formatCount } from '../../utils/format';
@@ -62,10 +63,12 @@ function MultiSelectFilter({ label, values, selected, onChange }: {
     <summary>{label}<span>{selected.length ? selected.length : 'Todos'}</span></summary>
     <div className="station-map__filter-options">
       {selected.length > 0 && <button type="button" className="station-map__filter-clear" onClick={() => onChange([])}>Limpiar selección</button>}
-      {values.map((value) => <label key={value}>
-        <input type="checkbox" checked={selected.includes(value)} onChange={() => toggleValue(value)} />
-        <span>{value}</span>
-      </label>)}
+      {values.map((value) => <Checkbox
+        key={value}
+        checked={selected.includes(value)}
+        label={value}
+        onChange={() => toggleValue(value)}
+      />)}
     </div>
   </details>;
 }
