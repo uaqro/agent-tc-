@@ -9,6 +9,7 @@
  * time and holds no target.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Select } from '@er-mobility-mx/design-system';
 import { can } from '../../data/access';
 import { clientAccount, clientOrgTree, scopeLabel } from '../../data/client';
 import { reportPrincipal, reportScopeOptions } from '../../data/consolidatedReport';
@@ -50,6 +51,8 @@ const money = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN
 const decimal = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 0 });
 
 const seconds = (ms: number): string => (ms / 1000).toFixed(ms < 1000 ? 2 : 1);
+const isReportType = (value: string): value is ReportType => REPORT_TYPES.some((candidate) => candidate.id === value);
+const isScopeKind = (value: string): value is ScopeKind => SCOPE_KINDS.some((candidate) => candidate === value);
 
 export function ConsolidatedReportPanel() {
   const principal = sessionPrincipal();
@@ -112,34 +115,42 @@ export function ConsolidatedReportPanel() {
 
       <div className="consolidated__form">
         <label className="policy-form__field">
-          <span>Tipo de reporte</span>
-          <select value={type} disabled={generating} onChange={(event) => setType(event.target.value as ReportType)}>
-            {REPORT_TYPES.map((candidate) => (
-              <option key={candidate.id} value={candidate.id}>
-                {candidate.label}
-              </option>
-            ))}
-          </select>
-          <small>{typeSpec.description}</small>
+          <span id="consolidated-report-type-label">Tipo de reporte</span>
+          <Select
+            id="consolidated-report-type"
+            aria-labelledby="consolidated-report-type-label"
+            aria-describedby="consolidated-report-type-description"
+            options={REPORT_TYPES.map((candidate) => ({ value: candidate.id, label: candidate.label }))}
+            value={type}
+            disabled={generating}
+            onChange={(next) => {
+              if (isReportType(next)) setType(next);
+            }}
+          />
+          <small id="consolidated-report-type-description">{typeSpec.description}</small>
         </label>
 
         <label className="policy-form__field">
-          <span>Alcance</span>
-          <select
+          <span id="consolidated-report-scope-label">Alcance</span>
+          <Select
+            id="consolidated-report-scope"
+            aria-labelledby="consolidated-report-scope-label"
+            aria-describedby="consolidated-report-scope-description"
+            options={SCOPE_KINDS.map((candidate) => ({
+              value: candidate,
+              label: candidate === 'cuenta' && principal.scopeNodeId !== null
+                ? `Todo ${scopeLabel(principal.scopeNodeId)}`
+                : SCOPE_LABELS[candidate],
+            }))}
             value={kind}
             disabled={generating}
-            onChange={(event) => {
-              setKind(event.target.value as ScopeKind);
+            onChange={(next) => {
+              if (!isScopeKind(next)) return;
+              setKind(next);
               setValue('');
             }}
-          >
-            {SCOPE_KINDS.map((candidate) => (
-              <option key={candidate} value={candidate}>
-                {candidate === 'cuenta' && principal.scopeNodeId !== null ? `Todo ${scopeLabel(principal.scopeNodeId)}` : SCOPE_LABELS[candidate]}
-              </option>
-            ))}
-          </select>
-          <small>
+          />
+          <small id="consolidated-report-scope-description">
             {principal.scopeNodeId === null
               ? clientAccount.name
               : `Tu usuario está acotado a ${scopeLabel(principal.scopeNodeId)}: el reporte no sale de ahí.`}
@@ -148,39 +159,40 @@ export function ConsolidatedReportPanel() {
 
         {kind !== 'cuenta' && (
           <label className="policy-form__field">
-            <span>{SCOPE_LABELS[kind]}</span>
-            <select value={value} disabled={generating} onChange={(event) => setValue(event.target.value)}>
-              <option value="" disabled>
-                Elige {SCOPE_LABELS[kind].toLowerCase()} · {decimal.format(options.length)} opciones
-              </option>
-              {options.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                  {option.hint ? ` · ${option.hint}` : ''}
-                </option>
-              ))}
-            </select>
+            <span id="consolidated-report-value-label">{SCOPE_LABELS[kind]}</span>
+            <Select
+              id="consolidated-report-value"
+              aria-labelledby="consolidated-report-value-label"
+              options={options.map((option) => ({
+                value: option.value,
+                label: `${option.label}${option.hint ? ` · ${option.hint}` : ''}`,
+              }))}
+              value={value}
+              placeholder={`Elige ${SCOPE_LABELS[kind].toLowerCase()} · ${decimal.format(options.length)} opciones`}
+              disabled={generating}
+              onChange={(next) => {
+                if (options.some((option) => option.value === next)) setValue(next);
+              }}
+            />
           </label>
         )}
 
         <label className="policy-form__field">
-          <span>Periodo</span>
-          <select
+          <span id="consolidated-report-period-label">Periodo</span>
+          <Select
+            id="consolidated-report-period"
+            aria-labelledby="consolidated-report-period-label"
+            aria-describedby="consolidated-report-period-description"
+            options={PERIOD_SHORTCUTS.map((period) => ({ value: period.id, label: period.label }))}
             value={shortcut}
+            placeholder="Rango de fechas"
             disabled={generating}
-            onChange={(event) => {
-              const period = PERIOD_SHORTCUTS.find((candidate) => candidate.id === event.target.value);
+            onChange={(next) => {
+              const period = PERIOD_SHORTCUTS.find((candidate) => candidate.id === next);
               if (period) setRange({ from: period.from, to: period.to });
             }}
-          >
-            <option value="">Rango de fechas</option>
-            {PERIOD_SHORTCUTS.map((period) => (
-              <option key={period.id} value={period.id}>
-                {period.label}
-              </option>
-            ))}
-          </select>
-          <small>Datos disponibles {rangeText(COVERAGE.from, COVERAGE.to)}.</small>
+          />
+          <small id="consolidated-report-period-description">Datos disponibles {rangeText(COVERAGE.from, COVERAGE.to)}.</small>
         </label>
 
         <div className="consolidated__dates">

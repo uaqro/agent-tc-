@@ -582,6 +582,21 @@ separados después de cerrar el piloto, sin mezclarlo con E1.
   y conductor, y «Sin conductor asignado». Conserva valores «todos», opciones
   dependientes y etiquetas accesibles; el inventario baja de 15 a 6 `<select>`
   nativos y de 4 a 3 módulos.
+- `ConsolidatedReportPanel` usa `Select` de Flow para tipo, alcance, entidad y
+  atajo de periodo. Conserva las opciones limitadas por sesión, el reinicio de
+  entidad al cambiar alcance, el placeholder y el bloqueo durante la generación;
+  las fechas nativas mantienen sus límites `min`/`max`. El inventario baja de
+  6 a 2 `<select>` nativos y de 3 a 2 módulos.
+- `PolicyDialog` usa `Select` de Flow para asociar una red de estaciones a una
+  política. Conserva la etiqueta, el placeholder, los nombres/modos/recuentos
+  de redes y solo acepta IDs configurados; al desactivar la restricción sigue
+  guardándose `null`. El inventario baja de 2 a 1 `<select>` nativo y de 2 a 1
+  módulos.
+- Se conserva el selector nativo de `DevMode`: divide las opciones con grupos
+  visibles «Usuarios del portal» e «Internos de Edenred · solo Dev». Aunque el
+  tipo `SelectOption` beta.10 declara `group`, la implementación publicada no
+  consume esa propiedad; migrarlo hoy quitaría una distinción funcional. Queda
+  como excepción comprobable hasta que Flow exponga agrupación real.
 - Preservar `min`, `max`, `step`, atributos ARIA, autorrelleno y validación.
   Reenvío en runtime no resuelve una API TypeScript incompatible.
 - Para atributos necesarios no publicados, documentar la brecha y evaluar su

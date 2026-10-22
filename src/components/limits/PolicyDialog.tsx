@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Select } from '@er-mobility-mx/design-system';
 import type { LimitMeasure, LimitPeriod, LimitPolicy, PeriodRestriction, PolicySettings, TransactionControls } from '../../types/limits';
 import { PERIOD_META, assignableGroups, emptyPolicy, policyForGroup, policySettings } from '../../data/limits';
 import { useFuelPolicies } from '../../data/FuelPolicyContext';
@@ -268,11 +269,20 @@ export function PolicyDialog({ policy, policies, onClose, onSave }: PolicyDialog
             Restringir a una red de estaciones personalizada
           </label>
           {networkRequired && <label className="policy-form__field">
-            <span>Red de estaciones configurada</span>
-            <select value={draft.stationSubnetId ?? ''} onChange={(event) => patch({ stationSubnetId: event.target.value || null })}>
-              <option value="">Selecciona una red</option>
-              {networks.map((network) => <option key={network.id} value={network.id}>{network.name} · {networkModeLabel(network.mode)} · {formatCount(network.stationIds.length)} estaciones</option>)}
-            </select>
+            <span id="policy-station-network-label">Red de estaciones configurada</span>
+            <Select
+              id="policy-station-network"
+              aria-labelledby="policy-station-network-label"
+              options={networks.map((network) => ({
+                value: network.id,
+                label: `${network.name} · ${networkModeLabel(network.mode)} · ${formatCount(network.stationIds.length)} estaciones`,
+              }))}
+              value={draft.stationSubnetId ?? ''}
+              placeholder="Selecciona una red"
+              onChange={(value) => {
+                if (networks.some((network) => network.id === value)) patch({ stationSubnetId: value });
+              }}
+            />
           </label>}
           {networkRequired && networks.length === 0 && <p className="policy-form__hint">No hay redes configuradas. Crea una en Red de estaciones personalizadas.</p>}
         </div>
