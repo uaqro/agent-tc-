@@ -608,6 +608,10 @@ separados después de cerrar el piloto, sin mezclarlo con E1.
 - El nombre de política de `PolicyDialog` ahora usa `Input` de Flow; el estilo
   local sigue limitado a los controles nativos del formulario. El inventario
   baja a 43 entradas, con 3 campos de texto nativos restantes por revisar.
+- Los dos campos horarios de `ScheduleEditor` ahora usan `Input` de Flow con
+  `type="time"`. Se conservan los nombres accesibles, los valores controlados y
+  la validación de rangos; el inventario baja a 41 entradas nativas en 12
+  módulos y ya no quedan campos horarios nativos.
 - Preservar `min`, `max`, `step`, atributos ARIA, autorrelleno y validación.
   Reenvío en runtime no resuelve una API TypeScript incompatible.
 - Para atributos necesarios no publicados, documentar la brecha y evaluar su

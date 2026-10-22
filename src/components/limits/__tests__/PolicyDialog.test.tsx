@@ -5,12 +5,29 @@ import { limitPolicies } from '../../../data/limits';
 import { seedStationNetworks } from '../../../data/stationNetworks';
 import { FuelPolicyProvider } from '../../../data/FuelPolicyContext';
 import { PolicyDialog } from '../PolicyDialog';
+import { ScheduleEditor } from '../ScheduleEditor';
 
 vi.mock('../../ui/Modal', () => ({
   Modal: ({ children }: { children: ReactNode }) => createElement('div', null, children),
 }));
 
 describe('PolicyDialog', () => {
+  it('renders accessible Flow time inputs for schedule ranges', () => {
+    const html = renderToStaticMarkup(
+      createElement(ScheduleEditor, {
+        blocks: [{ days: [1], ranges: [{ from: '08:30', to: '17:45' }] }],
+        onChange: () => undefined,
+      }),
+    );
+
+    expect(html).toContain('type="time"');
+    expect(html).toContain('aria-label="Horario 1 · rango 1 desde"');
+    expect(html).toContain('aria-label="Horario 1 · rango 1 hasta"');
+    expect(html).toContain('value="08:30"');
+    expect(html).toContain('value="17:45"');
+    expect(html).not.toContain('class="schedule__range"><input');
+  });
+
   it('renders the configured station-network selector with an accessible label', () => {
     const policy = { ...limitPolicies[0]!, stationSubnetId: seedStationNetworks[0]!.id };
     const html = renderToStaticMarkup(
