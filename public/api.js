@@ -7,6 +7,25 @@ export function apiUrl(path) {
 }
 
 const DEVICE_KEY = "damian.device";
+// sessionStorage: el token de administrador se olvida al cerrar la pestaña.
+const ADMIN_KEY = "damian.admin";
+
+export function getAdminToken() {
+  try {
+    return sessionStorage.getItem(ADMIN_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function setAdminToken(token) {
+  try {
+    if (token) sessionStorage.setItem(ADMIN_KEY, token);
+    else sessionStorage.removeItem(ADMIN_KEY);
+  } catch {
+    // Sin almacenamiento: el acceso de administrador no se conserva.
+  }
+}
 
 /** Identificador anónimo y aleatorio de este navegador (para contar dispositivos). */
 function deviceId() {
@@ -25,6 +44,8 @@ function deviceId() {
 export function apiFetch(path, options = {}) {
   const headers = new Headers(options.headers ?? {});
   headers.set("X-Device-Id", deviceId());
+  const token = getAdminToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
   return fetch(apiUrl(path), { ...options, headers });
 }
 

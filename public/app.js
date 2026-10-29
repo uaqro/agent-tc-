@@ -1,4 +1,4 @@
-import { apiFetch, trackVisit } from "./api.js";
+import { apiFetch, getAdminToken, setAdminToken, trackVisit } from "./api.js";
 import { renderMarkdown } from "./markdown.js";
 import { openLibrary } from "./library.js";
 import { downloadLink, openMaterials, setMaterialsAdmin } from "./materials.js";
@@ -23,7 +23,22 @@ const el = {
   sidebar: document.getElementById("sidebar"),
   toggleSidebar: document.getElementById("toggle-sidebar"),
   closeSidebar: document.getElementById("close-sidebar"),
+  themeToggle: document.getElementById("theme-toggle"),
+  adminAccess: document.getElementById("admin-access"),
+  adminAccessLabel: document.getElementById("admin-access-label"),
+  adminModal: document.getElementById("admin-modal"),
+  adminForm: document.getElementById("admin-form"),
+  adminToken: document.getElementById("admin-token"),
+  adminError: document.getElementById("admin-error"),
 };
+
+function icon(name) {
+  const node = document.createElement("span");
+  node.className = "flow-symbol";
+  node.setAttribute("aria-hidden", "true");
+  node.textContent = name;
+  return node;
+}
 
 let conversations = load();
 let activeId = conversations[0]?.id ?? null;
@@ -77,7 +92,10 @@ function renderSidebar() {
     const open = document.createElement("button");
     open.type = "button";
     open.className = "conv-title";
-    open.textContent = conversation.title;
+    open.append(icon("chat_bubble"));
+    const label = document.createElement("span");
+    label.textContent = conversation.title;
+    open.append(label);
     open.addEventListener("click", () => {
       if (streaming) return;
       activeId = conversation.id;
@@ -88,8 +106,9 @@ function renderSidebar() {
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "conv-delete";
-    remove.textContent = "×";
+    remove.append(icon("delete"));
     remove.title = "Eliminar conversación";
+    remove.setAttribute("aria-label", "Eliminar conversación");
     remove.addEventListener("click", async (event) => {
       event.stopPropagation();
       if (streaming) return;
@@ -115,7 +134,7 @@ function messageNode(role) {
   let avatar;
   if (role === "user") {
     avatar = document.createElement("div");
-    avatar.textContent = "TÚ";
+    avatar.append(icon("person"));
   } else {
     avatar = document.createElement("img");
     avatar.src = "assets/damian-avatar.webp";
@@ -137,7 +156,7 @@ function renderDownloads(bubble, downloads) {
   container.className = "sources downloads";
   const label = document.createElement("span");
   label.className = "sources-label";
-  label.textContent = "Descargar PDF:";
+  label.textContent = "Descargar PDF";
   container.appendChild(label);
   for (const item of downloads) container.appendChild(downloadLink(item));
   bubble.appendChild(container);
@@ -231,7 +250,7 @@ async function send(text) {
 
     for await (const event of sseEvents(response)) {
       if (event.type === "tool") {
-        toolChip.textContent = `🔎 consultando ${event.name}`;
+        toolChip.replaceChildren(icon("search"), document.createTextNode(`Consultando ${event.name}`));
         if (!toolChip.isConnected) bubble.prepend(toolChip);
       } else if (event.type === "token") {
         answer += event.text;
@@ -259,7 +278,7 @@ async function send(text) {
     toolChip.remove();
     const message = document.createElement("p");
     message.className = "error-text";
-    message.textContent = `⚠️ ${error.message}`;
+    message.append(icon("warning"), document.createTextNode(error.message));
     body.replaceChildren(message);
   } finally {
     setStreaming(false);
@@ -298,8 +317,68 @@ async function refreshStatus() {
 function applyRole(me) {
   el.openLibrary.hidden = !me.is_admin;
   el.reindex.hidden = !me.is_admin;
+  el.adminAccessLabel.textContent = me.is_admin ? "Salir de administrador" : "Acceso administrador";
   setMaterialsAdmin(me.is_admin);
 }
+
+/* ---------- Acceso administrador ---------- */
+
+function closeAdmin() {
+  el.adminModal.hidden = true;
+  el.adminToken.value = "";
+  el.adminError.hidden = true;
+}
+
+el.adminAccess.addEventListener("click", async () => {
+  if (getAdminToken()) {
+    setAdminToken("");
+    await refreshStatus();
+    return;
+  }
+  el.adminModal.hidden = false;
+  el.adminToken.focus();
+});
+
+el.adminForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setAdminToken(el.adminToken.value.trim());
+  const me = await refreshStatus();
+  if (me?.is_admin) {
+    closeAdmin();
+    closeSidebarOnMobile();
+    return;
+  }
+  setAdminToken("");
+  el.adminError.textContent = "Token inválido o ADMIN_TOKEN no configurado en Netlify.";
+  el.adminError.hidden = false;
+});
+
+for (const node of el.adminModal.querySelectorAll("[data-close-admin]")) {
+  node.addEventListener("click", closeAdmin);
+}
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !el.adminModal.hidden) closeAdmin();
+});
+
+/* ---------- Tema (data-mode de Flow) ---------- */
+
+function renderThemeToggle() {
+  const dark = document.documentElement.dataset.mode === "dark";
+  el.themeToggle.replaceChildren(icon(dark ? "light_mode" : "dark_mode"));
+  el.themeToggle.setAttribute("aria-label", dark ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+}
+
+el.themeToggle.addEventListener("click", () => {
+  const mode = document.documentElement.dataset.mode === "dark" ? "light" : "dark";
+  document.documentElement.dataset.mode = mode;
+  try {
+    localStorage.setItem("damian.mode", mode);
+  } catch {
+    // Sin almacenamiento: el modo dura lo que la página.
+  }
+  renderThemeToggle();
+});
+renderThemeToggle();
 
 /* ---------- Eventos ---------- */
 
@@ -329,7 +408,7 @@ el.input.addEventListener("input", autoGrow);
 el.suggestions.addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button || streaming) return;
-  send(button.textContent.trim());
+  send(button.querySelector("span:not(.flow-symbol)").textContent.trim());
 });
 
 el.newChat.addEventListener("click", () => {

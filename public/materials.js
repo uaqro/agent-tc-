@@ -29,7 +29,11 @@ export function downloadLink(item, label = item.title) {
   button.type = "button";
   button.className = "download-chip";
   button.title = item.name;
-  button.textContent = `⬇ ${label}`;
+  const icon = document.createElement("span");
+  icon.className = "flow-symbol";
+  icon.setAttribute("aria-hidden", "true");
+  icon.textContent = "download";
+  button.append(icon, document.createTextNode(label));
   button.addEventListener("click", async () => {
     button.disabled = true;
     try {
@@ -75,11 +79,15 @@ function render() {
     const info = document.createElement("div");
     info.className = "material-info";
     const title = document.createElement("strong");
-    title.textContent = `📕 ${item.title}`;
+    title.textContent = item.title;
     const meta = document.createElement("span");
     meta.textContent = `${item.name} · ${formatSize(item.size)}`;
     info.append(title, meta);
-    row.append(info, downloadLink(item, "Descargar"));
+    const fileIcon = document.createElement("span");
+    fileIcon.className = "flow-symbol material-icon";
+    fileIcon.setAttribute("aria-hidden", "true");
+    fileIcon.textContent = "picture_as_pdf";
+    row.append(fileIcon, info, downloadLink(item, "Descargar"));
     el.list.appendChild(row);
   }
 }

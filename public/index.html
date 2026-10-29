@@ -7,47 +7,70 @@
     <meta name="description" content="DamIAn, el asistente de operación del portal Ticket Car+." />
     <link rel="icon" type="image/png" href="assets/damian-favicon.png" />
     <link rel="apple-touch-icon" href="assets/damian-apple-touch.png" />
+    <script src="theme.js"></script>
+    <link rel="stylesheet" href="fonts/selfhost.css" />
+    <link rel="stylesheet" href="vendor/flow/flow-foundations.css" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="app" id="app">
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-top">
-          <button class="new-chat" id="new-chat" type="button">
-            <span class="plus">+</span> Nueva conversación
+          <button class="button button--primary new-chat" id="new-chat" type="button">
+            <span class="flow-symbol" aria-hidden="true">add</span> Nueva conversación
           </button>
-          <button class="icon-button sidebar-close" id="close-sidebar" type="button" aria-label="Cerrar menú">✕</button>
+          <button class="icon-button sidebar-close" id="close-sidebar" type="button" aria-label="Cerrar menú">
+            <span class="flow-symbol" aria-hidden="true">close</span>
+          </button>
         </div>
+        <p class="nav-label">Conversaciones</p>
         <nav class="conversations" id="conversations" aria-label="Conversaciones"></nav>
         <div class="sidebar-bottom">
-          <button class="ghost-button" id="open-materials" type="button">📕 Guías PDF</button>
-          <a class="ghost-button" href="/backoffice.html">📊 Backoffice</a>
-          <button class="ghost-button" id="open-library" type="button">📚 Base de conocimiento</button>
-          <button class="ghost-button" id="reindex" type="button">Publicar guías</button>
+          <button class="nav-item" id="open-materials" type="button">
+            <span class="flow-symbol" aria-hidden="true">picture_as_pdf</span> Guías PDF
+          </button>
+          <a class="nav-item" href="/backoffice.html">
+            <span class="flow-symbol" aria-hidden="true">bar_chart</span> Backoffice
+          </a>
+          <button class="nav-item" id="open-library" type="button">
+            <span class="flow-symbol" aria-hidden="true">menu_book</span> Base de conocimiento
+          </button>
+          <button class="nav-item" id="reindex" type="button">
+            <span class="flow-symbol" aria-hidden="true">publish</span> Publicar guías
+          </button>
+          <button class="nav-item" id="admin-access" type="button">
+            <span class="flow-symbol" aria-hidden="true">admin_panel_settings</span>
+            <span id="admin-access-label">Acceso administrador</span>
+          </button>
           <div class="status" id="status">Comprobando...</div>
         </div>
       </aside>
 
       <main class="main">
         <header class="topbar">
-          <button class="icon-button" id="toggle-sidebar" type="button" aria-label="Alternar menú">☰</button>
-          <img class="brand-avatar" src="assets/damian-avatar.webp" alt="" width="34" height="34" />
+          <button class="icon-button" id="toggle-sidebar" type="button" aria-label="Alternar menú">
+            <span class="flow-symbol" aria-hidden="true">menu</span>
+          </button>
+          <img class="brand-avatar" src="assets/damian-avatar.webp" alt="" width="36" height="36" />
           <div class="title">
             <strong class="brand-name">Dam<span class="ia">IA</span>n</strong>
             <span>Asistente de operación del portal Ticket Car+</span>
           </div>
+          <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Cambiar a modo oscuro">
+            <span class="flow-symbol" aria-hidden="true">dark_mode</span>
+          </button>
         </header>
 
         <section class="thread" id="thread" aria-live="polite">
           <div class="welcome" id="welcome">
-            <img class="welcome-avatar" src="assets/damian-avatar-512.webp" alt="Retrato de DamIAn" width="128" height="128" />
+            <img class="welcome-avatar" src="assets/damian-avatar-512.webp" alt="Retrato de DamIAn" width="112" height="112" />
             <h1 class="brand-name">Dam<span class="ia">IA</span>n</h1>
             <p>Hola, soy DamIAn. Pregúntame cómo hacer algo en el portal <strong>Ticket Car+</strong>: te doy la ruta del menú y los pasos, según las guías oficiales.</p>
             <div class="suggestions" id="suggestions">
-              <button type="button">¿Cómo recargo saldo a varios dispositivos con un archivo?</button>
-              <button type="button">¿Cómo doy de alta un conductor?</button>
-              <button type="button">¿Cómo bloqueo una tarjeta o TAG?</button>
-              <button type="button">Quiero descargar la guía de Nota Vale en PDF</button>
+              <button type="button"><span class="flow-symbol" aria-hidden="true">upload_file</span><span>¿Cómo recargo saldo a varios dispositivos con un archivo?</span></button>
+              <button type="button"><span class="flow-symbol" aria-hidden="true">person_add</span><span>¿Cómo doy de alta un conductor?</span></button>
+              <button type="button"><span class="flow-symbol" aria-hidden="true">credit_card_off</span><span>¿Cómo bloqueo una tarjeta o TAG?</span></button>
+              <button type="button"><span class="flow-symbol" aria-hidden="true">download</span><span>Quiero descargar la guía de Nota Vale en PDF</span></button>
             </div>
           </div>
         </section>
@@ -59,8 +82,11 @@
               rows="1"
               placeholder="¿Qué quieres hacer en el portal Ticket Car+?"
               autocomplete="off"
+              aria-label="Escribe tu pregunta"
             ></textarea>
-            <button class="send" id="send" type="submit" aria-label="Enviar">➤</button>
+            <button class="send" id="send" type="submit" aria-label="Enviar">
+              <span class="flow-symbol" aria-hidden="true">arrow_upward</span>
+            </button>
           </form>
           <p class="disclaimer">Solo responde cómo operar el portal, con base en las guías oficiales. Las preguntas se guardan de forma anónima para mejorar el asistente.</p>
         </footer>
@@ -75,20 +101,26 @@
             <strong>Base de conocimiento</strong>
             <span>Consulta y edita las guías que usa el asistente</span>
           </div>
-          <button class="icon-button" type="button" data-close-library aria-label="Cerrar">×</button>
+          <button class="icon-button" type="button" data-close-library aria-label="Cerrar">
+            <span class="flow-symbol" aria-hidden="true">close</span>
+          </button>
         </header>
 
         <div class="library" id="dropzone">
           <div class="library-tree">
             <div class="tree-actions">
-              <button class="ghost-button" id="new-md" type="button">+ Nuevo .md</button>
-              <button class="ghost-button" id="upload-button" type="button" hidden>⬆ Subir documentos</button>
+              <button class="button button--secondary" id="new-md" type="button">
+                <span class="flow-symbol" aria-hidden="true">note_add</span> Nuevo .md
+              </button>
+              <button class="button button--secondary" id="upload-button" type="button">
+                <span class="flow-symbol" aria-hidden="true">upload_file</span> Subir .md
+              </button>
               <input
                 type="file"
                 id="file-input"
                 multiple
                 hidden
-                accept=".md,.markdown,.txt,.pdf,.docx"
+                accept=".md,.markdown,text/markdown"
               />
             </div>
             <div class="tree" id="tree"></div>
@@ -98,19 +130,25 @@
             <div class="editor-head">
               <span class="editor-path" id="editor-path">Ningún archivo seleccionado</span>
               <div class="editor-actions">
-                <button class="ghost-button" id="save-file" type="button" disabled>Guardar</button>
-                <button class="ghost-button danger" id="delete-file" type="button" disabled>Eliminar</button>
+                <button class="button button--secondary" id="save-file" type="button" disabled>
+                  <span class="flow-symbol" aria-hidden="true">save</span> Guardar
+                </button>
+                <button class="button button--danger" id="delete-file" type="button" disabled>
+                  <span class="flow-symbol" aria-hidden="true">delete</span> Eliminar
+                </button>
               </div>
             </div>
-            <textarea id="editor" spellcheck="false" placeholder="Selecciona un archivo .md para editarlo..." disabled></textarea>
+            <textarea id="editor" spellcheck="false" placeholder="Selecciona un archivo .md para editarlo..." disabled aria-label="Contenido de la guía"></textarea>
           </div>
 
-          <div class="drop-overlay" id="drop-overlay">Suelta los archivos para subirlos</div>
+          <div class="drop-overlay" id="drop-overlay">
+            <span class="flow-symbol" aria-hidden="true">upload_file</span> Suelta los archivos .md para subirlos
+          </div>
         </div>
 
         <footer class="modal-foot">
           <span class="status" id="library-status"></span>
-          <button class="primary-button" id="library-reindex" type="button">Guardar y publicar</button>
+          <button class="button button--primary" id="library-reindex" type="button">Guardar y publicar</button>
         </footer>
       </div>
     </div>
@@ -123,11 +161,18 @@
             <strong>Guías PDF</strong>
             <span>Materiales oficiales de operación del portal, listos para descargar</span>
           </div>
-          <button class="icon-button" type="button" data-close-materials aria-label="Cerrar">×</button>
+          <button class="icon-button" type="button" data-close-materials aria-label="Cerrar">
+            <span class="flow-symbol" aria-hidden="true">close</span>
+          </button>
         </header>
         <div class="materials-toolbar">
-          <input type="search" id="materials-filter" placeholder="Buscar guía..." autocomplete="off" />
-          <button class="ghost-button" id="materials-upload" type="button">⬆ Subir PDF</button>
+          <label class="search-field">
+            <span class="flow-symbol" aria-hidden="true">search</span>
+            <input type="search" id="materials-filter" placeholder="Buscar guía..." autocomplete="off" aria-label="Buscar guía" />
+          </label>
+          <button class="button button--secondary" id="materials-upload" type="button">
+            <span class="flow-symbol" aria-hidden="true">upload</span> Subir PDF
+          </button>
           <input type="file" id="materials-input" multiple hidden accept=".pdf,application/pdf" />
         </div>
         <div class="materials-list" id="materials-list"></div>
@@ -135,6 +180,33 @@
           <span class="status" id="materials-status"></span>
         </footer>
       </div>
+    </div>
+
+    <div class="modal" id="admin-modal" hidden>
+      <div class="modal-backdrop" data-close-admin></div>
+      <form class="modal-card admin-card" id="admin-form" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+        <header class="modal-head">
+          <div class="title">
+            <strong id="admin-title">Acceso administrador</strong>
+            <span>Habilita la carga y edición de guías y PDF</span>
+          </div>
+          <button class="icon-button" type="button" data-close-admin aria-label="Cerrar">
+            <span class="flow-symbol" aria-hidden="true">close</span>
+          </button>
+        </header>
+        <div class="admin-body">
+          <label class="field" for="admin-token">
+            <span class="field-label">Token de administrador</span>
+            <input type="password" id="admin-token" autocomplete="current-password" required />
+            <span class="field-hint">Es el valor de <code>ADMIN_TOKEN</code> configurado en Netlify. Se guarda solo en esta pestaña.</span>
+          </label>
+          <p class="status error" id="admin-error" role="alert" hidden></p>
+        </div>
+        <footer class="modal-foot">
+          <span></span>
+          <button class="button button--primary" type="submit">Entrar</button>
+        </footer>
+      </form>
     </div>
 
     <script src="app.js" type="module"></script>

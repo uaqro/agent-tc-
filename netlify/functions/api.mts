@@ -14,6 +14,7 @@
  *   POST   /api/materials              sube PDFs
  *   GET    /api/knowledge              árbol de guías
  *   GET|PUT|POST|DELETE /api/knowledge/file   leer/guardar/crear/eliminar guía
+ *   POST   /api/knowledge/upload       sube guías .md (campo opcional `folder`)
  *   POST   /api/ingest                 republica el paquete de guías
  */
 
@@ -155,15 +156,45 @@ async function readGuide(url: URL) {
   return { ...describeGuide(key, content.length), content };
 }
 
-async function createGuide(req: Request) {
-  const body = await req.json().catch(() => ({}));
-  const slug = String(body.name ?? "")
+function slugify(name: string): string {
+  return name
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
-    .replace(/\.md$/, "")
+    .replace(/\.(md|markdown)$/, "")
     .replace(/[^a-z0-9/_-]+/g, "-")
     .replace(/^[-/]+|[-/]+$/g, "");
+}
+
+async function uploadGuides(req: Request) {
+  const form = await req.formData();
+  const folder = slugify(String(form.get("folder") ?? ""));
+  const saved = [];
+  const errors: string[] = [];
+  for (const entry of form.getAll("files")) {
+    if (typeof entry === "string") continue;
+    try {
+      if (!/\.(md|markdown)$/i.test(entry.name)) throw new Error(`${entry.name}: solo se aceptan archivos .md.`);
+      const slug = slugify(entry.name.split("/").pop() ?? "");
+      if (!slug) throw new Error(`${entry.name}: nombre inválido.`);
+      const key = keyFromPath(`${folder ? `${folder}/` : ""}${slug}.md`);
+      const content = await entry.text();
+      if (content.length > MAX_GUIDE_CHARS) throw new Error(`${entry.name}: es demasiado grande.`);
+      const modified = new Date().toISOString();
+      await store().set(key, content, { metadata: { size: new TextEncoder().encode(content).byteLength, modified } });
+      saved.push(describeGuide(key, content.length, modified));
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error));
+    }
+  }
+  if (saved.length === 0 && errors.length) throw new HttpError(400, errors.join(" "));
+  if (saved.length) await buildBundle(store());
+  return { saved, errors };
+}
+
+async function createGuide(req: Request) {
+  const body = await req.json().catch(() => ({}));
+  const slug = slugify(String(body.name ?? ""));
   if (!slug) throw new HttpError(400, "Nombre de archivo inválido.");
   const key = keyFromPath(`${slug}.md`);
   if ((await store().getMetadata(key)) !== null) throw new HttpError(400, "Ya existe una guía con ese nombre.");
@@ -245,7 +276,7 @@ async function route(req: Request, context: Context): Promise<Response> {
   }
   if (path === "/api/knowledge/upload" && method === "POST") {
     requireAdmin(req);
-    throw new HttpError(400, "En esta versión solo se crean y editan guías .md desde el editor.");
+    return json(await uploadGuides(req));
   }
   if (path === "/api/ingest" && method === "POST") {
     requireAdmin(req);

@@ -18,7 +18,13 @@ const el = {
   reindex: document.getElementById("library-reindex"),
 };
 
-const ICONS = { ".md": "📄", ".markdown": "📄", ".txt": "📄", ".pdf": "📕", ".docx": "📘" };
+function icon(name) {
+  const node = document.createElement("span");
+  node.className = "flow-symbol";
+  node.setAttribute("aria-hidden", "true");
+  node.textContent = name;
+  return node;
+}
 
 let current = null;
 let dirty = false;
@@ -56,7 +62,7 @@ async function refreshTree(selectPath = current?.path ?? null) {
     const head = document.createElement("div");
     head.className = "tree-folder-head";
     const title = document.createElement("strong");
-    title.textContent = `📁 ${folder.path}`;
+    title.append(icon("folder"), document.createTextNode(folder.path));
     const count = document.createElement("span");
     count.textContent = `${folder.files.length} archivo(s)`;
     head.append(title, count);
@@ -83,7 +89,7 @@ async function refreshTree(selectPath = current?.path ?? null) {
 
       const name = document.createElement("span");
       name.className = "tree-file-name";
-      name.textContent = `${ICONS[file.extension] ?? "📎"} ${file.name}`;
+      name.append(icon("description"), document.createTextNode(file.path.replace(`${folder.path}/`, "")));
 
       const meta = document.createElement("span");
       meta.className = "tree-file-meta";
@@ -154,7 +160,12 @@ async function uploadFiles(fileList) {
   const files = Array.from(fileList ?? []);
   if (files.length === 0) return;
 
+  const suggested = current?.path.split("/").slice(2, -1).join("/") ?? "";
+  const folder = prompt("Carpeta de destino (ej. 07-preguntas-frecuentes). Vacío = raíz:", suggested);
+  if (folder === null) return;
+
   const form = new FormData();
+  form.append("folder", folder.trim());
   for (const file of files) form.append("files", file, file.name);
 
   setStatus(`Subiendo ${files.length} archivo(s)...`);
@@ -163,7 +174,8 @@ async function uploadFiles(fileList) {
     await refreshTree();
     const saved = result.saved.length;
     const errors = result.errors.length ? ` · ${result.errors.join(" ")}` : "";
-    setStatus(`${saved} archivo(s) subido(s). Reindexa para aplicarlos.${errors}`, Boolean(errors));
+    setStatus(`${saved} guía(s) subida(s) y publicada(s).${errors}`, Boolean(errors));
+    onChange();
   } catch (error) {
     setStatus(error.message, true);
   }
